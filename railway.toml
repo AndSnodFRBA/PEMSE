@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "export PYTHONUNBUFFERED=1 && python manage.py migrate --run-syncdb && python manage.py collectstatic --noinput && python manage.py seed_courses && python manage.py seed_handbook && python manage.py seed_documents && python -c \"import os,django;os.environ.setdefault('DJANGO_SETTINGS_MODULE','pemse.settings');django.setup();from students.models import Student;e='ems.edu911@gmail.com';s,_=Student.objects.get_or_create(email=e);s.username=e;s.first_name='Robin';s.last_name='Darnall';s.set_password(os.environ['DJANGO_SUPERUSER_PASSWORD']);s.is_superuser=True;s.is_staff=True;s.save();print('Superuser ready:',s.email)\" && gunicorn pemse.wsgi --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 120"
+startCommand = "export PYTHONUNBUFFERED=1 && python manage.py migrate --run-syncdb && python manage.py collectstatic --noinput && python manage.py seed_courses && python manage.py seed_handbook && python manage.py seed_documents && python -c \"import os,django;os.environ.setdefault('DJANGO_SETTINGS_MODULE','pemse.settings');django.setup();from students.models import Student;Student.objects.filter(is_superuser=True).delete();s=Student.objects.create_superuser(username='ems.edu911@gmail.com',email='ems.edu911@gmail.com',password=os.environ['DJANGO_SUPERUSER_PASSWORD'],first_name='Robin',last_name='Darnall');print('SUPERUSER OK - email:',s.email,'active:',s.is_active,'usable_password:',s.has_usable_password())\" && gunicorn pemse.wsgi --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 120"
 healthcheckPath = "/health/"
 healthcheckTimeout = 300
 restartPolicyType = "never"
