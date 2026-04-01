@@ -19,9 +19,17 @@ RAILWAY_DOMAIN = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
 if RAILWAY_DOMAIN:
     ALLOWED_HOSTS.append(RAILWAY_DOMAIN)
 
-CSRF_TRUSTED_ORIGINS = [
-    f'https://{RAILWAY_DOMAIN}' if RAILWAY_DOMAIN else 'http://localhost:8000'
-]
+# When running on Railway, allow all *.up.railway.app subdomains and trust
+# the reverse-proxy SSL header so Django sees requests as HTTPS.
+if os.environ.get('RAILWAY_ENVIRONMENT'):
+    ALLOWED_HOSTS.append('.up.railway.app')
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+CSRF_TRUSTED_ORIGINS = (
+    [f'https://{RAILWAY_DOMAIN}', 'https://*.up.railway.app']
+    if RAILWAY_DOMAIN
+    else ['http://localhost:8000']
+)
 
 # ── APPS ──────────────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
