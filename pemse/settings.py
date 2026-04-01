@@ -22,7 +22,7 @@ if RAILWAY_DOMAIN:
 # Railway injects RAILWAY_PROJECT_ID in every deployment; use it to reliably
 # detect the Railway environment regardless of env name conventions.
 if os.environ.get('RAILWAY_PROJECT_ID'):
-    ALLOWED_HOSTS.append('.up.railway.app')
+    ALLOWED_HOSTS.extend(['.up.railway.app', 'pemse-production.up.railway.app'])
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 CSRF_TRUSTED_ORIGINS = (

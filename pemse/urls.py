@@ -10,6 +10,7 @@ def health(request):
 
 
 urlpatterns = [
+    path('', health),
     path('health/', health),
     path('admin/', admin.site.urls),
     path('', include('students.urls')),
