@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Create Account — PEMSE Student Portal{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="auth-wrap">
+  <div>
+    <div class="auth-logo">
+      <img src="{% static 'images/PEMSE.jpg' %}" alt="Panhandle EMS Education"
+           class="auth-logo-img"
+           onerror="this.style.display='none';">
+      <div class="auth-logo-name">Panhandle EMS Education</div>
+      <div class="auth-logo-sub">Student Portal</div>
+    </div>
+
+    <div class="auth-card">
+      <h2 style="font-size:20px;font-weight:600;color:#2B5EA7;margin-bottom:4px;">Create your account</h2>
+      <p style="font-size:13px;color:#5a7a9a;margin-bottom:22px;">Register to begin your PEMSE enrollment for 2025.</p>
+
+      {% if form.errors %}
+        <div class="alert alert-danger mb-3" style="font-size:12px;">
+          {% for field in form %}{% for err in field.errors %}<div>{{ err }}</div>{% endfor %}{% endfor %}
+          {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label class="form-label">First name</label>
+            <input type="text" name="first_name" class="form-control" placeholder="Jane" required value="{{ form.first_name.value|default:'' }}">
+          </div>
+          <div>
+            <label class="form-label">Last name</label>
+            <input type="text" name="last_name" class="form-control" placeholder="Smith" required value="{{ form.last_name.value|default:'' }}">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Email address</label>
+          <input type="email" name="email" class="form-control" placeholder="jane@email.com" required value="{{ form.email.value|default:'' }}">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" name="password1" class="form-control" placeholder="Min. 8 characters" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Confirm password</label>
+          <input type="password" name="password2" class="form-control" placeholder="Repeat password" required>
+        </div>
+        <button type="submit" class="btn-navy w-100" style="padding:12px;background:#5B9BC8;">Create account →</button>
+      </form>
+
+      <div style="text-align:center;margin-top:18px;font-size:13px;color:#5a7a9a;">
+        Already have an account? <a href="{% url 'login' %}" style="color:#2B5EA7;font-weight:600;">Sign in</a>
+      </div>
+    </div>
+
+    <div class="auth-footer">709 Rosedale Dr., Scottsbluff, NE 69361 &nbsp;·&nbsp; Robin Darnall 308.631.2424</div>
+  </div>
+</div>
+{% endblock %}

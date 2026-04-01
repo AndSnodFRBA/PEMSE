@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Sign In — PEMSE Student Portal{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="auth-wrap">
+  <div>
+    <div class="auth-logo">
+      <img src="{% static 'images/PEMSE.jpg' %}" alt="Panhandle EMS Education"
+           class="auth-logo-img"
+           onerror="this.style.display='none';">
+      <div class="auth-logo-name">Panhandle EMS Education</div>
+      <div class="auth-logo-sub">Student Portal</div>
+    </div>
+
+    <div class="auth-card">
+      <h2 style="font-size:20px;font-weight:600;color:#2B5EA7;margin-bottom:4px;">Sign in</h2>
+      <p style="font-size:13px;color:#5a7a9a;margin-bottom:22px;">Access your enrollment, documents, and course information.</p>
+
+      {% if form.errors %}
+        <div class="alert alert-danger mb-3" style="font-size:12px;">Incorrect email or password. Please try again.</div>
+      {% endif %}
+
+      <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label">Email address</label>
+          <input type="email" name="username" class="form-control" placeholder="jane@email.com" autofocus required value="{{ form.username.value|default:'' }}">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-navy w-100" style="padding:12px;">Sign in →</button>
+      </form>
+
+      <div style="text-align:center;margin-top:18px;font-size:13px;color:#5a7a9a;">
+        Don't have an account? <a href="{% url 'register' %}" style="color:#2B5EA7;font-weight:600;">Create one</a>
+      </div>
+    </div>
+
+    <div class="auth-footer">709 Rosedale Dr., Scottsbluff, NE 69361 &nbsp;·&nbsp; Robin Darnall 308.631.2424</div>
+  </div>
+</div>
+{% endblock %}

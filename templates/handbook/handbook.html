@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Student Handbook — PEMSE{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="page-hero-badge">PEMSE 2025</div>
+  <h1>Student Handbook</h1>
+  <p>{% if user.handbook_signed %}✓ Signed on {{ user.handbook_signed_at|date:"F j, Y" }}{% else %}Read each chapter, then sign the acknowledgment in Chapter 7 to complete your enrollment.{% endif %}</p>
+</div>
+
+<div class="handbook-layout">
+
+  <!-- Chapter nav -->
+  <div>
+    {% for chapter in chapters %}
+    <a href="?chapter={{ chapter.number }}" class="handbook-nav-item {% if active_chapter.number == chapter.number %}active{% endif %}">
+      <div class="chapter-num">{{ chapter.number }}</div>
+      {{ chapter.title }}
+    </a>
+    {% endfor %}
+
+    <div style="margin-top:14px;background:var(--light);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:12px;">
+      <div style="font-weight:600;color:#0a2540;margin-bottom:4px;">Status</div>
+      {% if user.handbook_signed %}
+        <div style="color:var(--green);">✓ Signed {{ user.handbook_signed_at|date:"M j, Y" }}</div>
+      {% else %}
+        <div style="color:var(--red);">❌ Not yet signed</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Chapter content -->
+  <div class="handbook-content">
+    <div class="handbook-title">{{ active_chapter.title }}</div>
+    <div class="handbook-sub">Chapter {{ active_chapter.number }} of {{ total_chapters }}</div>
+    <div class="handbook-body">
+      {{ active_chapter.body|safe }}
+    </div>
+
+    <!-- Signature (Chapter 7 only) -->
+    {% if active_chapter.number == 7 %}
+      {% if ack %}
+      <div style="background:#f0faf6;border:1px solid var(--green);border-radius:10px;padding:16px 20px;margin-top:20px;">
+        <div style="font-size:13px;color:var(--green);font-weight:600;margin-bottom:4px;">✓ Handbook signed</div>
+        <div style="font-family:'DM Serif Display',Georgia,serif;font-style:italic;font-size:30px;color:#0a2540;">{{ ack.sig_name }}</div>
+        <div style="font-size:12px;color:#6b7280;margin-top:4px;">Signed {{ ack.signed_at|date:"F j, Y \a\t g:i A" }}</div>
+      </div>
+      {% else %}
+      <form method="post" style="margin-top:24px;">
+        {% csrf_token %}
+        <div style="font-size:13px;font-weight:600;color:#0a2540;margin-bottom:10px;">Your signature *</div>
+        <div class="sig-wrap" style="margin-bottom:16px;">
+          <div class="sig-preview" id="hb-preview">Type your name below…</div>
+          <div class="sig-input-row">
+            <input type="text" name="sig_name" id="hb-sig-input" class="form-control sig-input"
+              placeholder="Type your full legal name"
+              oninput="document.getElementById('hb-preview').textContent=this.value||'Type your name below…'">
+          </div>
+          <div class="sig-footer">
+            <span>By signing, I acknowledge receipt and understanding of this handbook.</span>
+            <span id="hb-date"></span>
+          </div>
+        </div>
+        <button type="submit" class="btn-navy">✓ Sign &amp; acknowledge handbook</button>
+      </form>
+      {% endif %}
+    {% endif %}
+
+    <!-- Chapter nav arrows -->
+    <div style="display:flex;justify-content:space-between;margin-top:24px;padding-top:16px;border-top:1px solid #eef0f3;">
+      {% if active_chapter.number > 1 %}
+        <a href="?chapter={{ active_chapter.number|add:"-1" }}" class="btn-ghost">← Previous</a>
+      {% else %}<div></div>{% endif %}
+      {% if active_chapter.number < total_chapters %}
+        <a href="?chapter={{ active_chapter.number|add:"1" }}" class="btn-navy">Next →</a>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const d = document.getElementById('hb-date');
+  if (d) d.textContent = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+</script>
+{% endblock %}

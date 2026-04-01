@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}My Documents — PEMSE{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="page-hero-badge">My Files</div>
+  <h1>Document Center</h1>
+  <p>Upload copies of each required document. All items must be on file before your first class.</p>
+</div>
+
+<div class="portal-card">
+  <div class="portal-card-title">Required documents</div>
+  <div class="portal-card-sub">Click "Upload" to add a file. Accepted: PDF, JPG, PNG — max 10 MB each.</div>
+
+  {% for item in items %}
+  <div class="doc-item {% if item.upload %}{% if item.upload.status == 'approved' %}uploaded{% elif item.upload.status == 'rejected' %}rejected{% else %}uploaded{% endif %}{% endif %}">
+    <div class="doc-icon" style="background:{{ item.type.icon_bg }};">
+      <i class="bi bi-file-earmark-fill" style="color:{{ item.type.icon_color }};"></i>
+    </div>
+    <div class="doc-body">
+      <div class="doc-name">
+        {{ item.type.label }}
+        {% if item.type.required %}<span class="badge-required">Required</span>
+        {% else %}<span class="badge-optional">If applicable</span>{% endif %}
+      </div>
+      <div class="doc-hint">{{ item.type.hint }}</div>
+      {% if item.upload %}
+        <div class="doc-status {{ item.upload.status }}">
+          {% if item.upload.status == 'approved' %}✓ Approved
+          {% elif item.upload.status == 'rejected' %}✗ Rejected — please re-upload
+          {% else %}⏳ Uploaded — pending review{% endif %}
+          &nbsp;·&nbsp; {{ item.upload.uploaded_at|date:"M j, Y" }}
+        </div>
+        {% if item.upload.notes and item.upload.status == 'rejected' %}
+          <div style="font-size:11px;color:var(--red);margin-top:3px;">Note: {{ item.upload.notes }}</div>
+        {% endif %}
+      {% endif %}
+    </div>
+    <div style="display:flex;gap:8px;flex-shrink:0;">
+      <a href="{% url 'upload_document' item.type.slug %}" class="btn-ghost" style="padding:7px 14px;font-size:12px;">
+        {% if item.upload %}Replace{% else %}Upload{% endif %}
+      </a>
+      {% if item.upload %}
+      <form method="post" action="{% url 'delete_document' item.upload.id %}" onsubmit="return confirm('Remove this document?')">
+        {% csrf_token %}
+        <button type="submit" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;padding:7px 10px;">Remove</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+
+  <div style="margin-top:16px;background:var(--light);border-radius:10px;padding:12px 16px;font-size:12px;color:#6b7280;border:1px solid var(--border);">
+    📎 Files are stored securely on AWS S3. Only you and PEMSE staff can access your documents. Signed URLs expire after 5 minutes for security.
+  </div>
+</div>
+{% endblock %}

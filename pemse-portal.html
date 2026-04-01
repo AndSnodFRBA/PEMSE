@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panhandle EMS Education — Student Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#0a2540;--red:#c8102e;--gold:#d4a017;
+  --green:#0a7a4b;--bg:#f0f2f5;--white:#fff;
+  --border:#dde1e8;--text:#1a1a2e;--muted:#6b7280;--light:#f8f9fc;
+  --sidebar:260px;
+}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;min-height:100vh;}
+
+/* ── TOP BAR ── */
+.topbar{
+  background:var(--navy);color:#fff;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;height:60px;position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 12px rgba(0,0,0,0.2);
+}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-icon svg{width:20px;height:20px;fill:#fff;}
+.logo-text{font-size:14px;font-weight:600;letter-spacing:0.1px;}
+.logo-sub{font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1.8px;text-transform:uppercase;}
+.topbar-contact{font-size:12px;color:rgba(255,255,255,0.55);text-align:right;line-height:1.5;}
+.topbar-contact a{color:rgba(255,255,255,0.7);text-decoration:none;}
+
+/* ── LAYOUT ── */
+.shell{display:flex;flex:1;}
+.sidebar{
+  width:var(--sidebar);background:var(--navy);color:#fff;
+  display:flex;flex-direction:column;padding:24px 0;
+  position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;flex-shrink:0;
+}
+.sidebar-section{font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:0 20px;margin:16px 0 8px;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:10px 20px;
+  font-size:13px;color:rgba(255,255,255,0.6);cursor:pointer;
+  border-left:2px solid transparent;transition:all 0.15s;
+}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,0.05);}
+.nav-item.active{color:#fff;border-left-color:var(--red);background:rgba(255,255,255,0.07);}
+.nav-item svg{width:16px;height:16px;fill:currentColor;flex-shrink:0;}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:100px;}
+
+.content{flex:1;padding:32px 36px;min-width:0;}
+
+/* ── PAGE HEADER ── */
+.page-hero{
+  background:linear-gradient(135deg,var(--navy) 0%,#163a5f 100%);
+  border-radius:16px;padding:36px 40px;color:#fff;margin-bottom:28px;
+  position:relative;overflow:hidden;
+}
+.page-hero::after{
+  content:'';position:absolute;right:-40px;top:-40px;
+  width:200px;height:200px;border-radius:50%;
+  background:rgba(255,255,255,0.04);
+}
+.page-hero-badge{display:inline-block;background:rgba(200,16,46,0.2);color:#ff8a93;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:3px 12px;border-radius:100px;margin-bottom:12px;border:1px solid rgba(200,16,46,0.25);}
+.page-hero h1{font-family:'DM Serif Display',Georgia,serif;font-size:28px;font-weight:400;margin-bottom:6px;}
+.page-hero p{font-size:13px;color:rgba(255,255,255,0.55);max-width:560px;line-height:1.65;}
+.page-hero-meta{display:flex;gap:28px;margin-top:20px;}
+.pmeta{border-left:2px solid var(--red);padding-left:10px;}
+.pmeta-val{font-size:18px;font-weight:600;}
+.pmeta-label{font-size:10px;color:rgba(255,255,255,0.38);}
+
+/* ── CARDS ── */
+.card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:26px 30px;margin-bottom:18px;}
+.card-title{font-size:16px;font-weight:600;color:var(--navy);margin-bottom:4px;}
+.card-sub{font-size:12px;color:var(--muted);margin-bottom:20px;}
+.card-section{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:20px 0 10px;padding-top:16px;border-top:1px solid var(--border);}
+.card-section:first-of-type{border-top:none;padding-top:0;margin-top:0;}
+
+/* ── FORMS ── */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.form-row.three{grid-template-columns:1fr 1fr 1fr;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fg.full{grid-column:1/-1;}
+label{font-size:12px;font-weight:500;color:#444;}
+.req{color:var(--red);}
+input[type=text],input[type=email],input[type=tel],input[type=date],select,textarea{
+  border:1px solid #dde1e8;border-radius:8px;padding:9px 12px;
+  font-size:13px;font-family:inherit;color:var(--text);background:var(--white);
+  outline:none;transition:border-color 0.15s,box-shadow 0.15s;width:100%;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(10,37,64,0.07);}
+input::placeholder,textarea::placeholder{color:#c0c4cc;}
+textarea{resize:vertical;min-height:80px;}
+select{cursor:pointer;}
+
+/* Radio/checkbox groups */
+.radio-group{display:flex;gap:16px;flex-wrap:wrap;}
+.radio-item{display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;}
+.radio-item input{width:16px;height:16px;accent-color:var(--navy);cursor:pointer;}
+
+/* ── COURSE CARDS ── */
+.course-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.cc{
+  border:1.5px solid var(--border);border-radius:12px;padding:16px 18px;
+  cursor:pointer;transition:all 0.15s;position:relative;background:var(--white);
+}
+.cc:hover{border-color:var(--navy);box-shadow:0 2px 12px rgba(10,37,64,0.08);}
+.cc.selected{border-color:var(--navy);background:#f2f6fb;}
+.cc-tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:2px 8px;border-radius:100px;margin-bottom:8px;}
+.te{background:#d8f5ec;color:#0a6b47;}.ta{background:#dde9f8;color:#1557a0;}
+.tp{background:#fce8e4;color:#8b3020;}.ti{background:#faeeda;color:#854f0b;}
+.tb{background:#f8f0fb;color:#7b3fa0;}.tn{background:#e5f3d8;color:#3a6610;}
+.cc-name{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:2px;}
+.cc-desc{font-size:11px;color:var(--muted);line-height:1.4;margin-bottom:6px;}
+.cc-price{font-size:15px;font-weight:600;color:var(--navy);}
+.cc-down{font-size:11px;color:var(--muted);margin-top:1px;}
+.cc-check{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;background:var(--navy);display:none;align-items:center;justify-content:center;}
+.cc.selected .cc-check{display:flex;}
+.cc-check::after{content:'✓';font-size:11px;color:#fff;font-weight:700;}
+
+/* ── SHIRT SIZE ── */
+.size-row{display:flex;gap:10px;flex-wrap:wrap;}
+.size-btn{
+  width:52px;height:40px;border:1.5px solid var(--border);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;background:var(--white);
+}
+.size-btn:hover{border-color:var(--navy);}
+.size-btn.selected{border-color:var(--navy);background:#0a2540;color:#fff;}
+
+/* ── DOCS ── */
+.doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.di{
+  border:1.5px dashed #cdd0d8;border-radius:10px;padding:14px;
+  cursor:pointer;transition:all 0.15s;background:var(--white);
+  display:flex;align-items:center;gap:10px;
+}
+.di:hover{border-color:var(--navy);border-style:solid;}
+.di.uploaded{border-style:solid;border-color:var(--green);background:#f0faf6;}
+.di-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.di-icon svg{width:16px;height:16px;}
+.di-body{flex:1;min-width:0;}
+.di-name{font-size:12px;font-weight:600;color:#333;}
+.di-hint{font-size:11px;color:var(--muted);margin-top:1px;}
+.di-status{font-size:11px;font-weight:600;color:var(--green);margin-top:1px;display:none;}
+.di.uploaded .di-status{display:block;}
+.di.uploaded .di-hint{display:none;}
+.di-req{display:inline-block;font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:1px 6px;border-radius:100px;margin-left:4px;}
+.dr{background:#fce8e4;color:#8b3020;}.do{background:#e8eaed;color:#6b7280;}
+
+/* ── PAYMENT ── */
+.payment-method-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
+.pm{
+  border:1.5px solid var(--border);border-radius:10px;padding:14px;
+  cursor:pointer;transition:all 0.15s;text-align:center;background:var(--white);
+}
+.pm:hover{border-color:var(--navy);}
+.pm.selected{border-color:var(--navy);background:#f2f6fb;}
+.pm-icon{font-size:20px;margin-bottom:6px;}
+.pm-label{font-size:12px;font-weight:600;color:var(--navy);}
+.dept-fields{display:none;margin-top:14px;}
+.dept-fields.show{display:block;}
+
+.payment-schedule{background:var(--light);border-radius:10px;padding:18px;}
+.ps-title{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:12px;}
+.ps-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.ps-row:last-child{border-bottom:none;font-weight:600;color:var(--navy);}
+.ps-label{color:var(--muted);}
+.ps-val{font-weight:500;color:var(--text);}
+
+/* ── SIGNATURE PAD ── */
+.sig-wrap{
+  border:1.5px solid var(--border);border-radius:10px;overflow:hidden;
+  background:#fafbfc;position:relative;
+}
+.sig-canvas{display:block;width:100%;cursor:crosshair;touch-action:none;}
+.sig-toolbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;background:var(--light);border-top:1px solid var(--border);
+}
+.sig-hint{font-size:11px;color:var(--muted);}
+.sig-clear{font-size:11px;font-weight:600;color:var(--red);cursor:pointer;border:none;background:none;font-family:inherit;}
+.sig-clear:hover{text-decoration:underline;}
+.sig-name-display{
+  font-family:'DM Serif Display',Georgia,serif;font-size:32px;color:#1a1a2e;
+  padding:16px 20px;min-height:70px;display:flex;align-items:center;
+  border-bottom:1px solid var(--border);
+  font-style:italic;
+}
+.sig-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);}
+.sig-tab{
+  padding:9px 16px;font-size:12px;font-weight:500;cursor:pointer;
+  border-bottom:2px solid transparent;color:var(--muted);transition:all 0.15s;
+}
+.sig-tab.active{color:var(--navy);border-bottom-color:var(--navy);}
+
+/* ── HANDBOOK ── */
+.handbook-nav{display:flex;flex-direction:column;gap:2px;margin-bottom:20px;}
+.hb-chapter{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  border-radius:8px;cursor:pointer;font-size:13px;color:var(--muted);
+  transition:all 0.15s;
+}
+.hb-chapter:hover{background:var(--light);color:var(--text);}
+.hb-chapter.active{background:#e8f0fb;color:var(--navy);font-weight:500;}
+.hb-chapter-num{width:22px;height:22px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.hb-chapter.active .hb-chapter-num{background:var(--navy);color:#fff;}
+.handbook-content{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:32px 36px;}
+.hb-title{font-family:'DM Serif Display',Georgia,serif;font-size:22px;font-weight:400;color:var(--navy);margin-bottom:6px;}
+.hb-sub{font-size:12px;color:var(--muted);margin-bottom:24px;}
+.hb-body{font-size:14px;line-height:1.8;color:#333;}
+.hb-body h3{font-size:15px;font-weight:600;color:var(--navy);margin:20px 0 8px;}
+.hb-body p{margin-bottom:12px;}
+.hb-body ul,.hb-body ol{margin:8px 0 12px 20px;}
+.hb-body li{margin-bottom:6px;}
+.hb-body .highlight{background:#fff8e1;border-left:3px solid var(--gold);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0;}
+.hb-body .warning{background:#fff0f0;border-left:3px solid var(--red);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0;}
+
+/* ── STEPS (Registration) ── */
+.step-bar{display:flex;align-items:center;margin-bottom:28px;}
+.step{display:flex;align-items:center;gap:8px;font-size:12px;color:#aaa;}
+.step.active{color:var(--navy);}
+.step.done{color:var(--green);}
+.step-num{width:26px;height:26px;border-radius:50%;background:#e8eaed;border:1.5px solid #d0d4db;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#aaa;flex-shrink:0;}
+.step.active .step-num{background:var(--navy);color:#fff;border-color:var(--navy);}
+.step.done .step-num{background:var(--green);color:#fff;border-color:var(--green);}
+.step-line{flex:1;height:1px;background:#dde1e8;margin:0 6px;}
+
+/* ── BUTTONS ── */
+.action-row{display:flex;align-items:center;justify-content:space-between;margin-top:22px;}
+.btn-p{background:var(--navy);color:#fff;border:none;border-radius:9px;padding:11px 26px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background 0.15s;}
+.btn-p:hover{background:#163a5f;}
+.btn-g{background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:9px;padding:11px 20px;font-size:13px;cursor:pointer;font-family:inherit;transition:all 0.15s;}
+.btn-g:hover{border-color:#999;color:var(--text);}
+.btn-danger{background:var(--red);color:#fff;border:none;border-radius:9px;padding:11px 26px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+
+/* ── NOTICE ── */
+.notice{display:flex;gap:10px;background:#eaf3fb;border:1px solid #c5daf4;border-radius:10px;padding:13px 15px;margin:14px 0;}
+.ni{font-size:15px;flex-shrink:0;}
+.nt{font-size:12px;color:#185fa5;line-height:1.55;}
+.notice.warn{background:#fff8e1;border-color:#f0d060;}
+.notice.warn .nt{color:#7a5c00;}
+
+/* ── REVIEW BLOCKS ── */
+.rb{background:var(--light);border-radius:10px;padding:16px;margin-bottom:12px;}
+.rl{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.rv{font-size:13px;color:var(--text);line-height:1.6;}
+
+/* ── SUCCESS ── */
+.success-wrap{text-align:center;padding:48px 24px;}
+.si{width:60px;height:60px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+.si svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2.5;}
+.stitle{font-family:'DM Serif Display',Georgia,serif;font-size:26px;font-weight:400;margin-bottom:8px;}
+.ssub{font-size:13px;color:var(--muted);line-height:1.65;max-width:400px;margin:0 auto 24px;}
+.appid-box{background:var(--light);border:1px solid var(--border);border-radius:10px;padding:12px 22px;display:inline-block;font-size:13px;color:var(--muted);}
+.appid-box strong{color:var(--navy);font-weight:600;}
+
+/* ── DASHBOARD ── */
+.dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+.dash-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px 22px;}
+.dash-num{font-size:28px;font-weight:600;color:var(--navy);margin-bottom:2px;}
+.dash-label{font-size:12px;color:var(--muted);}
+.dash-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+.dash-icon svg{width:20px;height:20px;}
+.status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;}
+.sp-pend{background:#fff8e1;color:#7a5c00;}
+.sp-done{background:#d8f5ec;color:#0a6b47;}
+.sp-miss{background:#fce8e4;color:#8b3020;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .sidebar{display:none;}
+  .content{padding:20px;}
+  .dash-grid{grid-template-columns:1fr 1fr;}
+  .course-grid{grid-template-columns:1fr;}
+  .doc-grid{grid-template-columns:1fr;}
+  .form-row{grid-template-columns:1fr;}
+  .fg.full{grid-column:1;}
+  .form-row.three{grid-template-columns:1fr 1fr;}
+  .payment-method-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H7v-2h4V7h2v4h4v2h-4v4h-2z"/></svg>
+    </div>
+    <div>
+      <div class="logo-text">Panhandle EMS Education</div>
+      <div class="logo-sub">PEMSE · Student Portal</div>
+    </div>
+  </div>
+  <div class="topbar-contact">
+    Robin Darnall: <a href="tel:3086312424">308.631.2424</a> &nbsp;|&nbsp;
+    <a href="mailto:ems.edu911@gmail.com">ems.edu911@gmail.com</a><br>
+    Andrew Snodgrass: <a href="mailto:emseducation19@gmail.com">emseducation19@gmail.com</a>
+  </div>
+</div>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">Main</div>
+    <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('register')" id="nav-register">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg>
+      Register
+      <span class="nav-badge">NEW</span>
+    </div>
+    <div class="nav-item" onclick="showPage('handbook')" id="nav-handbook">
+      <svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H6V4h2v8l2.5-1.5L13 12V4h5v16z"/></svg>
+      Student Handbook
+    </div>
+    <div class="nav-item" onclick="showPage('documents')" id="nav-documents">
+      <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+      My Documents
+    </div>
+    <div class="sidebar-section" style="margin-top:16px;">Info</div>
+    <div class="nav-item" onclick="showPage('courses')" id="nav-courses">
+      <svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>
+      Course Info
+    </div>
+    <div class="nav-item" onclick="showPage('faq')" id="nav-faq">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+      FAQ
+    </div>
+    <div class="nav-item" onclick="showPage('contact')" id="nav-contact">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4l4-4 2 2 4-4 6 6zm0-8l-6 4-6-4V6l6 4 6-4v4z"/></svg>
+      Contact Us
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <main class="content">
+
+    <!-- ══════════════ DASHBOARD ══════════════ -->
+    <div id="page-dashboard">
+      <div class="page-hero">
+        <div class="page-hero-badge">Panhandle EMS Education</div>
+        <h1>Welcome to PEMSE</h1>
+        <p>Register for a course, access the student handbook, upload your documents, and track your enrollment — all in one place.</p>
+        <div class="page-hero-meta">
+          <div class="pmeta"><div class="pmeta-val">7</div><div class="pmeta-label">Courses offered</div></div>
+          <div class="pmeta"><div class="pmeta-val">709</div><div class="pmeta-label">Rosedale Dr, Scottsbluff</div></div>
+          <div class="pmeta"><div class="pmeta-val">2025</div><div class="pmeta-label">Enrollment open</div></div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="dash-card" style="cursor:pointer" onclick="showPage('register')">
+          <div class="dash-icon" style="background:#e8f0fb"><svg viewBox="0 0 24 24" fill="#185fa5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg></div>
+          <div class="dash-num">Register</div>
+          <div class="dash-label">Start your enrollment →</div>
+        </div>
+        <div class="dash-card" style="cursor:pointer" onclick="showPage('handbook')">
+          <div class="dash-icon" style="background:#fce8e4"><svg viewBox="0 0 24 24" fill="#8b3020"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H6V4h2v8l2.5-1.5L13 12V4h5v16z"/></svg></div>
+          <div class="dash-num">Handbook</div>
+          <div class="dash-label">Read &amp; sign digitally →</div>
+        </div>
+        <div class="dash-card" style="cursor:pointer" onclick="showPage('documents')">
+          <div class="dash-icon" style="background:#d8f5ec"><svg viewBox="0 0 24 24" fill="#0a6b47"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></div>
+          <div class="dash-num">Documents</div>
+          <div class="dash-label">Upload required files →</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Quick info</div>
+        <div class="card-sub">Important details about enrolling at PEMSE.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div style="background:var(--light);border-radius:10px;padding:16px;">
+            <div style="font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Required paperwork</div>
+            <div style="font-size:13px;line-height:1.7;color:#444;">
+              ✓ Copy of driver's license<br>
+              ✓ Current AHA HCP CPR card<br>
+              ✓ Immunization records<br>
+              ✓ RN/LPN/EMT license <em style="color:var(--muted)">(if applicable)</em>
+            </div>
+          </div>
+          <div style="background:var(--light);border-radius:10px;padding:16px;">
+            <div style="font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Payment policy</div>
+            <div style="font-size:13px;line-height:1.7;color:#444;">
+              Payment due before first night of class<br>
+              Full tuition required before FISDAP &amp; final testing<br>
+              <strong style="color:var(--red);">No refunds on PEMSE courses</strong><br>
+              CE hours not granted on incomplete courses
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ REGISTER ══════════════ -->
+    <div id="page-register" style="display:none">
+
+      <!-- Step bar -->
+      <div class="step-bar">
+        <div class="step active" id="s1"><div class="step-num">1</div><span>Personal info</span></div>
+        <div class="step-line"></div>
+        <div class="step" id="s2"><div class="step-num">2</div><span>Course</span></div>
+        <div class="step-line"></div>
+        <div class="step" id="s3"><div class="step-num">3</div><span>Payment</span></div>
+        <div class="step-line"></div>
+        <div class="step" id="s4"><div class="step-num">4</div><span>Documents</span></div>
+        <div class="step-line"></div>
+        <div class="step" id="s5"><div class="step-num">5</div><span>Sign &amp; Submit</span></div>
+      </div>
+
+      <!-- Step 1: Personal Info -->
+      <div id="reg1">
+        <div class="card">
+          <div class="card-title">Student registration — Personal information</div>
+          <div class="card-sub">All fields marked <span class="req">*</span> are required. Please print clearly — unreadable or incomplete registrations will not be processed.</div>
+
+          <div class="form-row">
+            <div class="fg"><label>Date <span class="req">*</span></label><input type="date" id="r-date"></div>
+            <div class="fg"></div>
+          </div>
+          <div class="form-row">
+            <div class="fg full"><label>Full name (Last, First, MI) <span class="req">*</span></label><input type="text" id="r-name" placeholder="Smith, Jane A."></div>
+          </div>
+          <div class="form-row">
+            <div class="fg full"><label>Address <span class="req">*</span></label><input type="text" id="r-addr" placeholder="123 Main Street"></div>
+          </div>
+          <div class="form-row three">
+            <div class="fg"><label>City <span class="req">*</span></label><input type="text" id="r-city" placeholder="Scottsbluff"></div>
+            <div class="fg"><label>State <span class="req">*</span></label><input type="text" id="r-state" placeholder="NE"></div>
+            <div class="fg"><label>ZIP <span class="req">*</span></label><input type="text" id="r-zip" placeholder="69361"></div>
+          </div>
+          <div class="form-row">
+            <div class="fg"><label>Email address <span class="req">*</span></label><input type="email" id="r-email" placeholder="jane@email.com"></div>
+            <div class="fg">
+              <label>Cell phone <span class="req">*</span></label>
+              <input type="tel" id="r-phone" placeholder="(308) 000-0000">
+              <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+                <span style="font-size:12px;color:var(--muted);">OK to text?</span>
+                <label class="radio-item"><input type="radio" name="text" value="yes"> Yes</label>
+                <label class="radio-item"><input type="radio" name="text" value="no"> No</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="action-row">
+          <span style="font-size:12px;color:var(--muted)">Step 1 of 5</span>
+          <button class="btn-p" onclick="regStep(2)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Course Selection -->
+      <div id="reg2" style="display:none">
+        <div class="card">
+          <div class="card-title">Course selection</div>
+          <div class="card-sub">Choose one option. Prices reflect 2025 tuition. Textbook options available for most courses.</div>
+          <div class="course-grid">
+            <div class="cc" onclick="pickCourse(this,1,'EMR Hybrid w/ Textbook',750,750)">
+              <div class="cc-tag te">EMR</div>
+              <div class="cc-name">Option 1 — EMR Hybrid Course</div>
+              <div class="cc-desc">With physical textbook included</div>
+              <div class="cc-price">$750</div>
+              <div class="cc-down">Min. down: $750</div>
+              <div class="cc-check"></div>
+            </div>
+            <div class="cc" onclick="pickCourse(this,2,'EMR Hybrid — No Textbook',650,650)">
+              <div class="cc-tag te">EMR</div>
+              <div class="cc-name">Option 2 — EMR Hybrid Course</div>
+              <div class="cc-desc">No physical book (digital access)</div>
+              <div class="cc-price">$650</div>
+              <div class="cc-down">Min. down: $650</div>
+              <div class="cc-check"></div>
+            </div>
+            <div class="cc" onclick="pickCourse(this,3,'EMT Hybrid w/ Textbook',1300,700)">
+              <div class="cc-tag ta">EMT</div>
+              <div class="cc-name">Option 3 — EMT Hybrid Course</div>
+              <div class="cc-desc">With physical textbook included</div>
+              <div class="cc-price">$1,300</div>
+              <div class="cc-down">Min. down: $700</div>
+              <div class="cc-check"></div>
+            </div>
+            <div class="cc" onclick="pickCourse(this,4,'EMT Hybrid — No Textbook',1100,600)">
+              <div class="cc-tag ta">EMT</div>
+              <div class="cc-name">Option 4 — EMT Hybrid Course</div>
+              <div class="cc-desc">No physical book (digital access)</div>
+              <div class="cc-price">$1,100</div>
+              <div class="cc-down">Min. down: $600</div>
+              <div class="cc-check"></div>
+            </div>
+            <div class="cc" onclick="pickCourse(this,5,'EMT to AEMT Hybrid Bridge',1200,700)">
+              <div class="cc-tag tp">AEMT</div>
+              <div class="cc-name">Option 5 — EMT to AEMT Bridge</div>
+              <div class="cc-desc">Hybrid bridge course — no physical book. Polo shirt included.</div>
+              <div class="cc-price">$1,200</div>
+              <div class="cc-down">Min. down: $700</div>
+              <div class="cc-check"></div>
+            </div>
+            <div class="cc" onclick="pickCourse(this,6,'RN/LPN to EMT Hybrid Bridge',1100,600)">
+              <div class="cc-tag ti">Bridge</div>
+              <div class="cc-name">Option 6 — RN/LPN to EMT Bridge</div>
+              <div class="cc-desc">Hybrid bridge — no physical book</div>
+              <div class="cc-price">$1,100</div>
+              <div class="cc-down">Min. down: $600</div>
+              <div class="cc-check"></div>
+            </div>
+            <div class="cc" onclick="pickCourse(this,7,'EMT IV Therapy',200,200)">
+              <div class="cc-tag tn">CE</div>
+              <div class="cc-name">Option 7 — EMT IV Therapy</div>
+              <div class="cc-desc">Textbook and lab fees included</div>
+              <div class="cc-price">$200</div>
+              <div class="cc-down">Min. down: $200</div>
+              <div class="cc-check"></div>
+            </div>
+          </div>
+
+          <!-- Shirt size (AEMT only) -->
+          <div id="shirt-section" style="display:none;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:4px;">Polo shirt size <span style="font-size:11px;color:var(--muted);font-weight:400;">(AEMT courses — men's sizing)</span></div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">2XL and larger add $5 to tuition.</div>
+            <div class="size-row" id="size-row">
+              <div class="size-btn" onclick="pickSize(this)">S</div>
+              <div class="size-btn" onclick="pickSize(this)">M</div>
+              <div class="size-btn" onclick="pickSize(this)">L</div>
+              <div class="size-btn" onclick="pickSize(this)">XL</div>
+              <div class="size-btn" onclick="pickSize(this)">XXL</div>
+              <div class="size-btn" onclick="pickSize(this)">2XL+</div>
+            </div>
+          </div>
+        </div>
+        <div class="action-row">
+          <button class="btn-g" onclick="regStep(1)">← Back</button>
+          <button class="btn-p" onclick="regStep(3)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Payment Contract -->
+      <div id="reg3" style="display:none">
+        <div class="card">
+          <div class="card-title">Payment contract</div>
+          <div class="card-sub">Complete your payment method and review your payment schedule. This forms part of your legally binding enrollment contract.</div>
+
+          <div class="card-section">Method of payment</div>
+          <div class="payment-method-grid">
+            <div class="pm" onclick="pickPM(this,'cash')">
+              <div class="pm-icon">💵</div>
+              <div class="pm-label">Cash</div>
+            </div>
+            <div class="pm" onclick="pickPM(this,'check')">
+              <div class="pm-icon">🖊️</div>
+              <div class="pm-label">Check</div>
+            </div>
+            <div class="pm" onclick="pickPM(this,'dept')">
+              <div class="pm-icon">🏛️</div>
+              <div class="pm-label">Department paying</div>
+            </div>
+          </div>
+
+          <div id="check-fields" style="display:none;margin-bottom:14px;">
+            <div class="form-row">
+              <div class="fg"><label>Check number</label><input type="text" id="check-num" placeholder="Check #"></div>
+              <div class="fg"></div>
+            </div>
+          </div>
+
+          <div id="dept-fields" class="dept-fields">
+            <div class="form-row">
+              <div class="fg full"><label>Department name</label><input type="text" id="dept-name" placeholder="Fire Department / Agency Name"></div>
+            </div>
+            <div class="form-row">
+              <div class="fg full"><label>Department address</label><textarea id="dept-addr" rows="2" placeholder="Street, City, State, ZIP"></textarea></div>
+            </div>
+            <div class="form-row">
+              <div class="fg"><label>Contact person</label><input type="text" id="dept-contact" placeholder="Name"></div>
+              <div class="fg"><label>Contact phone</label><input type="tel" id="dept-phone" placeholder="(308) 000-0000"></div>
+            </div>
+            <div class="form-row">
+              <div class="fg"><label>Contact email</label><input type="email" id="dept-email" placeholder="contact@department.gov"></div>
+              <div class="fg"></div>
+            </div>
+          </div>
+
+          <div class="card-section">Payment schedule</div>
+          <div class="notice warn">
+            <span class="ni">⚠️</span>
+            <div class="nt">Minimum down payment is due before the first night of class. Full tuition must be paid before FISDAP and final testing. <strong>There are no refunds on PEMSE courses.</strong></div>
+          </div>
+
+          <div id="payment-schedule-wrap" style="margin-top:14px;">
+            <div class="payment-schedule" id="ps-block">
+              <div class="ps-title">Select a course above to see your payment schedule.</div>
+            </div>
+          </div>
+
+          <div style="margin-top:14px;">
+            <label class="radio-item" style="gap:10px;font-size:13px;">
+              <input type="radio" name="payopt" value="full" onchange="setPO('full')">
+              <strong>Pay in full</strong> — I will pay the full tuition before the first night of class.
+            </label>
+            <div style="margin-top:8px;">
+              <label class="radio-item" style="gap:10px;font-size:13px;">
+                <input type="radio" name="payopt" value="schedule" onchange="setPO('schedule')">
+                <strong>Payment schedule</strong> — I will pay the minimum down payment now and follow the schedule below.
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="action-row">
+          <button class="btn-g" onclick="regStep(2)">← Back</button>
+          <button class="btn-p" onclick="regStep(4)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Documents -->
+      <div id="reg4" style="display:none">
+        <div class="card">
+          <div class="card-title">Upload required documents</div>
+          <div class="card-sub">Click each tile to mark as uploaded. Accepted: PDF, JPG, PNG — max 10 MB. Originals may be requested at orientation.</div>
+          <div class="doc-grid">
+            <div class="di" id="doc-dl" onclick="toggleDi('doc-dl')">
+              <div class="di-icon" style="background:#faeeda"><svg viewBox="0 0 24 24" fill="#854f0b"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8V21h19.2v-1.8c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
+              <div class="di-body">
+                <div class="di-name">Copy of driver's license <span class="di-req dr">Required</span></div>
+                <div class="di-hint">Clear front-facing photo or scan</div>
+                <div class="di-status">✓ Marked as uploaded</div>
+              </div>
+            </div>
+            <div class="di" id="doc-cpr" onclick="toggleDi('doc-cpr')">
+              <div class="di-icon" style="background:#dde9f8"><svg viewBox="0 0 24 24" fill="#1557a0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H7v-2h4V7h2v4h4v2h-4v4h-2z"/></svg></div>
+              <div class="di-body">
+                <div class="di-name">Current AHA HCP CPR card <span class="di-req dr">Required</span></div>
+                <div class="di-hint">Healthcare Provider — front &amp; back</div>
+                <div class="di-status">✓ Marked as uploaded</div>
+              </div>
+            </div>
+            <div class="di" id="doc-immun" onclick="toggleDi('doc-immun')">
+              <div class="di-icon" style="background:#d8f5ec"><svg viewBox="0 0 24 24" fill="#0a6b47"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg></div>
+              <div class="di-body">
+                <div class="di-name">Immunization records <span class="di-req dr">Required</span></div>
+                <div class="di-hint">Up-to-date vaccination documentation</div>
+                <div class="di-status">✓ Marked as uploaded</div>
+              </div>
+            </div>
+            <div class="di" id="doc-lic" onclick="toggleDi('doc-lic')">
+              <div class="di-icon" style="background:#f8f0fb"><svg viewBox="0 0 24 24" fill="#7b3fa0"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg></div>
+              <div class="di-body">
+                <div class="di-name">RN / LPN / EMT license <span class="di-req do">If applicable</span></div>
+                <div class="di-hint">Current professional license copy</div>
+                <div class="di-status">✓ Marked as uploaded</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="action-row">
+          <button class="btn-g" onclick="regStep(3)">← Back</button>
+          <button class="btn-p" onclick="regStep(5)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 5: Sign & Submit -->
+      <div id="reg5" style="display:none">
+        <div class="card">
+          <div class="card-title">Payment contract — Review &amp; sign</div>
+          <div class="card-sub">Read the agreement below and sign digitally. This is a legally binding contract.</div>
+
+          <div style="background:var(--light);border-radius:10px;padding:20px;font-size:13px;line-height:1.8;color:#333;margin-bottom:20px;border:1px solid var(--border);">
+            <p>I, <strong id="contract-name" style="color:var(--navy);">[Student Name]</strong>, agree to the terms and conditions of <strong>Panhandle EMS Education, LLC</strong>, including (but not limited to) providing tuition paid in full <em>OR</em> making scheduled payments agreed to by myself and the Director of PEMSE, <strong>prior to the first night of scheduled class.</strong></p>
+            <br>
+            <p>Full tuition will be paid prior to FISDAP and final testing. I understand that PEMSE has the right to and will legally pursue any unpaid tuition under my name.</p>
+            <br>
+            <p style="color:var(--red);font-weight:500;">I understand there are no refunds on PEMSE courses. CE hours will NOT be granted on incomplete courses.</p>
+            <br>
+            <div id="contract-course-summary" style="background:#fff;border-radius:8px;padding:12px 14px;border:1px solid var(--border);font-size:12px;color:var(--muted);">
+              Course selection and payment details will appear here after completing previous steps.
+            </div>
+          </div>
+
+          <!-- Signature -->
+          <div style="margin-bottom:20px;">
+            <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:10px;">Student signature <span class="req">*</span></div>
+            <div class="sig-wrap">
+              <div class="sig-tabs">
+                <div class="sig-tab active" onclick="switchSigTab('type',this)">Type signature</div>
+                <div class="sig-tab" onclick="switchSigTab('draw',this)">Draw signature</div>
+              </div>
+              <div id="sig-type-area">
+                <div class="sig-name-display" id="sig-preview">Your signature will appear here…</div>
+                <div style="padding:0 16px 10px;">
+                  <input type="text" id="sig-type-input" placeholder="Type your full legal name" oninput="updateSigPreview(this.value)" style="border:none;border-bottom:1px solid var(--border);border-radius:0;padding:6px 0;font-size:13px;">
+                </div>
+              </div>
+              <div id="sig-draw-area" style="display:none;">
+                <canvas id="sig-canvas" class="sig-canvas" height="100"></canvas>
+              </div>
+              <div class="sig-toolbar">
+                <span class="sig-hint">By signing above, I agree to the terms of this contract.</span>
+                <button class="sig-clear" onclick="clearSig()">Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:4px;">
+            Submitted registrations will be reviewed and counter-signed by<br>
+            <strong style="color:var(--navy);">R. Darnall or A. Snodgrass — Panhandle EMS Education</strong>
+          </div>
+        </div>
+
+        <!-- Final review summary -->
+        <div class="card">
+          <div class="card-title">Application summary</div>
+          <div class="card-sub">Review before submitting. Go back to make any changes.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="rb"><div class="rl">Student</div><div class="rv" id="sum-name">—</div></div>
+            <div class="rb"><div class="rl">Course selected</div><div class="rv" id="sum-course">—</div></div>
+            <div class="rb"><div class="rl">Contact</div><div class="rv" id="sum-contact">—</div></div>
+            <div class="rb"><div class="rl">Payment method</div><div class="rv" id="sum-payment">—</div></div>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button class="btn-g" onclick="regStep(4)">← Back</button>
+          <button class="btn-p" onclick="submitReg()">Submit registration →</button>
+        </div>
+      </div>
+
+      <!-- Success -->
+      <div id="reg-success" style="display:none">
+        <div class="card">
+          <div class="success-wrap">
+            <div class="si"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L19 7"/></svg></div>
+            <div class="stitle">Registration submitted!</div>
+            <div class="ssub" id="success-msg">Your enrollment has been submitted to Panhandle EMS Education. Robin or Andrew will review and contact you within 2 business days.</div>
+            <div class="appid-box" style="margin-bottom:20px;">Confirmation #: <strong id="conf-num">PEMSE-2025-00000</strong></div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.7;">
+              Questions? Contact us at <strong>308.631.2424</strong><br>
+              or <a href="mailto:ems.edu911@gmail.com" style="color:var(--navy);">ems.edu911@gmail.com</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ HANDBOOK ══════════════ -->
+    <div id="page-handbook" style="display:none">
+      <div class="page-hero" style="margin-bottom:24px;">
+        <div class="page-hero-badge">PEMSE 2025</div>
+        <h1>Student Handbook</h1>
+        <p>Read each section carefully. A digital signature acknowledging receipt is required to complete enrollment.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:220px 1fr;gap:20px;align-items:start;">
+        <div>
+          <div class="handbook-nav">
+            <div class="hb-chapter active" onclick="showChapter(1,this)"><div class="hb-chapter-num">1</div>Welcome &amp; Mission</div>
+            <div class="hb-chapter" onclick="showChapter(2,this)"><div class="hb-chapter-num">2</div>Attendance Policy</div>
+            <div class="hb-chapter" onclick="showChapter(3,this)"><div class="hb-chapter-num">3</div>Academic Standards</div>
+            <div class="hb-chapter" onclick="showChapter(4,this)"><div class="hb-chapter-num">4</div>Clinical Requirements</div>
+            <div class="hb-chapter" onclick="showChapter(5,this)"><div class="hb-chapter-num">5</div>Tuition &amp; Refund Policy</div>
+            <div class="hb-chapter" onclick="showChapter(6,this)"><div class="hb-chapter-num">6</div>Conduct &amp; Professionalism</div>
+            <div class="hb-chapter" onclick="showChapter(7,this)"><div class="hb-chapter-num">7</div>Handbook Acknowledgment</div>
+          </div>
+          <div style="background:var(--light);border-radius:10px;padding:14px;font-size:12px;color:var(--muted);border:1px solid var(--border);">
+            <div style="font-weight:600;color:var(--navy);margin-bottom:6px;">Handbook signed?</div>
+            <div id="hb-sign-status" style="color:var(--red);">❌ Not yet signed</div>
+          </div>
+        </div>
+
+        <div>
+          <!-- Chapter 1 -->
+          <div class="handbook-content" id="ch1">
+            <div class="hb-title">Welcome to Panhandle EMS Education</div>
+            <div class="hb-sub">Chapter 1 of 7 — Mission &amp; Overview</div>
+            <div class="hb-body">
+              <p>Welcome to <strong>Panhandle EMS Education (PEMSE)</strong>, located at 709 Rosedale Dr., Scottsbluff, NE 69361. We are dedicated to providing high-quality, hybrid EMS education to students across the Nebraska Panhandle and beyond.</p>
+              <h3>Our Mission</h3>
+              <p>To train compassionate, competent, and career-ready emergency medical professionals through rigorous hybrid coursework, hands-on clinical experience, and dedicated instructorship.</p>
+              <h3>Contact Information</h3>
+              <p><strong>Robin Darnall</strong> — Program Director<br>Phone: 308.631.2424 | Email: ems.edu911@gmail.com</p>
+              <p><strong>Andrew Snodgrass</strong> — Instructor / Co-Director<br>Email: emseducation19@gmail.com</p>
+              <h3>Hybrid Course Format</h3>
+              <p>All PEMSE courses use a <em>hybrid model</em>, combining online coursework with in-person skills labs and clinical rotations. Students are expected to complete online modules on their own schedule and attend all in-person sessions.</p>
+              <div class="highlight">📋 Please read this handbook in its entirety. You will be asked to sign an acknowledgment in Chapter 7 confirming you have read and understood all policies.</div>
+            </div>
+          </div>
+          <!-- Chapter 2 -->
+          <div class="handbook-content" id="ch2" style="display:none">
+            <div class="hb-title">Attendance Policy</div>
+            <div class="hb-sub">Chapter 2 of 7</div>
+            <div class="hb-body">
+              <h3>In-Person Sessions</h3>
+              <p>Students are expected to attend all scheduled in-person skills labs and clinical sessions. Attendance is mandatory for all hands-on components of the course.</p>
+              <h3>Missed Sessions</h3>
+              <ul>
+                <li>Students who miss a skills lab must arrange a make-up session with the instructor prior to the next scheduled class.</li>
+                <li>Students who miss more than 20% of scheduled in-person time may be dismissed from the program without a refund.</li>
+                <li>Clinical hours missed due to illness must be documented with a physician's note and made up before the course end date.</li>
+              </ul>
+              <h3>Online Component</h3>
+              <p>Online modules must be completed by the deadlines posted in your learning management system. Late submissions may result in a grade of zero for that module.</p>
+              <div class="warning">⚠️ CE hours will NOT be granted on incomplete courses. Ensure you complete all required hours and modules.</div>
+              <h3>Tardiness</h3>
+              <p>Arriving more than 15 minutes late to an in-person session may count as an absence at the instructor's discretion.</p>
+            </div>
+          </div>
+          <!-- Chapter 3 -->
+          <div class="handbook-content" id="ch3" style="display:none">
+            <div class="hb-title">Academic Standards</div>
+            <div class="hb-sub">Chapter 3 of 7</div>
+            <div class="hb-body">
+              <h3>Passing Requirements</h3>
+              <p>Students must achieve a minimum score of <strong>75%</strong> on all written examinations. Skills stations require a passing demonstration on each attempt or as specified by the course rubric.</p>
+              <h3>FISDAP</h3>
+              <p>EMT and AEMT students are required to maintain a FISDAP account for clinical documentation. Full tuition must be paid in full before FISDAP access and final testing will be granted.</p>
+              <h3>National Registry Exams</h3>
+              <p>PEMSE prepares students to sit for the National Registry of Emergency Medical Technicians (NREMT) cognitive and psychomotor exams. Passing the NREMT is required to obtain Nebraska licensure.</p>
+              <h3>Remediation</h3>
+              <ul>
+                <li>Students failing an exam below 70% will be required to complete remediation before retesting.</li>
+                <li>Students may retake a written exam once. A second failure may result in dismissal from the program.</li>
+              </ul>
+              <div class="highlight">📚 Study resources, practice tests, and tutoring support are available — contact your instructor for access.</div>
+            </div>
+          </div>
+          <!-- Chapter 4 -->
+          <div class="handbook-content" id="ch4" style="display:none">
+            <div class="hb-title">Clinical Requirements</div>
+            <div class="hb-sub">Chapter 4 of 7</div>
+            <div class="hb-body">
+              <h3>Required Documentation</h3>
+              <p>Before beginning any clinical rotation, students must have the following on file with PEMSE:</p>
+              <ul>
+                <li>Copy of driver's license</li>
+                <li>Current AHA Healthcare Provider (HCP) CPR certification card</li>
+                <li>Up-to-date immunization records (Hepatitis B, Tdap, influenza recommended)</li>
+                <li>RN, LPN, or EMT license (if applicable to your course)</li>
+              </ul>
+              <h3>Clinical Site Expectations</h3>
+              <p>Students represent Panhandle EMS Education at all clinical sites. Professional behavior, appropriate uniform, and respect for patients and staff are mandatory at all times.</p>
+              <div class="warning">⚠️ Students asked to leave a clinical site due to conduct issues may be dismissed from the program without a refund.</div>
+              <h3>Documentation</h3>
+              <p>All clinical hours and patient contacts must be documented in FISDAP. Hours not documented may not count toward program requirements.</p>
+            </div>
+          </div>
+          <!-- Chapter 5 -->
+          <div class="handbook-content" id="ch5" style="display:none">
+            <div class="hb-title">Tuition &amp; Refund Policy</div>
+            <div class="hb-sub">Chapter 5 of 7</div>
+            <div class="hb-body">
+              <h3>2025 Tuition Rates</h3>
+              <ul>
+                <li>Option 1 — EMR Hybrid w/ Textbook: <strong>$750</strong></li>
+                <li>Option 2 — EMR Hybrid, no textbook: <strong>$650</strong></li>
+                <li>Option 3 — EMT Hybrid w/ Textbook: <strong>$1,300</strong></li>
+                <li>Option 4 — EMT Hybrid, no textbook: <strong>$1,100</strong></li>
+                <li>Option 5 — EMT to AEMT Hybrid Bridge: <strong>$1,200</strong></li>
+                <li>Option 6 — RN/LPN to EMT Hybrid Bridge: <strong>$1,100</strong></li>
+                <li>Option 7 — EMT IV Therapy: <strong>$200</strong></li>
+              </ul>
+              <h3>Payment Schedule</h3>
+              <p>Minimum down payments must be paid before the first night of class. Students choosing a payment schedule must work directly with PEMSE to create a plan. Payments are due at 30, 60, 90, and 120-day intervals from the date of the signed registration form, with the final balance due before FISDAP and final testing.</p>
+              <div class="warning">⚠️ <strong>There are no refunds on PEMSE courses.</strong> CE hours will NOT be granted on incomplete courses. PEMSE reserves the right to legally pursue any unpaid tuition.</div>
+              <h3>2XL+ Polo Shirt</h3>
+              <p>AEMT course students receive a polo shirt. Sizes 2XL and larger add $5 to tuition.</p>
+            </div>
+          </div>
+          <!-- Chapter 6 -->
+          <div class="handbook-content" id="ch6" style="display:none">
+            <div class="hb-title">Conduct &amp; Professionalism</div>
+            <div class="hb-sub">Chapter 6 of 7</div>
+            <div class="hb-body">
+              <h3>Professional Standards</h3>
+              <p>PEMSE expects all students to conduct themselves with the highest degree of professionalism — in class, during clinical rotations, and when representing PEMSE in the community.</p>
+              <h3>Prohibited Conduct</h3>
+              <ul>
+                <li>Dishonesty, cheating, or falsification of clinical records</li>
+                <li>Harassment or disrespectful behavior toward instructors, peers, or clinical staff</li>
+                <li>Reporting to class or a clinical site under the influence of substances</li>
+                <li>Unauthorized sharing of patient information</li>
+              </ul>
+              <h3>Social Media</h3>
+              <p>Students may not post photos, videos, or identifying information regarding patients, clinical sites, or PEMSE classrooms without explicit written consent.</p>
+              <h3>Dismissal</h3>
+              <p>Students found in violation of conduct standards may be dismissed from the program. Dismissed students are not entitled to a refund per PEMSE policy.</p>
+              <div class="highlight">🤝 EMS professionals are trusted with people's lives. Let that standard guide your actions every day.</div>
+            </div>
+          </div>
+          <!-- Chapter 7: Acknowledgment -->
+          <div class="handbook-content" id="ch7" style="display:none">
+            <div class="hb-title">Handbook Acknowledgment &amp; Signature</div>
+            <div class="hb-sub">Chapter 7 of 7 — Required to complete enrollment</div>
+            <div class="hb-body">
+              <p>By signing below, I acknowledge that I have received, read, and understood the <strong>Panhandle EMS Education Student Handbook (2025 edition)</strong>.</p>
+              <p>I agree to abide by all policies, procedures, and standards outlined in this handbook, including attendance requirements, academic standards, conduct expectations, and the refund policy.</p>
+              <div class="warning">⚠️ This signature is required to complete your enrollment. It does not replace the payment contract signature on your registration form.</div>
+            </div>
+            <div style="margin-top:20px;">
+              <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:10px;">Your signature</div>
+              <div class="sig-wrap">
+                <div class="sig-tabs">
+                  <div class="sig-tab active" onclick="switchHbTab('type',this)">Type signature</div>
+                  <div class="sig-tab" onclick="switchHbTab('draw',this)">Draw signature</div>
+                </div>
+                <div id="hb-sig-type">
+                  <div class="sig-name-display" id="hb-sig-preview">Your signature will appear here…</div>
+                  <div style="padding:0 16px 10px;">
+                    <input type="text" id="hb-sig-input" placeholder="Type your full legal name" oninput="updateHbPreview(this.value)" style="border:none;border-bottom:1px solid var(--border);border-radius:0;padding:6px 0;font-size:13px;width:100%;">
+                  </div>
+                </div>
+                <div id="hb-sig-draw" style="display:none;">
+                  <canvas id="hb-canvas" class="sig-canvas" height="100"></canvas>
+                </div>
+                <div class="sig-toolbar">
+                  <span class="sig-hint" id="hb-sig-date"></span>
+                  <button class="sig-clear" onclick="clearHbSig()">Clear</button>
+                </div>
+              </div>
+              <div style="margin-top:14px;">
+                <button class="btn-p" onclick="signHandbook()">✓ Sign &amp; acknowledge handbook</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ DOCUMENTS ══════════════ -->
+    <div id="page-documents" style="display:none">
+      <div class="page-hero" style="margin-bottom:24px;">
+        <div class="page-hero-badge">Required files</div>
+        <h1>My Documents</h1>
+        <p>Upload and manage your required enrollment documents. All four items must be on file before your first class.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Document checklist</div>
+        <div class="card-sub">Click any document to toggle its upload status. In the final portal, each tile will open a file picker.</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="di" id="mdoc-dl" onclick="toggleDi('mdoc-dl')" style="padding:18px;">
+            <div class="di-icon" style="background:#faeeda;width:44px;height:44px;"><svg viewBox="0 0 24 24" fill="#854f0b"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8V21h19.2v-1.8c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
+            <div class="di-body">
+              <div class="di-name" style="font-size:13px;">Copy of driver's license <span class="di-req dr">Required</span></div>
+              <div class="di-hint">Clear photo or scan of your current driver's license</div>
+              <div class="di-status">✓ Uploaded — ready for review</div>
+            </div>
+            <div style="margin-left:auto;font-size:12px;color:var(--muted);">Click to toggle</div>
+          </div>
+          <div class="di" id="mdoc-cpr" onclick="toggleDi('mdoc-cpr')" style="padding:18px;">
+            <div class="di-icon" style="background:#dde9f8;width:44px;height:44px;"><svg viewBox="0 0 24 24" fill="#1557a0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H7v-2h4V7h2v4h4v2h-4v4h-2z"/></svg></div>
+            <div class="di-body">
+              <div class="di-name" style="font-size:13px;">Current AHA HCP CPR card <span class="di-req dr">Required</span></div>
+              <div class="di-hint">American Heart Association — Healthcare Provider level, front &amp; back</div>
+              <div class="di-status">✓ Uploaded — ready for review</div>
+            </div>
+            <div style="margin-left:auto;font-size:12px;color:var(--muted);">Click to toggle</div>
+          </div>
+          <div class="di" id="mdoc-immun" onclick="toggleDi('mdoc-immun')" style="padding:18px;">
+            <div class="di-icon" style="background:#d8f5ec;width:44px;height:44px;"><svg viewBox="0 0 24 24" fill="#0a6b47"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg></div>
+            <div class="di-body">
+              <div class="di-name" style="font-size:13px;">Immunization records <span class="di-req dr">Required</span></div>
+              <div class="di-hint">Up-to-date vaccination documentation — Hep B, Tdap, flu recommended</div>
+              <div class="di-status">✓ Uploaded — ready for review</div>
+            </div>
+            <div style="margin-left:auto;font-size:12px;color:var(--muted);">Click to toggle</div>
+          </div>
+          <div class="di" id="mdoc-lic" onclick="toggleDi('mdoc-lic')" style="padding:18px;">
+            <div class="di-icon" style="background:#f8f0fb;width:44px;height:44px;"><svg viewBox="0 0 24 24" fill="#7b3fa0"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg></div>
+            <div class="di-body">
+              <div class="di-name" style="font-size:13px;">RN / LPN / EMT license <span class="di-req do">If applicable</span></div>
+              <div class="di-hint">Required for bridge courses (Options 5 &amp; 6). Current license only.</div>
+              <div class="di-status">✓ Uploaded — ready for review</div>
+            </div>
+            <div style="margin-left:auto;font-size:12px;color:var(--muted);">Click to toggle</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ COURSES ══════════════ -->
+    <div id="page-courses" style="display:none">
+      <div class="page-hero" style="margin-bottom:24px;">
+        <div class="page-hero-badge">2025 offerings</div>
+        <h1>Course Information</h1>
+        <p>All courses use a hybrid format — online content combined with in-person skills labs at our Scottsbluff facility.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="card"><div style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:2px 8px;border-radius:100px;background:#d8f5ec;color:#0a6b47;margin-bottom:8px;">EMR</div><div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:4px;">Option 1 — EMR Hybrid w/ Textbook</div><div style="font-size:13px;color:var(--muted);margin-bottom:10px;">Includes physical textbook. Ideal for first-time EMS students.</div><div style="font-size:18px;font-weight:600;color:var(--navy);">$750</div></div>
+        <div class="card"><div style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:2px 8px;border-radius:100px;background:#d8f5ec;color:#0a6b47;margin-bottom:8px;">EMR</div><div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:4px;">Option 2 — EMR Hybrid, No Textbook</div><div style="font-size:13px;color:var(--muted);margin-bottom:10px;">Digital resources only. Students provide their own textbook or use digital access.</div><div style="font-size:18px;font-weight:600;color:var(--navy);">$650</div></div>
+        <div class="card"><div style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:2px 8px;border-radius:100px;background:#dde9f8;color:#1557a0;margin-bottom:8px;">EMT</div><div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:4px;">Option 3 — EMT Hybrid w/ Textbook</div><div style="font-size:13px;color:var(--muted);margin-bottom:10px;">Full EMT course with textbook. Prepares for NREMT certification.</div><div style="font-size:18px;font-weight:600;color:var(--navy);">$1,300</div></div>
+        <div class="card"><div style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:2px 8px;border-radius:100px;background:#dde9f8;color:#1557a0;margin-bottom:8px;">EMT</div><div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:4px;">Option 4 — EMT Hybrid, No Textbook</div><div style="font-size:13px;color:var(--muted);margin-bottom:10px;">Full EMT course, digital resources only. Prepares for NREMT certification.</div><div style="font-size:18px;font-weight:600;color:var(--navy);">$1,100</div></div>
+        <div class="card"><div style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:2px 8px;border-radius:100px;background:#fce8e4;color:#8b3020;margin-bottom:8px;">AEMT Bridge</div><div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:4px;">Option 5 — EMT to AEMT Hybrid Bridge</div><div style="font-size:13px;color:var(--muted);margin-bottom:10px;">Requires active EMT-B certification. Includes polo shirt. No physical book.</div><div style="font-size:18px;font-weight:600;color:var(--navy);">$1,200</div></div>
+        <div class="card"><div style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:2px 8px;border-radius:100px;background:#faeeda;color:#854f0b;margin-bottom:8px;">Bridge</div><div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:4px;">Option 6 — RN/LPN to EMT Hybrid Bridge</div><div style="font-size:13px;color:var(--muted);margin-bottom:10px;">For licensed RNs and LPNs. No physical book.</div><div style="font-size:18px;font-weight:600;color:var(--navy);">$1,100</div></div>
+        <div class="card"><div style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:2px 8px;border-radius:100px;background:#e5f3d8;color:#3a6610;margin-bottom:8px;">CE / Specialty</div><div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:4px;">Option 7 — EMT IV Therapy</div><div style="font-size:13px;color:var(--muted);margin-bottom:10px;">Continuing education. Includes textbook and all lab fees.</div><div style="font-size:18px;font-weight:600;color:var(--navy);">$200</div></div>
+      </div>
+    </div>
+
+    <!-- ══════════════ FAQ ══════════════ -->
+    <div id="page-faq" style="display:none">
+      <div class="page-hero" style="margin-bottom:24px;">
+        <div class="page-hero-badge">Help</div>
+        <h1>Frequently Asked Questions</h1>
+        <p>Can't find your answer? Reach out directly to Robin or Andrew.</p>
+      </div>
+      <div class="card">
+        <div style="display:flex;flex-direction:column;gap:0;">
+          <div class="faq-item" onclick="toggleFaq(this)" style="padding:16px 0;border-bottom:1px solid var(--border);cursor:pointer;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-size:14px;font-weight:500;color:var(--navy);">What is a hybrid course?</div>
+              <div class="faq-arrow" style="font-size:18px;color:var(--muted);transition:transform 0.2s;">+</div>
+            </div>
+            <div class="faq-body" style="display:none;font-size:13px;color:#555;line-height:1.7;margin-top:10px;">Hybrid courses combine online coursework (completed at your own pace) with required in-person skills labs held at our Scottsbluff facility. You get the flexibility of online learning with the hands-on training required by the state.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)" style="padding:16px 0;border-bottom:1px solid var(--border);cursor:pointer;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-size:14px;font-weight:500;color:var(--navy);">When is tuition due?</div>
+              <div class="faq-arrow" style="font-size:18px;color:var(--muted);">+</div>
+            </div>
+            <div class="faq-body" style="display:none;font-size:13px;color:#555;line-height:1.7;margin-top:10px;">Tuition (or the minimum down payment) must be paid in full before the first night of class. If you are on a payment schedule, the final balance must be paid before FISDAP access and final testing are granted. Contact Robin or Andrew to set up a payment plan.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)" style="padding:16px 0;border-bottom:1px solid var(--border);cursor:pointer;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-size:14px;font-weight:500;color:var(--navy);">Can I get a refund if I drop the course?</div>
+              <div class="faq-arrow" style="font-size:18px;color:var(--muted);">+</div>
+            </div>
+            <div class="faq-body" style="display:none;font-size:13px;color:#555;line-height:1.7;margin-top:10px;color:var(--red);font-weight:500;">There are no refunds on PEMSE courses. CE hours will not be granted on incomplete courses. Please ensure you are committed before registering.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)" style="padding:16px 0;border-bottom:1px solid var(--border);cursor:pointer;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-size:14px;font-weight:500;color:var(--navy);">What documents do I need to register?</div>
+              <div class="faq-arrow" style="font-size:18px;color:var(--muted);">+</div>
+            </div>
+            <div class="faq-body" style="display:none;font-size:13px;color:#555;line-height:1.7;margin-top:10px;">You need: (1) a copy of your driver's license, (2) a current AHA Healthcare Provider CPR card, (3) immunization records, and (4) a copy of your RN, LPN, or EMT license if applicable to your course.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)" style="padding:16px 0;border-bottom:1px solid var(--border);cursor:pointer;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-size:14px;font-weight:500;color:var(--navy);">Does my department cover tuition?</div>
+              <div class="faq-arrow" style="font-size:18px;color:var(--muted);">+</div>
+            </div>
+            <div class="faq-body" style="display:none;font-size:13px;color:#555;line-height:1.7;margin-top:10px;">Yes! Many students are sponsored by their fire or EMS department. During registration, select "Department paying" as your payment method and enter your department's billing information. Contact Robin at 308.631.2424 for department invoicing.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)" style="padding:16px 0;cursor:pointer;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-size:14px;font-weight:500;color:var(--navy);">What size polo shirt do I need?</div>
+              <div class="faq-arrow" style="font-size:18px;color:var(--muted);">+</div>
+            </div>
+            <div class="faq-body" style="display:none;font-size:13px;color:#555;line-height:1.7;margin-top:10px;">Polo shirts are provided for AEMT bridge course students only (Option 5). Shirts are in men's sizes: S, M, L, XL, XXL. Size 2XL and larger adds $5 to tuition. Select your size during registration.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ CONTACT ══════════════ -->
+    <div id="page-contact" style="display:none">
+      <div class="page-hero" style="margin-bottom:24px;">
+        <div class="page-hero-badge">Get in touch</div>
+        <h1>Contact Us</h1>
+        <p>Have questions? We're here to help. Reach out to Robin or Andrew directly.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="card">
+          <div style="width:48px;height:48px;border-radius:50%;background:#e8f0fb;display:flex;align-items:center;justify-content:center;margin-bottom:14px;"><span style="font-size:18px;font-weight:700;color:var(--navy);">RD</span></div>
+          <div class="card-title">Robin Darnall</div>
+          <div class="card-sub">Program Director</div>
+          <div style="font-size:13px;line-height:2;color:#444;">
+            📞 <a href="tel:3086312424" style="color:var(--navy);text-decoration:none;">308.631.2424</a><br>
+            ✉️ <a href="mailto:ems.edu911@gmail.com" style="color:var(--navy);text-decoration:none;">ems.edu911@gmail.com</a>
+          </div>
+        </div>
+        <div class="card">
+          <div style="width:48px;height:48px;border-radius:50%;background:#fce8e4;display:flex;align-items:center;justify-content:center;margin-bottom:14px;"><span style="font-size:18px;font-weight:700;color:#8b3020;">AS</span></div>
+          <div class="card-title">Andrew Snodgrass</div>
+          <div class="card-sub">Instructor / Co-Director</div>
+          <div style="font-size:13px;line-height:2;color:#444;">
+            ✉️ <a href="mailto:emseducation19@gmail.com" style="color:var(--navy);text-decoration:none;">emseducation19@gmail.com</a>
+          </div>
+        </div>
+        <div class="card" style="grid-column:1/-1;">
+          <div class="card-title">Our location</div>
+          <div style="font-size:14px;color:#444;line-height:1.8;">
+            📍 <strong>709 Rosedale Dr., Scottsbluff, NE 69361</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── STATE ──
+var selCourseNum=0, selCourseName='', selPrice=0, selDown=0;
+var selPM='', selSize='', payOpt='';
+var docsUploaded={};
+var hbSigned=false;
+
+// ── NAVIGATION ──
+function showPage(id){
+  ['dashboard','register','handbook','documents','courses','faq','contact'].forEach(function(p){
+    document.getElementById('page-'+p).style.display=p===id?'block':'none';
+    var n=document.getElementById('nav-'+p);
+    if(n) n.className='nav-item'+(p===id?' active':'');
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── REGISTRATION STEPS ──
+function regStep(n){
+  for(var i=1;i<=5;i++){
+    var el=document.getElementById('reg'+i);
+    if(el) el.style.display=i===n?'block':'none';
+    var s=document.getElementById('s'+i);
+    if(s) s.className='step'+(i<n?' done':'')+(i===n?' active':'');
+  }
+  if(n===5) buildSummary();
+}
+
+// ── COURSE SELECTION ──
+function pickCourse(el,num,name,price,down){
+  document.querySelectorAll('.cc').forEach(function(c){c.classList.remove('selected');});
+  el.classList.add('selected');
+  selCourseNum=num; selCourseName=name; selPrice=price; selDown=down;
+  // Shirt section only for AEMT
+  document.getElementById('shirt-section').style.display=(num===5)?'block':'none';
+  updatePaymentSchedule();
+  updateContractSummary();
+}
+
+function pickSize(el){
+  document.querySelectorAll('.size-btn').forEach(function(b){b.classList.remove('selected');});
+  el.classList.add('selected');
+  selSize=el.textContent;
+}
+
+// ── PAYMENT ──
+function pickPM(el,type){
+  document.querySelectorAll('.pm').forEach(function(p){p.classList.remove('selected');});
+  el.classList.add('selected');
+  selPM=type;
+  document.getElementById('dept-fields').className='dept-fields'+(type==='dept'?' show':'');
+  document.getElementById('check-fields').style.display=(type==='check')?'block':'none';
+}
+
+function setPO(v){payOpt=v;}
+
+function updatePaymentSchedule(){
+  if(!selPrice){
+    document.getElementById('ps-block').innerHTML='<div class="ps-title">Select a course above to see your payment schedule.</div>';
+    return;
+  }
+  var d=new Date();
+  function addDays(days){var dt=new Date(d);dt.setDate(dt.getDate()+days);return dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+  var remain=selPrice-selDown;
+  document.getElementById('ps-block').innerHTML=
+    '<div class="ps-title">Payment schedule — '+selCourseName+'</div>'+
+    '<div class="ps-row"><span class="ps-label">Minimum down payment (before first class)</span><span class="ps-val">$'+selDown.toLocaleString()+'</span></div>'+
+    '<div class="ps-row"><span class="ps-label">1st payment — due 30 days from signing</span><span class="ps-val">'+addDays(30)+'</span></div>'+
+    '<div class="ps-row"><span class="ps-label">2nd payment — due 60 days from signing</span><span class="ps-val">'+addDays(60)+'</span></div>'+
+    '<div class="ps-row"><span class="ps-label">3rd payment — due 90 days from signing</span><span class="ps-val">'+addDays(90)+'</span></div>'+
+    '<div class="ps-row"><span class="ps-label">4th payment — due 120 days from signing</span><span class="ps-val">'+addDays(120)+'</span></div>'+
+    '<div class="ps-row"><span class="ps-label">Final balance (before FISDAP &amp; final testing)</span><span class="ps-val">$'+remain.toLocaleString()+'</span></div>'+
+    '<div class="ps-row"><span class="ps-label">Total tuition</span><span class="ps-val">$'+selPrice.toLocaleString()+'</span></div>';
+}
+
+// ── DOCUMENTS ──
+function toggleDi(id){
+  var el=document.getElementById(id);
+  el.classList.toggle('uploaded');
+  docsUploaded[id]=el.classList.contains('uploaded');
+}
+
+// ── SIGNATURE (Registration) ──
+var sigMode='type', sigDrawing=false, sigLastX, sigLastY, sigCtx;
+
+function switchSigTab(mode, tabEl){
+  sigMode=mode;
+  document.querySelectorAll('.sig-tab').forEach(function(t){t.classList.remove('active');});
+  tabEl.classList.add('active');
+  document.getElementById('sig-type-area').style.display=mode==='type'?'block':'none';
+  document.getElementById('sig-draw-area').style.display=mode==='draw'?'block':'none';
+  if(mode==='draw') initCanvas();
+}
+
+function initCanvas(){
+  var c=document.getElementById('sig-canvas');
+  if(!c) return;
+  c.width=c.offsetWidth;
+  sigCtx=c.getContext('2d');
+  sigCtx.strokeStyle='#0a2540';
+  sigCtx.lineWidth=2;
+  sigCtx.lineCap='round';
+  c.onmousedown=function(e){sigDrawing=true;var r=c.getBoundingClientRect();sigLastX=e.clientX-r.left;sigLastY=e.clientY-r.top;};
+  c.onmousemove=function(e){if(!sigDrawing||!sigCtx)return;var r=c.getBoundingClientRect();var x=e.clientX-r.left,y=e.clientY-r.top;sigCtx.beginPath();sigCtx.moveTo(sigLastX,sigLastY);sigCtx.lineTo(x,y);sigCtx.stroke();sigLastX=x;sigLastY=y;};
+  c.onmouseup=function(){sigDrawing=false;};
+  c.onmouseleave=function(){sigDrawing=false;};
+}
+
+function clearSig(){
+  document.getElementById('sig-type-input').value='';
+  document.getElementById('sig-preview').textContent='Your signature will appear here…';
+  if(sigCtx){var c=document.getElementById('sig-canvas');sigCtx.clearRect(0,0,c.width,c.height);}
+}
+
+function updateSigPreview(v){
+  document.getElementById('sig-preview').textContent=v||'Your signature will appear here…';
+}
+
+// ── SIGNATURE (Handbook) ──
+var hbSigMode='type', hbDrawing=false, hbLastX, hbLastY, hbCtx;
+
+function switchHbTab(mode,tabEl){
+  hbSigMode=mode;
+  document.querySelectorAll('#ch7 .sig-tab').forEach(function(t){t.classList.remove('active');});
+  tabEl.classList.add('active');
+  document.getElementById('hb-sig-type').style.display=mode==='type'?'block':'none';
+  document.getElementById('hb-sig-draw').style.display=mode==='draw'?'block':'none';
+  if(mode==='draw') initHbCanvas();
+}
+
+function initHbCanvas(){
+  var c=document.getElementById('hb-canvas');
+  if(!c) return;
+  c.width=c.offsetWidth;
+  hbCtx=c.getContext('2d');
+  hbCtx.strokeStyle='#0a2540';
+  hbCtx.lineWidth=2;
+  hbCtx.lineCap='round';
+  c.onmousedown=function(e){hbDrawing=true;var r=c.getBoundingClientRect();hbLastX=e.clientX-r.left;hbLastY=e.clientY-r.top;};
+  c.onmousemove=function(e){if(!hbDrawing||!hbCtx)return;var r=c.getBoundingClientRect();var x=e.clientX-r.left,y=e.clientY-r.top;hbCtx.beginPath();hbCtx.moveTo(hbLastX,hbLastY);hbCtx.lineTo(x,y);hbCtx.stroke();hbLastX=x;hbLastY=y;};
+  c.onmouseup=function(){hbDrawing=false;};
+}
+
+function clearHbSig(){
+  document.getElementById('hb-sig-input').value='';
+  document.getElementById('hb-sig-preview').textContent='Your signature will appear here…';
+  if(hbCtx){var c=document.getElementById('hb-canvas');hbCtx.clearRect(0,0,c.width,c.height);}
+}
+
+function updateHbPreview(v){
+  document.getElementById('hb-sig-preview').textContent=v||'Your signature will appear here…';
+}
+
+function signHandbook(){
+  var typed=document.getElementById('hb-sig-input').value.trim();
+  if(!typed && hbSigMode==='type'){alert('Please type your full name to sign.');return;}
+  hbSigned=true;
+  var now=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('hb-sig-date').textContent='Signed: '+now;
+  document.getElementById('hb-sign-status').innerHTML='<span style="color:#0a7a4b">✓ Signed on '+now+'</span>';
+  alert('Handbook acknowledged! Your signature has been recorded.');
+}
+
+// ── HANDBOOK CHAPTERS ──
+function showChapter(n, el){
+  for(var i=1;i<=7;i++){
+    var c=document.getElementById('ch'+i);
+    if(c) c.style.display=i===n?'block':'none';
+  }
+  document.querySelectorAll('.hb-chapter').forEach(function(h){h.classList.remove('active');});
+  el.classList.add('active');
+  document.getElementById('hb-sig-date').textContent=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+}
+
+// ── CONTRACT SUMMARY ──
+function updateContractSummary(){
+  var el=document.getElementById('contract-name');
+  var nameVal=document.getElementById('r-name');
+  if(el && nameVal) el.textContent=nameVal.value||'[Student Name]';
+  var cs=document.getElementById('contract-course-summary');
+  if(cs && selCourseName){
+    cs.innerHTML='<strong>Course:</strong> Option '+selCourseNum+' — '+selCourseName+' &nbsp;|&nbsp; <strong>Total:</strong> $'+selPrice.toLocaleString()+' &nbsp;|&nbsp; <strong>Min. down:</strong> $'+selDown.toLocaleString();
+    cs.style.color=document.body.style.color;
+  }
+}
+
+// ── BUILD SUMMARY (Step 5) ──
+function buildSummary(){
+  updateContractSummary();
+  var nm=document.getElementById('r-name').value||'—';
+  var em=document.getElementById('r-email').value||'—';
+  var ph=document.getElementById('r-phone').value||'—';
+  document.getElementById('sum-name').innerHTML='<strong>'+nm+'</strong>';
+  document.getElementById('sum-contact').innerHTML=em+'<br>'+ph;
+  document.getElementById('sum-course').innerHTML=selCourseName?('<strong>Option '+selCourseNum+' — '+selCourseName+'</strong><br>$'+selPrice.toLocaleString()):'<span style="color:var(--red)">None selected</span>';
+  var pmLabels={cash:'Cash',check:'Check',dept:'Department paying'};
+  document.getElementById('sum-payment').innerHTML=selPM?(pmLabels[selPM]||'—'):'—';
+  document.getElementById('contract-name').textContent=nm;
+}
+
+// ── SUBMIT ──
+function submitReg(){
+  var sig=document.getElementById('sig-type-input').value.trim();
+  if(!sig && sigMode==='type'){alert('Please sign the payment contract before submitting.');return;}
+  document.getElementById('reg5').style.display='none';
+  document.getElementById('reg-success').style.display='block';
+  for(var i=1;i<=5;i++){var s=document.getElementById('s'+i);if(s)s.className='step done';}
+  var n='PEMSE-2025-'+String(Math.floor(10000+Math.random()*90000));
+  document.getElementById('conf-num').textContent=n;
+  var msg='Your enrollment';
+  if(selCourseName) msg+=' for Option '+selCourseNum+' — '+selCourseName;
+  msg+=' has been submitted. Robin or Andrew will be in touch within 2 business days at the contact info you provided.';
+  document.getElementById('success-msg').textContent=msg;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── FAQ ──
+function toggleFaq(el){
+  var body=el.querySelector('.faq-body');
+  var arrow=el.querySelector('.faq-arrow');
+  var isOpen=body.style.display==='block';
+  body.style.display=isOpen?'none':'block';
+  arrow.textContent=isOpen?'+':'−';
+}
+
+// ── INIT ──
+document.getElementById('hb-sig-date').textContent=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+</script>
+</body>
+</html>

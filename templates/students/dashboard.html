@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — PEMSE{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="page-hero">
+  <div class="page-hero-badge">Welcome back</div>
+  <h1>Hello, {{ user.first_name }} 👋</h1>
+  <p>Your PEMSE enrollment dashboard. Complete each task below to finalize your registration.</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-val">{{ done_count }}/{{ total_tasks }}</div>
+      <div class="hero-stat-label">Tasks complete</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">{{ docs.count }}/4</div>
+      <div class="hero-stat-label">Docs uploaded</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">{% if enrollment %}Opt. {{ enrollment.course.option_number }}{% else %}—{% endif %}</div>
+      <div class="hero-stat-label">Course selected</div>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+
+  <!-- Checklist -->
+  <div class="portal-card">
+    <div class="portal-card-title">Enrollment checklist</div>
+    <div class="portal-card-sub">Complete all steps to finalize your registration.</div>
+    {% for task in tasks %}
+    <a href="{{ task.url }}" class="task-item text-decoration-none">
+      <div class="task-dot {% if task.done %}done{% else %}pending{% endif %}">
+        {% if task.done %}<i class="bi bi-check-lg"></i>
+        {% else %}<i class="bi bi-circle-fill" style="font-size:6px;"></i>{% endif %}
+      </div>
+      <span class="task-label {% if task.done %}done{% endif %}">{{ task.label }}</span>
+      {% if not task.done %}<span class="task-cta">Complete →</span>{% endif %}
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Announcements -->
+  <div class="portal-card">
+    <div class="portal-card-title">Announcements</div>
+    <div class="portal-card-sub">Latest updates from Panhandle EMS Education.</div>
+    {% if announcements %}
+      {% for ann in announcements %}
+      <div class="announcement-item">
+        <div class="ann-date">{{ ann.created_at|date:"M j, Y" }}</div>
+        <div class="ann-title">{{ ann.title }}</div>
+        <div class="ann-body">{{ ann.body }}</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="font-size:13px;color:#6b7280;">No announcements at this time. Check back soon.</p>
+    {% endif %}
+  </div>
+
+  <!-- Quick info -->
+  <div class="portal-card" style="grid-column:1/-1;">
+    <div class="portal-card-title">Important reminders</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px;">
+      <div style="background:var(--light);border-radius:10px;padding:16px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Required paperwork</div>
+        <div style="font-size:13px;line-height:1.8;color:#444;">
+          ✓ Copy of driver's license<br>
+          ✓ Current AHA HCP CPR card<br>
+          ✓ Immunization records<br>
+          ✓ RN/LPN/EMT license <em style="color:#999">(if applicable)</em>
+        </div>
+      </div>
+      <div style="background:var(--light);border-radius:10px;padding:16px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Payment policy</div>
+        <div style="font-size:13px;line-height:1.8;color:#444;">
+          Payment due before first night of class<br>
+          Full tuition required before FISDAP &amp; final testing<br>
+          <strong style="color:var(--red);">No refunds on PEMSE courses</strong><br>
+          CE hours not granted on incomplete courses
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
