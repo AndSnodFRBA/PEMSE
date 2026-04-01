@@ -19,9 +19,9 @@ RAILWAY_DOMAIN = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
 if RAILWAY_DOMAIN:
     ALLOWED_HOSTS.append(RAILWAY_DOMAIN)
 
-# When running on Railway, allow all *.up.railway.app subdomains and trust
-# the reverse-proxy SSL header so Django sees requests as HTTPS.
-if os.environ.get('RAILWAY_ENVIRONMENT'):
+# Railway injects RAILWAY_PROJECT_ID in every deployment; use it to reliably
+# detect the Railway environment regardless of env name conventions.
+if os.environ.get('RAILWAY_PROJECT_ID'):
     ALLOWED_HOSTS.append('.up.railway.app')
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
