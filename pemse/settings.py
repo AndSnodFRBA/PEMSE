@@ -25,6 +25,11 @@ if os.environ.get('RAILWAY_PROJECT_ID'):
     ALLOWED_HOSTS.extend(['.up.railway.app', 'pemse-production.up.railway.app'])
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# Last-resort fallback: allow requests with no Host header when not in debug mode
+# (covers Railway's internal healthcheck probes that may omit the Host header).
+if not DEBUG:
+    ALLOWED_HOSTS.append('')
+
 CSRF_TRUSTED_ORIGINS = (
     [f'https://{RAILWAY_DOMAIN}', 'https://*.up.railway.app']
     if RAILWAY_DOMAIN

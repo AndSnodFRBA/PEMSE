@@ -3,6 +3,6 @@ builder = "nixpacks"
 
 [deploy]
 startCommand = "export PYTHONUNBUFFERED=1 && python manage.py migrate --run-syncdb && python manage.py collectstatic --noinput && gunicorn pemse.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
-healthcheckPath = "/login/"
-healthcheckTimeout = 180
-restartPolicyType = "on_failure"
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "never"

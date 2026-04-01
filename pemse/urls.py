@@ -6,7 +6,7 @@ from django.conf.urls.static import static
 
 
 def health(request):
-    return HttpResponse("ok")
+    return HttpResponse('ok', status=200)
 
 
 urlpatterns = [
