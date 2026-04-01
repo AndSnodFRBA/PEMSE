@@ -12,23 +12,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ── SECURITY ──────────────────────────────────────────────────────────────────
 SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me-in-production')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = ['*']  # Temporary: open while diagnosing Railway healthcheck — lock down after deploy confirms working
 
-# Railway injects RAILWAY_PUBLIC_DOMAIN automatically
 RAILWAY_DOMAIN = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
-if RAILWAY_DOMAIN:
-    ALLOWED_HOSTS.append(RAILWAY_DOMAIN)
-
-# Railway injects RAILWAY_PROJECT_ID in every deployment; use it to reliably
-# detect the Railway environment regardless of env name conventions.
 if os.environ.get('RAILWAY_PROJECT_ID'):
-    ALLOWED_HOSTS.extend(['.up.railway.app', 'pemse-production.up.railway.app'])
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-# Last-resort fallback: allow requests with no Host header when not in debug mode
-# (covers Railway's internal healthcheck probes that may omit the Host header).
-if not DEBUG:
-    ALLOWED_HOSTS.append('')
 
 CSRF_TRUSTED_ORIGINS = (
     [f'https://{RAILWAY_DOMAIN}', 'https://*.up.railway.app']
