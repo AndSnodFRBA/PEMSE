@@ -125,10 +125,12 @@ def invite_student(request):
     form        = InvitationForm(request.POST or None)
     invitations = StudentInvitation.objects.select_related('created_by').order_by('-created_at')[:20]
 
+    invite_link = None
+
     if request.method == 'POST' and form.is_valid():
-        email = form.cleaned_data['email']
-        inv   = StudentInvitation.objects.create(email=email, created_by=request.user)
-        link  = request.build_absolute_uri(f'/register/invite/{inv.token}/')
+        email       = form.cleaned_data['email']
+        inv         = StudentInvitation.objects.create(email=email, created_by=request.user)
+        invite_link = request.build_absolute_uri(f'/register/invite/{inv.token}/')
 
         try:
             send_mail(
@@ -136,7 +138,7 @@ def invite_student(request):
                 message=(
                     f'Hello,\n\n'
                     f'You have been invited to create an account at the PEMSE Student Portal.\n\n'
-                    f'Click the link below to register (link expires in 7 days):\n{link}\n\n'
+                    f'Click the link below to register (link expires in 7 days):\n{invite_link}\n\n'
                     f'If you were not expecting this invitation, you can ignore this email.\n\n'
                     f'— Panhandle EMS Education\n'
                     f'  309 E 27th St, Scottsbluff NE | 308.631.2424'
@@ -145,13 +147,14 @@ def invite_student(request):
                 recipient_list=[email],
                 fail_silently=False,
             )
-            messages.success(request, f'Invitation sent to {email}.')
-        except Exception as e:
-            messages.warning(request, f'Invitation created but email failed to send: {e}. Share this link manually: {link}')
+            messages.success(request, f'Invitation email sent to {email}.')
+        except Exception:
+            messages.warning(request, 'Email could not be sent — copy the link below and share it manually.')
 
-        return redirect('staff_invite')
+        form        = InvitationForm()
+        invitations = StudentInvitation.objects.select_related('created_by').order_by('-created_at')[:20]
 
-    return render(request, 'staff/invite.html', {'form': form, 'invitations': invitations})
+    return render(request, 'staff/invite.html', {'form': form, 'invitations': invitations, 'invite_link': invite_link})
 
 
 # ── Announcements ─────────────────────────────────────────────────────────────

@@ -135,10 +135,10 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 
 # ── EMAIL ─────────────────────────────────────────────────────────────────────
-EMAIL_BACKEND = os.environ.get(
-    'EMAIL_BACKEND',
-    'django.core.mail.backends.console.EmailBackend'  # prints to console in dev
-)
+if os.environ.get('EMAIL_HOST_PASSWORD'):
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST     = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT     = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS  = True
