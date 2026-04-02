@@ -1,0 +1,79 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}Edit {{ student.get_full_name }} — PEMSE Staff{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'staff_student_detail' student.pk %}" style="color:#5a7a9a;text-decoration:none;font-size:13px;">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+    <h1 class="staff-page-title mb-0">Edit — {{ student.get_full_name }}</h1>
+  </div>
+</div>
+
+<div class="card" style="max-width:640px;">
+  <div class="card-body p-4">
+    <form method="post">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">First Name</label>
+          {{ form.first_name }}
+        </div>
+        <div class="col-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Last Name</label>
+          {{ form.last_name }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Email</label>
+          {{ form.email }}
+        </div>
+        <div class="col-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Phone</label>
+          {{ form.phone }}
+        </div>
+        <div class="col-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">OK to Text</label>
+          {{ form.ok_to_text }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Address</label>
+          {{ form.address }}
+        </div>
+        <div class="col-5">
+          <label class="form-label" style="font-size:12px;font-weight:600;">City</label>
+          {{ form.city }}
+        </div>
+        <div class="col-3">
+          <label class="form-label" style="font-size:12px;font-weight:600;">State</label>
+          {{ form.state }}
+        </div>
+        <div class="col-4">
+          <label class="form-label" style="font-size:12px;font-weight:600;">ZIP</label>
+          {{ form.zip_code }}
+        </div>
+        <div class="col-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Date of Birth</label>
+          {{ form.date_of_birth }}
+        </div>
+        <div class="col-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Shirt Size</label>
+          {{ form.shirt_size }}
+        </div>
+        <div class="col-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Enrollment Status</label>
+          {{ form.enroll_status }}
+        </div>
+      </div>
+      <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-sm" style="background:#2B5EA7;color:#fff;border-radius:8px;padding:8px 20px;">
+          Save Changes
+        </button>
+        <a href="{% url 'staff_student_detail' student.pk %}" class="btn btn-sm btn-outline-secondary" style="border-radius:8px;padding:8px 16px;">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}Announcements — PEMSE Staff{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">Announcements</h1>
+  <a href="{% url 'staff_announcement_create' %}" class="btn btn-sm" style="background:#2B5EA7;color:#fff;border-radius:8px;">
+    <i class="bi bi-plus-lg me-1"></i> New Announcement
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    {% if announcements %}
+    <table class="table table-hover mb-0" style="font-size:13px;">
+      <thead style="background:#f8fafc;border-bottom:2px solid #dde4ef;">
+        <tr>
+          <th class="ps-4 py-3" style="color:#1a2e4a;font-weight:600;">Title</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Posted by</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Date</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Status</th>
+          <th class="py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ann in announcements %}
+        <tr>
+          <td class="ps-4 py-3">
+            <div style="font-weight:600;color:#1a2e4a;">{{ ann.title }}</div>
+            <div style="color:#6b7280;font-size:11px;">{{ ann.body|truncatechars:80 }}</div>
+          </td>
+          <td class="py-3" style="color:#374151;">{{ ann.created_by.get_full_name|default:"—" }}</td>
+          <td class="py-3" style="color:#6b7280;font-size:12px;">{{ ann.created_at|date:"M j, Y" }}</td>
+          <td class="py-3">
+            {% if ann.is_active %}
+              <span class="badge" style="background:#d1fae5;color:#065f46;font-size:11px;padding:4px 8px;border-radius:5px;">Active</span>
+            {% else %}
+              <span class="badge" style="background:#f3f4f6;color:#6b7280;font-size:11px;padding:4px 8px;border-radius:5px;">Hidden</span>
+            {% endif %}
+          </td>
+          <td class="py-3 pe-3">
+            <div class="d-flex gap-2">
+              <a href="{% url 'staff_announcement_edit' ann.pk %}" class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:6px;">Edit</a>
+              <form method="post" action="{% url 'staff_announcement_delete' ann.pk %}"
+                    onsubmit="return confirm('Delete this announcement?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:12px;border-radius:6px;">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-5" style="color:#9ca3af;">
+      <i class="bi bi-megaphone" style="font-size:32px;"></i>
+      <div class="mt-2" style="font-size:14px;">No announcements yet. <a href="{% url 'staff_announcement_create' %}">Post one</a>.</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

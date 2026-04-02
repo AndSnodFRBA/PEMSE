@@ -15,12 +15,19 @@ from handbook.models import HandbookChapter
 
 def login_view(request):
     if request.user.is_authenticated:
+        if request.user.is_office_staff:
+            return redirect('staff_dashboard')
         return redirect('dashboard')
     form = StudentLoginForm(request, data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.get_user()
         login(request, user)
-        return redirect(request.GET.get('next', 'dashboard'))
+        next_url = request.GET.get('next')
+        if next_url:
+            return redirect(next_url)
+        if user.is_office_staff:
+            return redirect('staff_dashboard')
+        return redirect('dashboard')
     return render(request, 'students/login.html', {'form': form})
 
 
@@ -36,6 +43,37 @@ def register_view(request):
     return render(request, 'students/register.html', {'form': form})
 
 
+def register_with_invite(request, token):
+    """Registration view pre-filled from a staff invitation link."""
+    from staff.models import StudentInvitation
+    try:
+        invitation = StudentInvitation.objects.get(token=token)
+    except StudentInvitation.DoesNotExist:
+        messages.error(request, 'This invitation link is invalid.')
+        return redirect('register')
+
+    if not invitation.is_valid:
+        messages.error(request, 'This invitation link has expired or has already been used.')
+        return redirect('register')
+
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    initial = {'email': invitation.email}
+    form = StudentRegistrationForm(request.POST or None, initial=initial)
+
+    if request.method == 'POST' and form.is_valid():
+        student = form.save()
+        invitation.used    = True
+        invitation.used_at = timezone.now()
+        invitation.save()
+        login(request, student)
+        messages.success(request, f'Welcome, {student.first_name}! Complete your enrollment below.')
+        return redirect('dashboard')
+
+    return render(request, 'students/register.html', {'form': form, 'invite_email': invitation.email})
+
+
 def logout_view(request):
     logout(request)
     return redirect('login')
@@ -43,6 +81,9 @@ def logout_view(request):
 
 @login_required
 def dashboard_view(request):
+    if request.user.is_office_staff:
+        return redirect('staff_dashboard')
+
     student = request.user
     enrollment = CourseEnrollment.objects.filter(student=student).first()
     docs = StudentDocument.objects.filter(student=student).select_related('doc_type')

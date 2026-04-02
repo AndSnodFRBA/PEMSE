@@ -52,6 +52,15 @@
     </a>
   </nav>
 
+  {% if user.is_office_staff %}
+  <div class="sidebar-section-label mt-3">Staff</div>
+  <nav class="sidebar-nav">
+    <a href="{% url 'staff_dashboard' %}" class="nav-item">
+      <i class="bi bi-shield-fill"></i> Staff Portal
+    </a>
+  </nav>
+  {% endif %}
+
   <div class="sidebar-section-label mt-3">Info</div>
   <nav class="sidebar-nav">
     <a href="{% url 'course_list' %}" class="nav-item">

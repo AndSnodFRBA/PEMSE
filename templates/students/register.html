@@ -38,7 +38,12 @@
         </div>
         <div class="mb-3">
           <label class="form-label">Email address</label>
-          <input type="email" name="email" class="form-control" placeholder="jane@email.com" required value="{{ form.email.value|default:'' }}">
+          {% if invite_email %}
+            <input type="email" name="email" class="form-control" value="{{ invite_email }}" readonly style="background:#f3f6fb;color:#5a7a9a;">
+            <div style="font-size:11px;color:#5a7a9a;margin-top:4px;">This address was set by your invitation and cannot be changed.</div>
+          {% else %}
+            <input type="email" name="email" class="form-control" placeholder="jane@email.com" required value="{{ form.email.value|default:'' }}">
+          {% endif %}
         </div>
         <div class="mb-3">
           <label class="form-label">Password</label>

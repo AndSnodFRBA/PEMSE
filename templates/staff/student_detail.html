@@ -1,0 +1,175 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}{{ student.get_full_name }} — PEMSE Staff{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="staff-topbar flex-wrap gap-2">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'staff_dashboard' %}" style="color:#5a7a9a;text-decoration:none;font-size:13px;">
+      <i class="bi bi-arrow-left"></i> All Students
+    </a>
+    <h1 class="staff-page-title mb-0">{{ student.get_full_name }}</h1>
+    <span class="badge badge-{{ student.enroll_status }}" style="font-size:11px;padding:4px 10px;border-radius:6px;">
+      {{ student.get_enroll_status_display }}
+    </span>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'staff_student_edit' student.pk %}" class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:7px;">
+      <i class="bi bi-pencil me-1"></i>Edit
+    </a>
+    <a href="{% url 'staff_student_pdf' student.pk %}" class="btn btn-sm" style="background:#2B5EA7;color:#fff;font-size:12px;border-radius:7px;">
+      <i class="bi bi-file-earmark-pdf me-1"></i>Download PDF
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+
+  <!-- Left column -->
+  <div class="col-lg-6">
+
+    <!-- Personal info -->
+    <div class="card mb-3">
+      <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">Personal Information</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0" style="font-size:13px;">
+          {% include "staff/_kv_row.html" with label="Email" value=student.email %}
+          {% include "staff/_kv_row.html" with label="Phone" value=student.phone|default:"—" %}
+          {% include "staff/_kv_row.html" with label="Address" value=student.address|default:"—" %}
+          {% include "staff/_kv_row.html" with label="City / State" value=student.city|default:"—" %}
+          {% include "staff/_kv_row.html" with label="ZIP" value=student.zip_code|default:"—" %}
+          {% include "staff/_kv_row.html" with label="Date of Birth" value=student.date_of_birth|default:"—" %}
+          {% include "staff/_kv_row.html" with label="OK to Text" value=student.ok_to_text|yesno:"Yes,No,—" %}
+          {% include "staff/_kv_row.html" with label="Shirt Size" value=student.shirt_size|default:"—" %}
+          {% include "staff/_kv_row.html" with label="Joined" value=student.date_joined|date:"M j, Y" %}
+        </table>
+      </div>
+    </div>
+
+    <!-- Course -->
+    <div class="card mb-3">
+      <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">Course Enrollment</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0" style="font-size:13px;">
+          {% if enrollment %}
+            {% include "staff/_kv_row.html" with label="Course" value=enrollment.course.name %}
+            {% include "staff/_kv_row.html" with label="Option" value=enrollment.course.option_number %}
+            {% include "staff/_kv_row.html" with label="Tag" value=enrollment.course.tag %}
+            {% include "staff/_kv_row.html" with label="Price" value=enrollment.course.price %}
+            {% include "staff/_kv_row.html" with label="Min. Down" value=enrollment.course.min_down %}
+            {% include "staff/_kv_row.html" with label="Shirt Size" value=enrollment.shirt_size|default:"—" %}
+            {% include "staff/_kv_row.html" with label="Enrolled" value=enrollment.enrolled_at|date:"M j, Y" %}
+          {% else %}
+            <tr><td class="ps-3 py-3" colspan="2" style="color:#9ca3af;">No course selected yet.</td></tr>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+
+    <!-- Payment -->
+    <div class="card mb-3">
+      <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">Payment</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0" style="font-size:13px;">
+          {% if payment and payment.method %}
+            {% include "staff/_kv_row.html" with label="Method" value=payment.get_method_display %}
+            {% include "staff/_kv_row.html" with label="Option" value=payment.get_pay_option_display|default:"—" %}
+            {% if payment.method == 'check' %}
+              {% include "staff/_kv_row.html" with label="Check #" value=payment.check_number|default:"—" %}
+            {% endif %}
+            {% if payment.method == 'dept' %}
+              {% include "staff/_kv_row.html" with label="Dept. Name" value=payment.dept_name|default:"—" %}
+              {% include "staff/_kv_row.html" with label="Dept. Contact" value=payment.dept_contact|default:"—" %}
+              {% include "staff/_kv_row.html" with label="Dept. Email" value=payment.dept_email|default:"—" %}
+              {% include "staff/_kv_row.html" with label="Dept. Phone" value=payment.dept_phone|default:"—" %}
+            {% endif %}
+          {% else %}
+            <tr><td class="ps-3 py-3" colspan="2" style="color:#9ca3af;">No payment info on file.</td></tr>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+
+    <!-- Signatures -->
+    <div class="card mb-3">
+      <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">Signatures & Submission</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0" style="font-size:13px;">
+          {% include "staff/_kv_row.html" with label="Handbook Signed" value=student.handbook_signed|yesno:"Yes,No" %}
+          {% if student.handbook_signed %}
+            {% include "staff/_kv_row.html" with label="Handbook Sig." value=student.handbook_sig_name %}
+            {% include "staff/_kv_row.html" with label="Signed At" value=student.handbook_signed_at|date:"M j, Y g:i A" %}
+          {% endif %}
+          {% include "staff/_kv_row.html" with label="Contract Signed" value=student.contract_signed|yesno:"Yes,No" %}
+          {% if student.contract_signed %}
+            {% include "staff/_kv_row.html" with label="Contract Sig." value=student.contract_sig_name %}
+            {% include "staff/_kv_row.html" with label="Signed At" value=student.contract_signed_at|date:"M j, Y g:i A" %}
+          {% endif %}
+          {% include "staff/_kv_row.html" with label="Reg. Submitted" value=student.reg_submitted|yesno:"Yes,No" %}
+          {% if student.reg_conf_number %}
+            {% include "staff/_kv_row.html" with label="Conf. #" value=student.reg_conf_number %}
+          {% endif %}
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /left -->
+
+  <!-- Right column: Documents -->
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
+        Documents
+        <span style="font-weight:400;color:#6b7280;font-size:11px;margin-left:6px;">{{ doc_forms|length }} uploaded</span>
+      </div>
+      <div class="card-body">
+        {% if doc_forms %}
+          {% for doc, form in doc_forms %}
+          <div class="mb-4 pb-3" {% if not forloop.last %}style="border-bottom:1px solid #f0f4f8;"{% endif %}>
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <div style="font-weight:600;font-size:13px;color:#1a2e4a;">{{ doc.doc_type.label }}</div>
+              <span class="badge badge-{{ doc.status }}" style="font-size:11px;padding:3px 8px;border-radius:5px;">
+                {{ doc.get_status_display }}
+              </span>
+            </div>
+            <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">
+              Uploaded {{ doc.uploaded_at|date:"M j, Y" }}
+              {% if doc.reviewed_at %} · Reviewed {{ doc.reviewed_at|date:"M j, Y" }}{% endif %}
+              {% if doc.notes %}<br><em style="color:#92600a;">Note: {{ doc.notes }}</em>{% endif %}
+            </div>
+            <div class="mb-2">
+              <a href="{{ doc.file.url }}" target="_blank" class="btn btn-sm btn-outline-secondary" style="font-size:11px;border-radius:6px;">
+                <i class="bi bi-eye me-1"></i>View File
+              </a>
+            </div>
+            <form method="post" action="{% url 'staff_review_document' doc.pk %}">
+              {% csrf_token %}
+              <div class="d-flex gap-3 align-items-center mb-2" style="font-size:12px;">
+                <div class="form-check form-check-inline mb-0">
+                  <input class="form-check-input" type="radio" name="status" value="approved"
+                    id="approve_{{ doc.pk }}" {% if doc.status == 'approved' %}checked{% endif %}>
+                  <label class="form-check-label" for="approve_{{ doc.pk }}" style="color:#065f46;font-weight:600;">Approve</label>
+                </div>
+                <div class="form-check form-check-inline mb-0">
+                  <input class="form-check-input" type="radio" name="status" value="rejected"
+                    id="reject_{{ doc.pk }}" {% if doc.status == 'rejected' %}checked{% endif %}>
+                  <label class="form-check-label" for="reject_{{ doc.pk }}" style="color:#991b1b;font-weight:600;">Reject</label>
+                </div>
+              </div>
+              <textarea name="notes" class="form-control form-control-sm mb-2" rows="1"
+                        placeholder="Optional note to student…" style="font-size:12px;">{{ doc.notes }}</textarea>
+              <button type="submit" class="btn btn-sm btn-outline-primary" style="font-size:12px;border-radius:6px;">
+                Save review
+              </button>
+            </form>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p style="color:#9ca3af;font-size:13px;">No documents uploaded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div><!-- /right -->
+
+</div>
+{% endblock %}

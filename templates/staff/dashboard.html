@@ -1,0 +1,85 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}All Students — PEMSE Staff{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">All Students</h1>
+  <a href="{% url 'staff_invite' %}" class="btn btn-sm" style="background:#2B5EA7;color:#fff;border-radius:8px;">
+    <i class="bi bi-envelope-plus-fill me-1"></i> Invite Student
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    {% if rows %}
+    <table class="table table-hover mb-0" style="font-size:13px;">
+      <thead style="background:#f8fafc;border-bottom:2px solid #dde4ef;">
+        <tr>
+          <th class="ps-4 py-3" style="color:#1a2e4a;font-weight:600;">Student</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Course</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Status</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="Registration submitted">Reg</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="Handbook signed">Book</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="Contract signed">Contract</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="3+ required docs approved">Docs</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Joined</th>
+          <th class="py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td class="ps-4 py-3">
+            <div style="font-weight:600;color:#1a2e4a;">{{ row.student.get_full_name }}</div>
+            <div style="color:#5a7a9a;font-size:11px;">{{ row.student.email }}</div>
+          </td>
+          <td class="py-3" style="color:#374151;">
+            {% if row.enrollment %}
+              Opt. {{ row.enrollment.course.option_number }} — {{ row.enrollment.course.tag }}
+            {% else %}
+              <span style="color:#9ca3af;">—</span>
+            {% endif %}
+          </td>
+          <td class="py-3">
+            <span class="badge badge-{{ row.student.enroll_status }}" style="font-size:11px;padding:4px 8px;border-radius:6px;">
+              {{ row.student.get_enroll_status_display }}
+            </span>
+          </td>
+          <td class="py-3 text-center">
+            {% if row.student.reg_submitted %}<i class="bi bi-check-circle-fill check-icon"></i>
+            {% else %}<i class="bi bi-circle cross-icon"></i>{% endif %}
+          </td>
+          <td class="py-3 text-center">
+            {% if row.student.handbook_signed %}<i class="bi bi-check-circle-fill check-icon"></i>
+            {% else %}<i class="bi bi-circle cross-icon"></i>{% endif %}
+          </td>
+          <td class="py-3 text-center">
+            {% if row.student.contract_signed %}<i class="bi bi-check-circle-fill check-icon"></i>
+            {% else %}<i class="bi bi-circle cross-icon"></i>{% endif %}
+          </td>
+          <td class="py-3 text-center">
+            {% if row.docs_ok %}<i class="bi bi-check-circle-fill check-icon"></i>
+            {% else %}<span style="color:#9ca3af;font-size:11px;">{{ row.docs_count }}/3</span>{% endif %}
+          </td>
+          <td class="py-3" style="color:#6b7280;font-size:12px;">{{ row.student.date_joined|date:"M j, Y" }}</td>
+          <td class="py-3 pe-3">
+            <a href="{% url 'staff_student_detail' row.student.pk %}"
+               class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:6px;">
+              View →
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-5" style="color:#9ca3af;">
+      <i class="bi bi-people" style="font-size:32px;"></i>
+      <div class="mt-2" style="font-size:14px;">No students yet. <a href="{% url 'staff_invite' %}">Invite one</a>.</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="mt-2" style="font-size:12px;color:#9ca3af;">{{ rows|length }} student{{ rows|length|pluralize }} total</div>
+{% endblock %}

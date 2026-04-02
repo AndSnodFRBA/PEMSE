@@ -4,7 +4,15 @@ from django.utils import timezone
 
 
 class Student(AbstractUser):
-    """Custom user model — one row = one enrolled student."""
+    """Custom user model — one row = one enrolled student or staff member."""
+
+    class Role(models.TextChoices):
+        STUDENT = 'student', 'Student'
+        STAFF   = 'staff',   'Office Staff'
+
+    role = models.CharField(
+        max_length=10, choices=Role.choices, default=Role.STUDENT,
+    )
 
     # ── Contact ───────────────────────────────────────────────────────────────
     phone       = models.CharField(max_length=20, blank=True)
@@ -56,6 +64,10 @@ class Student(AbstractUser):
     def initials(self):
         parts = self.get_full_name().split()
         return ''.join(p[0].upper() for p in parts[:2]) if parts else '?'
+
+    @property
+    def is_office_staff(self):
+        return self.role == self.Role.STAFF or self.is_superuser
 
     @property
     def enrollment_complete(self):
