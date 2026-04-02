@@ -67,7 +67,7 @@ class Student(AbstractUser):
 
     @property
     def is_office_staff(self):
-        return self.role == self.Role.STAFF or self.is_superuser
+        return self.role == self.Role.STAFF or self.is_superuser or self.is_staff
 
     @property
     def enrollment_complete(self):
