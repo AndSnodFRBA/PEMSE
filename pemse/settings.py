@@ -24,6 +24,12 @@ CSRF_TRUSTED_ORIGINS = (
     else ['http://localhost:8000']
 )
 
+# ── AUTHENTICATION ────────────────────────────────────────────────────────────
+AUTHENTICATION_BACKENDS = [
+    'students.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 # ── APPS ──────────────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
     'django.contrib.admin',
