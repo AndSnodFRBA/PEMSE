@@ -142,10 +142,10 @@ else:
 EMAIL_HOST     = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT     = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS  = True
-EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER', 'emseducation19@gmail.com')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL  = 'PEMSE Student Portal <ems.edu911@gmail.com>'
-ADMIN_EMAIL = 'ems.edu911@gmail.com'
+DEFAULT_FROM_EMAIL  = 'PEMSE Student Portal <emseducation19@gmail.com>'
+ADMIN_EMAIL = 'emseducation19@gmail.com'
 
 # ── MISC ──────────────────────────────────────────────────────────────────────
 LANGUAGE_CODE = 'en-us'
