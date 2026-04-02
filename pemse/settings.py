@@ -18,11 +18,15 @@ RAILWAY_DOMAIN = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
 if os.environ.get('RAILWAY_PROJECT_ID'):
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-CSRF_TRUSTED_ORIGINS = (
-    [f'https://{RAILWAY_DOMAIN}', 'https://*.up.railway.app']
-    if RAILWAY_DOMAIN
-    else ['http://localhost:8000']
-)
+CSRF_TRUSTED_ORIGINS = [
+    'https://pemse-production.up.railway.app',
+    'https://*.up.railway.app',
+]
+if RAILWAY_DOMAIN and f'https://{RAILWAY_DOMAIN}' not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RAILWAY_DOMAIN}')
+extra = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+if extra:
+    CSRF_TRUSTED_ORIGINS += [x.strip() for x in extra.split(',')]
 
 # ── AUTHENTICATION ────────────────────────────────────────────────────────────
 AUTHENTICATION_BACKENDS = [
