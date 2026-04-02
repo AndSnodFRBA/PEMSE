@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Third-party
-    'anymail',
     'storages',
     'crispy_forms',
     'crispy_bootstrap5',
@@ -136,12 +135,7 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 
 # ── EMAIL ─────────────────────────────────────────────────────────────────────
-# Railway blocks outbound SMTP; use Resend HTTP API when key is present.
-if os.environ.get('RESEND_API_KEY'):
-    EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend'
-    ANYMAIL = {'RESEND_API_KEY': os.environ.get('RESEND_API_KEY')}
-else:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND      = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'PEMSE Student Portal <emseducation19@gmail.com>'
 ADMIN_EMAIL        = 'emseducation19@gmail.com'
 

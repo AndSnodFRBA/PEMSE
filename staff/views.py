@@ -1,9 +1,7 @@
 import io
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -131,26 +129,6 @@ def invite_student(request):
         email       = form.cleaned_data['email']
         inv         = StudentInvitation.objects.create(email=email, created_by=request.user)
         invite_link = request.build_absolute_uri(f'/register/invite/{inv.token}/')
-
-        try:
-            send_mail(
-                subject='You\'re invited to enroll at Panhandle EMS Education',
-                message=(
-                    f'Hello,\n\n'
-                    f'You have been invited to create an account at the PEMSE Student Portal.\n\n'
-                    f'Click the link below to register (link expires in 7 days):\n{invite_link}\n\n'
-                    f'If you were not expecting this invitation, you can ignore this email.\n\n'
-                    f'— Panhandle EMS Education\n'
-                    f'  309 E 27th St, Scottsbluff NE | 308.631.2424'
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[email],
-                fail_silently=False,
-            )
-            messages.success(request, f'Invitation email sent to {email}.')
-        except Exception:
-            messages.warning(request, 'Email could not be sent — copy the link below and share it manually.')
-
         form        = InvitationForm()
         invitations = StudentInvitation.objects.select_related('created_by').order_by('-created_at')[:20]
 
