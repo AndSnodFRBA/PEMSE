@@ -49,11 +49,7 @@ def staff_logout_view(request):
 
 @staff_required
 def staff_dashboard(request):
-    students = (
-        Student.objects.filter(role=Student.Role.STUDENT)
-        .prefetch_related('studentdocument_set__doc_type', 'courseenrollment')
-        .order_by('-date_joined')
-    )
+    students = Student.objects.filter(role=Student.Role.STUDENT).order_by('-date_joined')
 
     # Attach quick-status data to each student
     rows = []
