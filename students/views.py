@@ -37,7 +37,7 @@ def register_view(request):
     form = StudentRegistrationForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         student = form.save()
-        login(request, student)
+        login(request, student, backend='students.backends.EmailBackend')
         messages.success(request, f'Welcome, {student.first_name}! Complete your enrollment below.')
         return redirect('dashboard')
     return render(request, 'students/register.html', {'form': form})
@@ -67,7 +67,7 @@ def register_with_invite(request, token):
         invitation.used    = True
         invitation.used_at = timezone.now()
         invitation.save()
-        login(request, student)
+        login(request, student, backend='students.backends.EmailBackend')
         messages.success(request, f'Welcome, {student.first_name}! Complete your enrollment below.')
         return redirect('dashboard')
 
