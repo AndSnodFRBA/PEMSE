@@ -1,5 +1,6 @@
 from django import forms
 
+from courses.models import Course
 from documents.models import StudentDocument
 from students.models import Announcement, Student
 
@@ -60,4 +61,34 @@ class StaffStudentEditForm(forms.ModelForm):
             'date_of_birth': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'enroll_status': forms.Select(attrs={'class': 'form-select'}),
             'shirt_size':    forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+
+class CourseForm(forms.ModelForm):
+    class Meta:
+        model  = Course
+        fields = [
+            'option_number', 'tag', 'name', 'description', 'licensure',
+            'price', 'min_down', 'includes_shirt', 'is_active',
+            'location_name', 'location_address', 'location_city', 'location_state',
+            'start_date', 'end_date', 'registration_close_date',
+            'max_students', 'schedule_notes',
+        ]
+        widgets = {
+            'option_number':          forms.NumberInput(attrs={'class': 'form-control'}),
+            'tag':                    forms.TextInput(attrs={'class': 'form-control'}),
+            'name':                   forms.TextInput(attrs={'class': 'form-control'}),
+            'description':            forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'licensure':              forms.Select(attrs={'class': 'form-select'}),
+            'price':                  forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'min_down':               forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'location_name':          forms.TextInput(attrs={'class': 'form-control'}),
+            'location_address':       forms.TextInput(attrs={'class': 'form-control'}),
+            'location_city':          forms.TextInput(attrs={'class': 'form-control'}),
+            'location_state':         forms.TextInput(attrs={'class': 'form-control', 'maxlength': '2'}),
+            'start_date':             forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'end_date':               forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'registration_close_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'max_students':           forms.NumberInput(attrs={'class': 'form-control'}),
+            'schedule_notes':         forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }

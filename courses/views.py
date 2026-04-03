@@ -3,14 +3,18 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Course, CourseEnrollment
 
+
 @login_required
 def course_list_view(request):
-    courses = Course.objects.filter(is_active=True)
+    active_courses = Course.objects.filter(is_active=True)
+    # Only show courses where registration is still open (dates + capacity)
+    courses = [c for c in active_courses if c.registration_open]
     enrollment = CourseEnrollment.objects.filter(student=request.user).first()
     return render(request, 'courses/course_list.html', {
         'courses': courses,
         'enrollment': enrollment,
     })
+
 
 @login_required
 def enroll_view(request, course_id):

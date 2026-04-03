@@ -81,6 +81,12 @@
       <i class="bi bi-envelope-plus-fill"></i> Invite Student
     </a>
 
+    <div class="staff-nav-label">Courses</div>
+    <a href="{% url 'staff_course_list' %}"
+       class="{% if 'course' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-journal-text"></i> Courses
+    </a>
+
     <div class="staff-nav-label">Content</div>
     <a href="{% url 'staff_announcements' %}"
        class="{% if 'announcement' in request.resolver_match.url_name %}active{% endif %}">

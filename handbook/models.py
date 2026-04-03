@@ -24,7 +24,7 @@ class HandbookAcknowledgment(models.Model):
         on_delete=models.CASCADE,
         related_name='handbook_ack'
     )
-    sig_name   = models.CharField(max_length=200)
+    sig_name   = models.TextField()
     signed_at  = models.DateTimeField(auto_now_add=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
 

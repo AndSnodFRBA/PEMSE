@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.db.models import Q
 import uuid
 
-from .models import Student, PaymentRecord, Announcement
+from .models import Student, PaymentRecord, Announcement, PaymentHistory
 from .forms import StudentRegistrationForm, StudentLoginForm, ProfileForm, PaymentForm
 from courses.models import CourseEnrollment
 from documents.models import StudentDocument, DocumentType
@@ -161,8 +161,8 @@ def registration_form_view(request):
 
         elif action == 'sign_contract':
             sig_name = request.POST.get('sig_name', '').strip()
-            if not sig_name:
-                messages.error(request, 'Please type your full name to sign.')
+            if not sig_name or len(sig_name) < 500:
+                messages.error(request, 'Please draw your signature before signing.')
             elif not enrollment:
                 messages.error(request, 'Please select a course before signing.')
             else:

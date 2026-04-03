@@ -1,0 +1,98 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}Courses — PEMSE Staff{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">Courses</h1>
+  <a href="{% url 'staff_course_add' %}" class="btn btn-sm" style="background:#2B5EA7;color:#fff;border-radius:8px;">
+    <i class="bi bi-plus-lg me-1"></i> Add Course
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    {% if rows %}
+    <table class="table table-hover mb-0" style="font-size:13px;">
+      <thead style="background:#f8fafc;border-bottom:2px solid #dde4ef;">
+        <tr>
+          <th class="ps-4 py-3" style="color:#1a2e4a;font-weight:600;">#</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Course</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Location</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Starts</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Reg. Closes</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">Enrolled</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">Status</th>
+          <th class="py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td class="ps-4 py-3" style="color:#6b7280;">{{ row.course.option_number }}</td>
+          <td class="py-3">
+            <div style="font-weight:600;color:#1a2e4a;">{{ row.course.name }}</div>
+            {% if row.course.licensure %}
+            <span style="display:inline-block;font-size:10px;font-weight:600;padding:1px 7px;border-radius:4px;
+              background:{{ row.course.tag_bg }};color:{{ row.course.tag_color }};margin-top:2px;">
+              {{ row.course.get_licensure_display }}
+            </span>
+            {% endif %}
+          </td>
+          <td class="py-3" style="color:#374151;font-size:12px;">
+            {% if row.course.location_name %}{{ row.course.location_name }}<br>{% endif %}
+            {% if row.course.location_city %}{{ row.course.location_city }}{% if row.course.location_state %}, {{ row.course.location_state }}{% endif %}{% endif %}
+            {% if not row.course.location_name and not row.course.location_city %}<span style="color:#9ca3af;">—</span>{% endif %}
+          </td>
+          <td class="py-3" style="color:#374151;font-size:12px;">
+            {{ row.course.start_date|date:"M j, Y"|default:"—" }}
+          </td>
+          <td class="py-3" style="color:#374151;font-size:12px;">
+            {{ row.course.registration_close_date|date:"M j, Y"|default:"—" }}
+          </td>
+          <td class="py-3 text-center" style="font-size:12px;color:#374151;">
+            {{ row.enrolled }}{% if row.course.max_students %} / {{ row.course.max_students }}{% endif %}
+          </td>
+          <td class="py-3 text-center">
+            {% if row.status == 'open' %}
+              <span style="background:#d1fae5;color:#065f46;font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;">Open</span>
+            {% elif row.status == 'closing' %}
+              <span style="background:#fef3c7;color:#92600a;font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;">Closing Soon</span>
+            {% elif row.status == 'closed' %}
+              <span style="background:#f3f4f6;color:#6b7280;font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;">Closed</span>
+            {% elif row.status == 'full' %}
+              <span style="background:#fee2e2;color:#991b1b;font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;">Full</span>
+            {% else %}
+              <span style="background:#f3f4f6;color:#9ca3af;font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="py-3 pe-3">
+            <div class="d-flex gap-2 justify-content-end">
+              <a href="{% url 'staff_course_edit' row.course.pk %}"
+                 class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:6px;">
+                <i class="bi bi-pencil me-1"></i>Edit
+              </a>
+              <form method="post" action="{% url 'staff_course_delete' row.course.pk %}"
+                    onsubmit="return confirm('Deactivate this course?');" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="deactivate">
+                <button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:12px;border-radius:6px;">
+                  Deactivate
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-5" style="color:#9ca3af;">
+      <i class="bi bi-journal-text" style="font-size:32px;"></i>
+      <div class="mt-2" style="font-size:14px;">No courses yet. <a href="{% url 'staff_course_add' %}">Add one</a>.</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="mt-2" style="font-size:12px;color:#9ca3af;">{{ rows|length }} course{{ rows|length|pluralize }} total</div>
+{% endblock %}

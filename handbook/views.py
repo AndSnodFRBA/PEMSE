@@ -14,8 +14,8 @@ def handbook_view(request):
 
     if request.method == 'POST' and not ack:
         sig_name = request.POST.get('sig_name', '').strip()
-        if not sig_name:
-            messages.error(request, 'Please type your full name to sign.')
+        if not sig_name or len(sig_name) < 500:
+            messages.error(request, 'Please draw your signature before signing.')
         else:
             ip = request.META.get('REMOTE_ADDR')
             HandbookAcknowledgment.objects.create(

@@ -5,20 +5,62 @@
 <div class="page-hero">
   <div class="page-hero-badge">2025 Offerings</div>
   <h1>Course Information</h1>
-  <p>All courses use a hybrid format — online content plus in-person skills labs at our Scottsbluff facility. Click a course to enroll.</p>
+  <p>All courses use a hybrid format — online content plus in-person skills labs. Click a course to enroll.</p>
 </div>
 
 <div class="course-grid">
   {% for course in courses %}
   <a href="{% url 'enroll' course.id %}" class="course-card {% if enrollment.course == course %}selected{% endif %}">
-    <div class="course-tag" style="background:{{ course.tag_bg }};color:{{ course.tag_color }};">{{ course.tag }}</div>
+    <div class="course-tag" style="background:{{ course.tag_bg }};color:{{ course.tag_color }};">
+      {% if course.licensure %}{{ course.get_licensure_display }}{% else %}{{ course.tag }}{% endif %}
+    </div>
     <div class="course-name">Option {{ course.option_number }} — {{ course.name }}</div>
     <div class="course-desc">{{ course.description }}</div>
+
+    {% if course.location_display or course.start_date %}
+    <div style="font-size:11px;color:#5a7a9a;margin-top:6px;line-height:1.6;">
+      {% if course.location_display %}
+        <span><i class="bi bi-geo-alt"></i> {{ course.location_display }}</span>
+      {% endif %}
+      {% if course.start_date %}
+        {% if course.location_display %}&nbsp;·&nbsp;{% endif %}
+        <span><i class="bi bi-calendar"></i> Starts {{ course.start_date|date:"M j, Y" }}</span>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if course.schedule_notes %}
+    <div style="font-size:11px;color:#6b7280;margin-top:3px;">
+      <i class="bi bi-clock"></i> {{ course.schedule_notes }}
+    </div>
+    {% endif %}
+
     <div class="course-price">${{ course.price|floatformat:0 }}</div>
     <div class="course-down">Min. down: ${{ course.min_down|floatformat:0 }}</div>
-    {% if course.includes_shirt %}<div style="font-size:11px;color:var(--green);margin-top:4px;">✓ Polo shirt included</div>{% endif %}
+
+    {% if course.includes_shirt %}
+      <div style="font-size:11px;color:var(--green);margin-top:4px;">✓ Polo shirt included</div>
+    {% endif %}
+
+    {% with spots=course.spots_remaining %}
+      {% if spots is not None %}
+        {% if spots == 0 %}
+          <div style="font-size:11px;color:#991b1b;font-weight:600;margin-top:4px;">No spots remaining</div>
+        {% elif spots <= 5 %}
+          <div style="font-size:11px;color:#92600a;font-weight:600;margin-top:4px;">Only {{ spots }} spot{{ spots|pluralize }} left!</div>
+        {% else %}
+          <div style="font-size:11px;color:#6b7280;margin-top:4px;">{{ spots }} spots available</div>
+        {% endif %}
+      {% endif %}
+    {% endwith %}
+
     <div class="course-check"><i class="bi bi-check-lg"></i></div>
   </a>
+  {% empty %}
+  <div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">
+    <i class="bi bi-calendar-x" style="font-size:32px;"></i>
+    <div style="margin-top:10px;font-size:14px;">No courses are currently open for registration.</div>
+  </div>
   {% endfor %}
 </div>
 

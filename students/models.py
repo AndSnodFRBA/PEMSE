@@ -38,13 +38,13 @@ class Student(AbstractUser):
     reg_submitted_at = models.DateTimeField(null=True, blank=True)
     reg_conf_number  = models.CharField(max_length=30, blank=True)
 
-    # ── Signatures ────────────────────────────────────────────────────────────
+    # ── Signatures (stores base64 PNG data from canvas pad) ───────────────────
     contract_signed     = models.BooleanField(default=False)
-    contract_sig_name   = models.CharField(max_length=200, blank=True)
+    contract_sig_name   = models.TextField(blank=True)
     contract_signed_at  = models.DateTimeField(null=True, blank=True)
 
     handbook_signed     = models.BooleanField(default=False)
-    handbook_sig_name   = models.CharField(max_length=200, blank=True)
+    handbook_sig_name   = models.TextField(blank=True)
     handbook_signed_at  = models.DateTimeField(null=True, blank=True)
 
     # ── Shirt (AEMT courses) ──────────────────────────────────────────────────
@@ -108,6 +108,31 @@ class PaymentRecord(models.Model):
 
     def __str__(self):
         return f'{self.student} — {self.get_method_display()}'
+
+
+class PaymentHistory(models.Model):
+    """Individual payment installments recorded by staff."""
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='payment_history')
+    amount  = models.DecimalField(max_digits=8, decimal_places=2)
+    payment_date = models.DateField()
+    method  = models.CharField(max_length=20, choices=[
+        ('cash',  'Cash'),
+        ('check', 'Check'),
+        ('card',  'Card'),
+        ('dept',  'Department'),
+    ])
+    check_number = models.CharField(max_length=50, blank=True)
+    notes        = models.TextField(blank=True)
+    recorded_by  = models.ForeignKey(
+        Student, null=True, on_delete=models.SET_NULL, related_name='payments_recorded'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-payment_date']
+
+    def __str__(self):
+        return f'{self.student} — ${self.amount} on {self.payment_date}'
 
 
 class Announcement(models.Model):

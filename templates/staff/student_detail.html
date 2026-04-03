@@ -54,10 +54,28 @@
           {% if enrollment %}
             {% include "staff/_kv_row.html" with label="Course" value=enrollment.course.name %}
             {% include "staff/_kv_row.html" with label="Option" value=enrollment.course.option_number %}
+            {% if enrollment.course.licensure %}
+              {% include "staff/_kv_row.html" with label="Licensure" value=enrollment.course.get_licensure_display %}
+            {% endif %}
             {% include "staff/_kv_row.html" with label="Tag" value=enrollment.course.tag %}
             {% include "staff/_kv_row.html" with label="Price" value=enrollment.course.price %}
             {% include "staff/_kv_row.html" with label="Min. Down" value=enrollment.course.min_down %}
             {% include "staff/_kv_row.html" with label="Shirt Size" value=enrollment.shirt_size|default:"—" %}
+            {% if enrollment.course.location_name or enrollment.course.location_city %}
+              {% include "staff/_kv_row.html" with label="Location" value=enrollment.course.location_display %}
+              {% if enrollment.course.location_address %}
+                {% include "staff/_kv_row.html" with label="Address" value=enrollment.course.location_address %}
+              {% endif %}
+            {% endif %}
+            {% if enrollment.course.start_date %}
+              {% include "staff/_kv_row.html" with label="Start Date" value=enrollment.course.start_date|date:"M j, Y" %}
+            {% endif %}
+            {% if enrollment.course.end_date %}
+              {% include "staff/_kv_row.html" with label="End Date" value=enrollment.course.end_date|date:"M j, Y" %}
+            {% endif %}
+            {% if enrollment.course.schedule_notes %}
+              {% include "staff/_kv_row.html" with label="Schedule" value=enrollment.course.schedule_notes %}
+            {% endif %}
             {% include "staff/_kv_row.html" with label="Enrolled" value=enrollment.enrolled_at|date:"M j, Y" %}
           {% else %}
             <tr><td class="ps-3 py-3" colspan="2" style="color:#9ca3af;">No course selected yet.</td></tr>

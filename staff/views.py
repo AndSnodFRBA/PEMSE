@@ -6,11 +6,12 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from courses.models import CourseEnrollment
+from courses.models import Course, CourseEnrollment
 from documents.models import StudentDocument
 from students.forms import StudentLoginForm
 from students.models import Announcement, Student
 from .forms import (
+    CourseForm,
     DocumentReviewForm,
     InvitationForm,
     StaffAnnouncementForm,
@@ -110,6 +111,70 @@ def review_document(request, doc_id):
         doc.save()
         messages.success(request, f'{doc.doc_type.label} marked as {doc.status}.')
     return redirect('staff_student_detail', pk=doc.student_id)
+
+
+# ── Course management ─────────────────────────────────────────────────────────
+
+@staff_required
+def course_list(request):
+    from datetime import timedelta
+    today   = timezone.now().date()
+    soon    = today + timedelta(days=7)
+    courses = Course.objects.all().order_by('order', 'option_number')
+
+    rows = []
+    for c in courses:
+        enrolled = c.enrollments.count()
+        if not c.is_active:
+            status = 'inactive'
+        elif c.registration_close_date and today > c.registration_close_date:
+            status = 'closed'
+        elif c.max_students and enrolled >= c.max_students:
+            status = 'full'
+        elif c.registration_close_date and c.registration_close_date <= soon:
+            status = 'closing'
+        else:
+            status = 'open'
+        rows.append({'course': c, 'enrolled': enrolled, 'status': status})
+
+    return render(request, 'staff/course_list.html', {'rows': rows})
+
+
+@staff_required
+def course_add(request):
+    form = CourseForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Course created.')
+        return redirect('staff_course_list')
+    return render(request, 'staff/course_form.html', {'form': form, 'action': 'Add'})
+
+
+@staff_required
+def course_edit(request, pk):
+    course = get_object_or_404(Course, pk=pk)
+    form   = CourseForm(request.POST or None, instance=course)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, f'Course "{course.name}" updated.')
+        return redirect('staff_course_list')
+    return render(request, 'staff/course_form.html', {'form': form, 'action': 'Edit', 'course': course})
+
+
+@staff_required
+def course_delete(request, pk):
+    course = get_object_or_404(Course, pk=pk)
+    if request.method == 'POST':
+        action = request.POST.get('action', 'deactivate')
+        if action == 'delete':
+            name = course.name
+            course.delete()
+            messages.success(request, f'Course "{name}" deleted.')
+        else:
+            course.is_active = False
+            course.save()
+            messages.success(request, f'Course "{course.name}" deactivated.')
+    return redirect('staff_course_list')
 
 
 # ── Invitations ───────────────────────────────────────────────────────────────
@@ -243,14 +308,22 @@ def student_pdf(request, pk):
     # Course
     story += section('Course Enrollment')
     if enrollment:
-        story.append(kv_table([
-            ['Course',       f'Option {enrollment.course.option_number} — {enrollment.course.name}'],
-            ['Tag',          enrollment.course.tag],
-            ['Price',        f'${enrollment.course.price:,.0f}'],
-            ['Min. Down',    f'${enrollment.course.min_down:,.0f}'],
+        c = enrollment.course
+        location_parts = [p for p in [c.location_name, c.location_address, c.location_city, c.location_state] if p]
+        rows = [
+            ['Course',       f'Option {c.option_number} — {c.name}'],
+            ['Licensure',    c.get_licensure_display() if c.licensure else '—'],
+            ['Tag',          c.tag],
+            ['Price',        f'${c.price:,.0f}'],
+            ['Min. Down',    f'${c.min_down:,.0f}'],
             ['Shirt Size',   enrollment.shirt_size or '—'],
+            ['Location',     ', '.join(location_parts) if location_parts else '—'],
+            ['Start Date',   str(c.start_date) if c.start_date else '—'],
+            ['End Date',     str(c.end_date) if c.end_date else '—'],
+            ['Schedule',     c.schedule_notes or '—'],
             ['Enrolled At',  enrollment.enrolled_at.strftime('%B %d, %Y')],
-        ]))
+        ]
+        story.append(kv_table(rows))
     else:
         story.append(Paragraph('No course selected.', body))
 
