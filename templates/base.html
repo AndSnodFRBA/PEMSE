@@ -37,9 +37,6 @@
       <i class="bi bi-file-earmark-text"></i> Registration
       {% if not user.reg_submitted %}<span class="nav-badge">!</span>{% endif %}
     </a>
-    <a href="{% url 'course_list' %}"      class="nav-item {% if 'course' in request.resolver_match.url_name %}active{% endif %}">
-      <i class="bi bi-mortarboard-fill"></i> Courses
-    </a>
     <a href="{% url 'handbook' %}"         class="nav-item {% if request.resolver_match.url_name == 'handbook' %}active{% endif %}">
       <i class="bi bi-book-fill"></i> Handbook
       {% if not user.handbook_signed %}<span class="nav-badge warn">!</span>{% endif %}
@@ -63,9 +60,6 @@
 
   <div class="sidebar-section-label mt-3">Info</div>
   <nav class="sidebar-nav">
-    <a href="{% url 'course_list' %}" class="nav-item">
-      <i class="bi bi-info-circle-fill"></i> Course Info
-    </a>
     <a href="mailto:ems.edu911@gmail.com" class="nav-item">
       <i class="bi bi-envelope-fill"></i> Contact PEMSE
     </a>

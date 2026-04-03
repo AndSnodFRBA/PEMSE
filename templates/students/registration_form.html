@@ -88,19 +88,68 @@
 <!-- ── SECTION 2: Course Selection ── -->
 <div class="portal-card" id="course">
   <div class="portal-card-title">Course selection</div>
-  <div class="portal-card-sub">Choose one option. Click a card then confirm your enrollment.</div>
+  <div class="portal-card-sub">Choose one option below. Your selection is saved immediately.</div>
+
+  {% if courses %}
   <div class="course-grid">
     {% for course in courses %}
-    <a href="{% url 'enroll' course.id %}" class="course-card {% if enrollment.course == course %}selected{% endif %}">
-      <div class="course-tag" style="background:{{ course.tag_bg }};color:{{ course.tag_color }};">{{ course.tag }}</div>
-      <div class="course-name">Option {{ course.option_number }} — {{ course.name }}</div>
-      <div class="course-desc">{{ course.description }}</div>
-      <div class="course-price">${{ course.price|floatformat:0 }}</div>
-      <div class="course-down">Min. down: ${{ course.min_down|floatformat:0 }}</div>
-      <div class="course-check"><i class="bi bi-check-lg"></i></div>
-    </a>
+    <form method="post" action="{% url 'enroll' course.id %}" class="course-card-form">
+      {% csrf_token %}
+      {% if course.includes_shirt %}
+      <div class="course-shirt-select" id="shirt-select-{{ course.id }}" style="display:none;">
+        <label style="font-size:11px;font-weight:600;color:#0a2540;display:block;margin-bottom:4px;">Polo shirt size *</label>
+        <select name="shirt_size" class="form-select form-select-sm" style="margin-bottom:8px;">
+          <option value="">Select size…</option>
+          <option value="S">Small</option>
+          <option value="M">Medium</option>
+          <option value="L">Large</option>
+          <option value="XL">X-Large</option>
+          <option value="2XL">2X-Large</option>
+          <option value="3XL">3X-Large</option>
+        </select>
+      </div>
+      {% endif %}
+      <button type="{% if course.includes_shirt %}button{% else %}submit{% endif %}"
+              class="course-card {% if enrollment.course == course %}selected{% endif %}"
+              style="width:100%;text-align:left;background:none;border:none;padding:0;cursor:pointer;"
+              {% if course.includes_shirt %}onclick="toggleShirt({{ course.id }}, this)"{% endif %}>
+        <div class="course-tag" style="background:{{ course.tag_bg }};color:{{ course.tag_color }};">
+          {% if course.licensure %}{{ course.get_licensure_display }}{% else %}{{ course.tag }}{% endif %}
+        </div>
+        <div class="course-name">Option {{ course.option_number }} — {{ course.name }}</div>
+        <div class="course-desc">{{ course.description }}</div>
+
+        {% if course.location_display or course.start_date %}
+        <div style="font-size:11px;color:#5a7a9a;margin-top:6px;line-height:1.7;">
+          {% if course.location_display %}<span><i class="bi bi-geo-alt"></i> {{ course.location_display }}</span>{% endif %}
+          {% if course.start_date %}{% if course.location_display %} · {% endif %}<span><i class="bi bi-calendar"></i> Starts {{ course.start_date|date:"M j, Y" }}</span>{% endif %}
+        </div>
+        {% endif %}
+        {% if course.schedule_notes %}
+        <div style="font-size:11px;color:#6b7280;margin-top:2px;"><i class="bi bi-clock"></i> {{ course.schedule_notes }}</div>
+        {% endif %}
+
+        <div class="course-price">${{ course.price|floatformat:0 }}</div>
+        <div class="course-down">Min. down: ${{ course.min_down|floatformat:0 }}</div>
+        {% if course.includes_shirt %}<div style="font-size:11px;color:var(--green);margin-top:4px;">✓ Polo shirt included</div>{% endif %}
+        {% with spots=course.spots_remaining %}
+          {% if spots is not None %}
+            {% if spots <= 5 and spots > 0 %}<div style="font-size:11px;color:#92600a;font-weight:600;margin-top:4px;">Only {{ spots }} spot{{ spots|pluralize }} left!</div>{% endif %}
+          {% endif %}
+        {% endwith %}
+        <div class="course-check"><i class="bi bi-check-lg"></i></div>
+      </button>
+    </form>
     {% endfor %}
   </div>
+  {% else %}
+  <div style="text-align:center;padding:32px 16px;background:var(--light);border-radius:12px;border:1px solid var(--border);">
+    <i class="bi bi-calendar-x" style="font-size:28px;color:var(--muted);"></i>
+    <div style="margin-top:10px;font-size:14px;color:#374151;font-weight:500;">No courses are currently open for registration.</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;">Please check back soon or <a href="mailto:ems.edu911@gmail.com">contact PEMSE directly</a>.</div>
+  </div>
+  {% endif %}
+
   {% if enrollment %}
   <div style="margin-top:14px;padding:12px 14px;background:#f0faf6;border:1px solid var(--green);border-radius:10px;font-size:13px;color:var(--green);">
     ✓ Selected: <strong>Option {{ enrollment.course.option_number }} — {{ enrollment.course.name }}</strong>
@@ -255,6 +304,22 @@
 
 {% block extra_js %}
 <script>
+  // ── AEMT shirt size toggle ───────────────────────────────────────────────
+  function toggleShirt(courseId, btn) {
+    const shirtDiv = document.getElementById('shirt-select-' + courseId);
+    if (!shirtDiv) return;
+    if (shirtDiv.style.display === 'none') {
+      shirtDiv.style.display = 'block';
+      btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      // Size chosen — submit the parent form
+      const form = btn.closest('form');
+      const select = shirtDiv.querySelector('select');
+      if (!select.value) { alert('Please select a shirt size.'); return; }
+      form.submit();
+    }
+  }
+
   // ── Payment method selector ──────────────────────────────────────────────
   document.querySelectorAll('.pm-option').forEach(el => {
     el.style.cssText += 'border:1.5px solid #dde1e8;border-radius:10px;padding:14px;text-align:center;cursor:pointer;background:white;';

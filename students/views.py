@@ -156,9 +156,11 @@ def profile_view(request):
 @login_required
 def registration_form_view(request):
     """Multi-step registration form with payment contract."""
+    from courses.models import Course
     student = request.user
     enrollment = CourseEnrollment.objects.filter(student=student).first()
     payment, _ = PaymentRecord.objects.get_or_create(student=student)
+    courses = [c for c in Course.objects.filter(is_active=True) if c.registration_open]
 
     pay_form = PaymentForm(request.POST or None, instance=payment)
 
@@ -200,8 +202,9 @@ def registration_form_view(request):
         return redirect('registration_form')
 
     return render(request, 'students/registration_form.html', {
-        'student': student,
+        'student':    student,
         'enrollment': enrollment,
-        'pay_form': pay_form,
-        'payment': payment,
+        'pay_form':   pay_form,
+        'payment':    payment,
+        'courses':    courses,
     })
