@@ -9,11 +9,12 @@ from django.utils import timezone
 from courses.models import Course, CourseEnrollment
 from documents.models import StudentDocument
 from students.forms import StudentLoginForm
-from students.models import Announcement, Student
+from students.models import Announcement, PaymentHistory, Student
 from .forms import (
     CourseForm,
     DocumentReviewForm,
     InvitationForm,
+    PaymentHistoryForm,
     StaffAnnouncementForm,
     StaffStudentEditForm,
 )
@@ -71,18 +72,31 @@ def staff_dashboard(request):
 
 @staff_required
 def student_detail(request, pk):
+    from decimal import Decimal
     student    = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
     enrollment = CourseEnrollment.objects.filter(student=student).first()
     docs       = StudentDocument.objects.filter(student=student).select_related('doc_type').order_by('doc_type__order')
     payment    = getattr(student, 'payment', None)
+    history    = student.payment_history.select_related('recorded_by').all()
 
     doc_forms = [(doc, DocumentReviewForm(initial={'status': doc.status, 'notes': doc.notes})) for doc in docs]
 
+    total_paid  = sum(p.amount for p in history)
+    total_owed  = enrollment.course.price if enrollment else Decimal('0')
+    balance_due = max(Decimal('0'), total_owed - total_paid)
+
+    add_payment_form = PaymentHistoryForm()
+
     return render(request, 'staff/student_detail.html', {
-        'student':    student,
-        'enrollment': enrollment,
-        'doc_forms':  doc_forms,
-        'payment':    payment,
+        'student':          student,
+        'enrollment':       enrollment,
+        'doc_forms':        doc_forms,
+        'payment':          payment,
+        'history':          history,
+        'total_paid':       total_paid,
+        'total_owed':       total_owed,
+        'balance_due':      balance_due,
+        'add_payment_form': add_payment_form,
     })
 
 
@@ -95,6 +109,22 @@ def student_edit(request, pk):
         messages.success(request, f'{student.get_full_name()} updated.')
         return redirect('staff_student_detail', pk=pk)
     return render(request, 'staff/student_edit.html', {'form': form, 'student': student})
+
+
+@staff_required
+def add_payment(request, pk):
+    student = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
+    if request.method == 'POST':
+        form = PaymentHistoryForm(request.POST)
+        if form.is_valid():
+            record = form.save(commit=False)
+            record.student     = student
+            record.recorded_by = request.user
+            record.save()
+            messages.success(request, f'Payment of ${record.amount} recorded.')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    return redirect('staff_student_detail', pk=pk)
 
 
 # ── Document review ───────────────────────────────────────────────────────────
@@ -357,13 +387,33 @@ def student_pdf(request, pk):
     ]))
 
     # Signatures
+    import base64 as _b64
+    from reportlab.platypus import Image as RLImage
+
+    def _sig_element(b64_data, label):
+        """Return a signature row: label + image (if base64) or text."""
+        rows = []
+        if b64_data and b64_data.startswith('data:image/'):
+            try:
+                _, encoded = b64_data.split(',', 1)
+                img_bytes = _b64.b64decode(encoded)
+                img_buf   = io.BytesIO(img_bytes)
+                sig_img   = RLImage(img_buf, width=2.5*inch, height=0.7*inch)
+                rows.append([label, sig_img])
+            except Exception:
+                rows.append([label, b64_data[:40] + '…' if b64_data else '—'])
+        else:
+            rows.append([label, b64_data or '—'])
+        return rows
+
     story += section('Signatures')
-    story.append(kv_table([
-        ['Handbook Signed',  ('Yes — ' + student.handbook_signed_at.strftime('%B %d, %Y') if student.handbook_signed and student.handbook_signed_at else ('Yes' if student.handbook_signed else 'No'))],
-        ['Handbook Sig.',    student.handbook_sig_name or '—'],
-        ['Contract Signed',  ('Yes — ' + student.contract_signed_at.strftime('%B %d, %Y') if student.contract_signed and student.contract_signed_at else ('Yes' if student.contract_signed else 'No'))],
-        ['Contract Sig.',    student.contract_sig_name or '—'],
-    ]))
+    sig_data = [
+        ['Handbook Signed', ('Yes — ' + student.handbook_signed_at.strftime('%B %d, %Y') if student.handbook_signed and student.handbook_signed_at else ('Yes' if student.handbook_signed else 'No'))],
+        ['Contract Signed', ('Yes — ' + student.contract_signed_at.strftime('%B %d, %Y') if student.contract_signed and student.contract_signed_at else ('Yes' if student.contract_signed else 'No'))],
+    ]
+    sig_data += _sig_element(student.handbook_sig_name, 'Handbook Sig.')
+    sig_data += _sig_element(student.contract_sig_name, 'Contract Sig.')
+    story.append(kv_table(sig_data))
 
     # Documents
     story += section('Uploaded Documents')

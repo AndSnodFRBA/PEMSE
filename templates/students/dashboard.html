@@ -58,6 +58,55 @@
     {% endif %}
   </div>
 
+  <!-- Payment History -->
+  <div class="portal-card" style="grid-column:1/-1;">
+    <div class="portal-card-title">Payment history</div>
+    <div class="portal-card-sub">Payments recorded by PEMSE staff against your tuition balance.</div>
+
+    <!-- Totals bar -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div style="background:var(--light);border-radius:10px;padding:12px 14px;text-align:center;">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Total Tuition</div>
+        <div style="font-size:20px;font-weight:700;color:#0a2540;">${{ total_owed|floatformat:2 }}</div>
+      </div>
+      <div style="background:var(--light);border-radius:10px;padding:12px 14px;text-align:center;">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Paid</div>
+        <div style="font-size:20px;font-weight:700;color:var(--green);">${{ total_paid|floatformat:2 }}</div>
+      </div>
+      <div style="background:var(--light);border-radius:10px;padding:12px 14px;text-align:center;">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Balance Due</div>
+        <div style="font-size:20px;font-weight:700;color:{% if balance_due %}var(--red){% else %}var(--green){% endif %};">${{ balance_due|floatformat:2 }}</div>
+      </div>
+    </div>
+
+    {% if payment_history %}
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border);">
+            <th style="padding:8px 10px;text-align:left;color:var(--muted);font-weight:600;">Date</th>
+            <th style="padding:8px 10px;text-align:left;color:var(--muted);font-weight:600;">Amount</th>
+            <th style="padding:8px 10px;text-align:left;color:var(--muted);font-weight:600;">Method</th>
+            <th style="padding:8px 10px;text-align:left;color:var(--muted);font-weight:600;">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in payment_history %}
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:8px 10px;color:#444;">{{ p.payment_date|date:"M j, Y" }}</td>
+            <td style="padding:8px 10px;font-weight:600;color:var(--green);">${{ p.amount|floatformat:2 }}</td>
+            <td style="padding:8px 10px;color:#444;">{{ p.get_method_display }}</td>
+            <td style="padding:8px 10px;color:#6b7280;">{{ p.notes|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p style="font-size:13px;color:#9ca3af;margin:0;">No payments recorded yet. Contact PEMSE staff with any questions about your balance.</p>
+    {% endif %}
+  </div>
+
   <!-- Quick info -->
   <div class="portal-card" style="grid-column:1/-1;">
     <div class="portal-card-title">Important reminders</div>

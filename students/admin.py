@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import Student, PaymentRecord, Announcement
+from .models import Announcement, PaymentHistory, PaymentRecord, Student
 
 
 @admin.register(Student)
@@ -35,6 +35,15 @@ class PaymentRecordAdmin(admin.ModelAdmin):
     list_display  = ['student', 'method', 'pay_option', 'dept_name', 'updated_at']
     list_filter   = ['method', 'pay_option']
     search_fields = ['student__email', 'student__first_name', 'student__last_name', 'dept_name']
+
+
+@admin.register(PaymentHistory)
+class PaymentHistoryAdmin(admin.ModelAdmin):
+    list_display  = ['student', 'amount', 'payment_date', 'method', 'check_number', 'recorded_by', 'created_at']
+    list_filter   = ['method', 'payment_date']
+    search_fields = ['student__email', 'student__first_name', 'student__last_name', 'check_number', 'notes']
+    ordering      = ['-payment_date']
+    date_hierarchy = 'payment_date'
 
 
 @admin.register(Announcement)

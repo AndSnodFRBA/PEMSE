@@ -177,7 +177,7 @@
 <!-- ── SECTION 4: Sign & Submit ── -->
 <div class="portal-card" id="sign">
   <div class="portal-card-title">Sign payment contract &amp; submit</div>
-  <div class="portal-card-sub">Read the agreement, sign with your full legal name, then submit your registration.</div>
+  <div class="portal-card-sub">Read the agreement, draw your signature below, then submit your registration.</div>
 
   <!-- Contract text -->
   <div style="background:var(--light);border:1px solid var(--border);border-radius:10px;padding:20px;font-size:13px;line-height:1.8;color:#333;margin-bottom:20px;">
@@ -197,25 +197,36 @@
 
   {% if user.contract_signed %}
   <div style="background:#f0faf6;border:1px solid var(--green);border-radius:10px;padding:16px 20px;margin-bottom:20px;">
-    <div style="font-size:13px;color:var(--green);font-weight:600;margin-bottom:4px;">✓ Contract signed</div>
-    <div style="font-family:'DM Serif Display',Georgia,serif;font-style:italic;font-size:28px;color:#0a2540;">{{ user.contract_sig_name }}</div>
-    <div style="font-size:12px;color:#6b7280;margin-top:4px;">Signed {{ user.contract_signed_at|date:"F j, Y \a\t g:i A" }}</div>
+    <div style="font-size:13px;color:var(--green);font-weight:600;margin-bottom:8px;">✓ Contract signed</div>
+    {% if user.contract_sig_name|length > 100 %}
+      <img src="{{ user.contract_sig_name }}" alt="Signature"
+           style="max-width:320px;max-height:100px;display:block;border:1px solid #d1fae5;border-radius:6px;background:#fff;">
+    {% else %}
+      <div style="font-family:'DM Serif Display',Georgia,serif;font-style:italic;font-size:28px;color:#0a2540;">{{ user.contract_sig_name }}</div>
+    {% endif %}
+    <div style="font-size:12px;color:#6b7280;margin-top:6px;">Signed {{ user.contract_signed_at|date:"F j, Y \a\t g:i A" }}</div>
   </div>
   {% else %}
-  <form method="post" action="{% url 'registration_form' %}">
+  <form method="post" action="{% url 'registration_form' %}" id="contract-form">
     {% csrf_token %}
     <input type="hidden" name="action" value="sign_contract">
+    <input type="hidden" name="sig_name" id="sig-hidden">
     <div style="font-size:13px;font-weight:600;color:#0a2540;margin-bottom:10px;">Your signature *</div>
-    <div class="sig-wrap" style="margin-bottom:16px;">
-      <div class="sig-preview" id="sig-preview-text">Type your name below…</div>
-      <div class="sig-input-row">
-        <input type="text" name="sig_name" id="sig-name-input" class="form-control sig-input" placeholder="Type your full legal name to sign" oninput="document.getElementById('sig-preview-text').textContent=this.value||'Type your name below…'">
+    <div style="margin-bottom:16px;">
+      <div style="position:relative;border:1.5px solid #dde1e8;border-radius:10px;overflow:hidden;background:#fafbfc;">
+        <canvas id="sig-canvas" width="700" height="160"
+          style="display:block;width:100%;height:160px;cursor:crosshair;touch-action:none;"></canvas>
+        <div style="position:absolute;bottom:36px;left:24px;right:24px;border-bottom:1.5px solid #c5c8d0;pointer-events:none;"></div>
+        <div style="position:absolute;bottom:14px;left:28px;font-size:11px;color:#aab;pointer-events:none;">
+          ✕ Sign above this line
+        </div>
       </div>
-      <div class="sig-footer">
-        <span>By signing, I agree to the payment contract terms above.</span>
-        <span id="sig-date"></span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+        <span style="font-size:11px;color:#6b7280;">Use mouse or finger to draw your signature</span>
+        <button type="button" onclick="clearSigPad()" style="font-size:12px;color:#6b7280;background:#fff;border:1px solid #dde1e8;border-radius:6px;padding:4px 12px;cursor:pointer;">Clear</button>
       </div>
     </div>
+    <div style="font-size:12px;color:#6b7280;margin-bottom:14px;">By signing, I agree to the payment contract terms above.</div>
     <button type="submit" class="btn-navy">✓ Sign contract</button>
   </form>
   {% endif %}
@@ -244,7 +255,7 @@
 
 {% block extra_js %}
 <script>
-  // Payment method selector
+  // ── Payment method selector ──────────────────────────────────────────────
   document.querySelectorAll('.pm-option').forEach(el => {
     el.style.cssText += 'border:1.5px solid #dde1e8;border-radius:10px;padding:14px;text-align:center;cursor:pointer;background:white;';
   });
@@ -260,15 +271,70 @@
     document.getElementById('dept-fields').style.display  = val==='dept'  ? 'block' : 'none';
   }
 
-  // Set today's date in sig footer
-  const sigDate = document.getElementById('sig-date');
-  if (sigDate) sigDate.textContent = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-
-  // Style pm-option cards inline since they're rendered from Django
   document.querySelectorAll('.pm-option').forEach(el => {
     el.style.border = el.classList.contains('selected') ? '1.5px solid #0a2540' : '1.5px solid #dde1e8';
     el.style.borderRadius = '10px'; el.style.padding = '14px'; el.style.textAlign = 'center';
     el.style.cursor = 'pointer'; el.style.background = el.classList.contains('selected') ? '#f2f6fb' : 'white';
   });
+
+  // ── Signature pad ────────────────────────────────────────────────────────
+  (function () {
+    const canvas = document.getElementById('sig-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+    let hasDrawn = false;
+
+    ctx.strokeStyle = '#1a2540';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    function getXY(e) {
+      const r = canvas.getBoundingClientRect();
+      const sx = canvas.width / r.width;
+      const sy = canvas.height / r.height;
+      const src = e.touches ? e.touches[0] : e;
+      return { x: (src.clientX - r.left) * sx, y: (src.clientY - r.top) * sy };
+    }
+
+    canvas.addEventListener('mousedown', function (e) {
+      isDrawing = true;
+      const p = getXY(e);
+      ctx.beginPath(); ctx.moveTo(p.x, p.y);
+    });
+    canvas.addEventListener('mousemove', function (e) {
+      if (!isDrawing) return;
+      const p = getXY(e);
+      ctx.lineTo(p.x, p.y); ctx.stroke(); hasDrawn = true;
+    });
+    canvas.addEventListener('mouseup',    function () { isDrawing = false; });
+    canvas.addEventListener('mouseleave', function () { isDrawing = false; });
+
+    canvas.addEventListener('touchstart', function (e) {
+      e.preventDefault(); isDrawing = true;
+      const p = getXY(e); ctx.beginPath(); ctx.moveTo(p.x, p.y);
+    }, { passive: false });
+    canvas.addEventListener('touchmove', function (e) {
+      e.preventDefault(); if (!isDrawing) return;
+      const p = getXY(e); ctx.lineTo(p.x, p.y); ctx.stroke(); hasDrawn = true;
+    }, { passive: false });
+    canvas.addEventListener('touchend', function () { isDrawing = false; });
+
+    window.clearSigPad = function () {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      hasDrawn = false;
+      document.getElementById('sig-hidden').value = '';
+    };
+
+    document.getElementById('contract-form').addEventListener('submit', function (e) {
+      if (!hasDrawn) {
+        e.preventDefault();
+        alert('Please draw your signature before submitting.');
+        return;
+      }
+      document.getElementById('sig-hidden').value = canvas.toDataURL('image/png');
+    });
+  })();
 </script>
 {% endblock %}

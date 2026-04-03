@@ -120,15 +120,25 @@ def dashboard_view(request):
     ]
     done_count = sum(1 for t in tasks if t['done'])
 
+    payment_history = student.payment_history.all()
+    from decimal import Decimal
+    total_paid = sum(p.amount for p in payment_history)
+    total_owed = enrollment.course.price if enrollment else Decimal('0')
+    balance_due = max(Decimal('0'), total_owed - total_paid)
+
     return render(request, 'students/dashboard.html', {
-        'student': student,
-        'enrollment': enrollment,
-        'docs': docs,
-        'doc_types': doc_types,
-        'announcements': announcements,
-        'tasks': tasks,
-        'done_count': done_count,
-        'total_tasks': len(tasks),
+        'student':         student,
+        'enrollment':      enrollment,
+        'docs':            docs,
+        'doc_types':       doc_types,
+        'announcements':   announcements,
+        'tasks':           tasks,
+        'done_count':      done_count,
+        'total_tasks':     len(tasks),
+        'payment_history': payment_history,
+        'total_paid':      total_paid,
+        'total_owed':      total_owed,
+        'balance_due':     balance_due,
     })
 
 

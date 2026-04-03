@@ -2,7 +2,7 @@ from django import forms
 
 from courses.models import Course
 from documents.models import StudentDocument
-from students.models import Announcement, Student
+from students.models import Announcement, PaymentHistory, Student
 
 
 class InvitationForm(forms.Form):
@@ -91,4 +91,17 @@ class CourseForm(forms.ModelForm):
             'registration_close_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'max_students':           forms.NumberInput(attrs={'class': 'form-control'}),
             'schedule_notes':         forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+
+
+class PaymentHistoryForm(forms.ModelForm):
+    class Meta:
+        model  = PaymentHistory
+        fields = ['amount', 'payment_date', 'method', 'check_number', 'notes']
+        widgets = {
+            'amount':       forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
+            'payment_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'method':       forms.Select(attrs={'class': 'form-select'}),
+            'check_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Check #'}),
+            'notes':        forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Optional notes…'}),
         }
