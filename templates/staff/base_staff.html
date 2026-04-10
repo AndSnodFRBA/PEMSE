@@ -87,6 +87,18 @@
       <i class="bi bi-journal-text"></i> Courses
     </a>
 
+    <div class="staff-nav-label">Evaluations</div>
+    <a href="{% url 'staff_eval_list' %}"
+       class="{% if 'eval' in request.resolver_match.url_name %}active{% endif %}"
+       style="position:relative;">
+      <i class="bi bi-clipboard2-pulse-fill"></i> Evaluations
+      {% if eval_pending_count %}
+        <span style="margin-left:auto;background:#f59e0b;color:#fff;border-radius:9px;padding:1px 7px;font-size:10px;font-weight:700;">
+          {{ eval_pending_count }}
+        </span>
+      {% endif %}
+    </a>
+
     <div class="staff-nav-label">Content</div>
     <a href="{% url 'staff_announcements' %}"
        class="{% if 'announcement' in request.resolver_match.url_name %}active{% endif %}">

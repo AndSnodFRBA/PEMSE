@@ -47,6 +47,9 @@
     <a href="{% url 'profile' %}"          class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
       <i class="bi bi-person-fill"></i> My Profile
     </a>
+    <a href="{% url 'rotation_log' %}"    class="nav-item {% if 'rotation' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-clipboard2-pulse-fill"></i> Clinical Rotations
+    </a>
   </nav>
 
   {% if user.is_office_staff %}

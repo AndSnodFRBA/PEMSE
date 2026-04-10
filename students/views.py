@@ -126,19 +126,28 @@ def dashboard_view(request):
     total_owed = enrollment.course.price if enrollment else Decimal('0')
     balance_due = max(Decimal('0'), total_owed - total_paid)
 
+    # Clinical rotations summary (no scores shown to student)
+    from evaluations.models import ClinicalRotation, PreceptorEvaluation
+    rotations = ClinicalRotation.objects.filter(student=student)
+    pending_preceptor_evals = PreceptorEvaluation.objects.filter(
+        rotation__student=student, status=PreceptorEvaluation.Status.PENDING
+    ).count()
+
     return render(request, 'students/dashboard.html', {
-        'student':         student,
-        'enrollment':      enrollment,
-        'docs':            docs,
-        'doc_types':       doc_types,
-        'announcements':   announcements,
-        'tasks':           tasks,
-        'done_count':      done_count,
-        'total_tasks':     len(tasks),
-        'payment_history': payment_history,
-        'total_paid':      total_paid,
-        'total_owed':      total_owed,
-        'balance_due':     balance_due,
+        'student':                student,
+        'enrollment':             enrollment,
+        'docs':                   docs,
+        'doc_types':              doc_types,
+        'announcements':          announcements,
+        'tasks':                  tasks,
+        'done_count':             done_count,
+        'total_tasks':            len(tasks),
+        'payment_history':        payment_history,
+        'total_paid':             total_paid,
+        'total_owed':             total_owed,
+        'balance_due':            balance_due,
+        'rotation_count':         rotations.count(),
+        'pending_preceptor_evals': pending_preceptor_evals,
     })
 
 

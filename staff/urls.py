@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from evaluations import views as eval_views
 
 urlpatterns = [
     path('',                                   views.staff_dashboard,       name='staff_dashboard'),
@@ -18,5 +19,8 @@ urlpatterns = [
     path('courses/',                           views.course_list,           name='staff_course_list'),
     path('courses/add/',                       views.course_add,            name='staff_course_add'),
     path('courses/<int:pk>/edit/',             views.course_edit,           name='staff_course_edit'),
-    path('courses/<int:pk>/delete/',           views.course_delete,         name='staff_course_delete'),
+    path('courses/<int:pk>/delete/',           views.course_delete,            name='staff_course_delete'),
+    path('evaluations/',                       eval_views.staff_eval_list,     name='staff_eval_list'),
+    path('evaluations/<int:pk>/',              eval_views.staff_eval_detail,   name='staff_eval_detail'),
+    path('evaluations/<int:pk>/pdf/',          eval_views.staff_eval_pdf,      name='staff_eval_pdf'),
 ]
