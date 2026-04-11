@@ -83,6 +83,39 @@
 
 <div class="mt-2" style="font-size:12px;color:#9ca3af;">{{ rows|length }} student{{ rows|length|pluralize }} total</div>
 
+{% if ce_pending_mid or ce_pending_end %}
+<div class="mt-4">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <h2 style="font-size:15px;font-weight:600;color:#1a2e4a;margin:0;">
+      <i class="bi bi-journal-check me-1" style="color:#2B5EA7;"></i> Pending Course Evaluations
+    </h2>
+    <a href="{% url 'staff_course_eval_overview' %}" style="font-size:12px;color:#2B5EA7;">View all →</a>
+  </div>
+  <div class="row g-2">
+    {% if ce_pending_mid %}
+    <div class="col-sm-6">
+      <a href="{% url 'staff_course_eval_overview' %}" class="text-decoration-none">
+        <div class="card text-center py-3" style="border-color:#fcd34d;">
+          <div style="font-size:24px;font-weight:700;color:#d97706;">{{ ce_pending_mid }}</div>
+          <div style="font-size:12px;color:#6b7280;">Pending Mid-Course Evals</div>
+        </div>
+      </a>
+    </div>
+    {% endif %}
+    {% if ce_pending_end %}
+    <div class="col-sm-6">
+      <a href="{% url 'staff_course_eval_overview' %}" class="text-decoration-none">
+        <div class="card text-center py-3" style="border-color:#93c5fd;">
+          <div style="font-size:24px;font-weight:700;color:#2B5EA7;">{{ ce_pending_end }}</div>
+          <div style="font-size:12px;color:#6b7280;">Pending End-of-Course Evals</div>
+        </div>
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
 {% if pass_rate_alerts %}
 <div class="mt-4">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">

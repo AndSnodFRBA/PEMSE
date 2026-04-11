@@ -1,0 +1,81 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}Course Evaluations — PEMSE Staff{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">Course Evaluations</h1>
+  <a href="{% url 'staff_course_eval_send' %}" class="btn btn-sm" style="background:#2B5EA7;color:#fff;border-radius:8px;font-size:12px;">
+    <i class="bi bi-send-fill me-1"></i> Send Evaluations
+  </a>
+</div>
+
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-md-3">
+    <div class="card text-center py-3">
+      <div style="font-size:26px;font-weight:700;color:#d97706;">{{ ce_pending_mid }}</div>
+      <div style="font-size:12px;color:#6b7280;">Pending Mid-Course</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-md-3">
+    <div class="card text-center py-3">
+      <div style="font-size:26px;font-weight:700;color:#2B5EA7;">{{ ce_pending_end }}</div>
+      <div style="font-size:12px;color:#6b7280;">Pending End-of-Course</div>
+    </div>
+  </div>
+</div>
+
+{% if course_summaries %}
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0" style="font-size:13px;">
+      <thead style="background:#f8fafc;border-bottom:2px solid #dde4ef;">
+        <tr>
+          <th class="ps-4 py-3" style="color:#1a2e4a;font-weight:600;">Course</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">Mid Pending</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">Mid Done</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">End Pending</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">End Done</th>
+          <th class="py-3 pe-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in course_summaries %}
+        <tr>
+          <td class="ps-4 py-3">
+            <div style="font-weight:600;color:#1a2e4a;">{{ row.course.name }}</div>
+            <div style="font-size:11px;color:#6b7280;">Opt. {{ row.course.option_number }}</div>
+          </td>
+          <td class="py-3 text-center">
+            {% if row.mid_pending %}<span style="color:#d97706;font-weight:700;">{{ row.mid_pending }}</span>{% else %}<span style="color:#9ca3af;">0</span>{% endif %}
+          </td>
+          <td class="py-3 text-center">
+            <span style="color:#059669;font-weight:600;">{{ row.mid_completed }}</span>
+          </td>
+          <td class="py-3 text-center">
+            {% if row.end_pending %}<span style="color:#d97706;font-weight:700;">{{ row.end_pending }}</span>{% else %}<span style="color:#9ca3af;">0</span>{% endif %}
+          </td>
+          <td class="py-3 text-center">
+            <span style="color:#059669;font-weight:600;">{{ row.end_completed }}</span>
+          </td>
+          <td class="py-3 pe-3">
+            <a href="{% url 'staff_course_eval_results' row.course.pk %}"
+               class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:6px;">
+              Results →
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5" style="color:#9ca3af;">
+    <i class="bi bi-journal-check" style="font-size:32px;"></i>
+    <div class="mt-2" style="font-size:14px;">No evaluations sent yet. <a href="{% url 'staff_course_eval_send' %}">Send your first evaluation →</a></div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

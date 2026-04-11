@@ -88,7 +88,21 @@ def staff_dashboard(request):
         if (cog_rate is not None and cog_rate < 75) or (psy_rate is not None and psy_rate < 75):
             pass_rate_alerts.append({'course': course, 'cog_rate': cog_rate, 'psy_rate': psy_rate})
 
-    return render(request, 'staff/dashboard.html', {'rows': rows, 'pass_rate_alerts': pass_rate_alerts})
+    # Course evaluation pending counts
+    from evaluations.models import CourseEvaluation
+    ce_pending_mid = CourseEvaluation.objects.filter(
+        eval_type=CourseEvaluation.EvalType.MID_COURSE, status=CourseEvaluation.Status.PENDING
+    ).count()
+    ce_pending_end = CourseEvaluation.objects.filter(
+        eval_type=CourseEvaluation.EvalType.END_COURSE, status=CourseEvaluation.Status.PENDING
+    ).count()
+
+    return render(request, 'staff/dashboard.html', {
+        'rows': rows,
+        'pass_rate_alerts': pass_rate_alerts,
+        'ce_pending_mid': ce_pending_mid,
+        'ce_pending_end': ce_pending_end,
+    })
 
 
 # ── Student detail ────────────────────────────────────────────────────────────
@@ -138,6 +152,16 @@ def student_detail(request, pk):
 
     is_aemt = course and course.licensure in ('AEMT', 'PARA') if course else False
 
+    # Course evaluations for this student
+    from evaluations.models import CourseEvaluation
+    course_evals = CourseEvaluation.objects.filter(student=student).select_related('course')
+    mid_eval = course_evals.filter(eval_type='mid', course=course).first() if course else None
+    end_eval = course_evals.filter(eval_type='end', course=course).first() if course else None
+    eval_type_rows = [
+        ('Mid-Course Evaluation',    'mid', mid_eval),
+        ('End-of-Course Evaluation', 'end', end_eval),
+    ]
+
     return render(request, 'staff/student_detail.html', {
         'student':            student,
         'enrollment':         enrollment,
@@ -148,6 +172,10 @@ def student_detail(request, pk):
         'total_owed':         total_owed,
         'balance_due':        balance_due,
         'add_payment_form':   add_payment_form,
+        # Course Evaluations
+        'mid_eval':           mid_eval,
+        'end_eval':           end_eval,
+        'eval_type_rows':     eval_type_rows,
         # Compliance
         'cognitive_exams':    cognitive_exams,
         'psychomotor_skills': psychomotor_skills,
@@ -1028,3 +1056,345 @@ def pass_rates(request):
         })
 
     return render(request, 'staff/pass_rates.html', {'course_data': course_data})
+
+
+# ── Course Evaluations (staff) ────────────────────────────────────────────────
+
+@staff_required
+def course_eval_overview(request):
+    from evaluations.models import CourseEvaluation
+    ce_pending_mid = CourseEvaluation.objects.filter(
+        eval_type='mid', status='pending'
+    ).count()
+    ce_pending_end = CourseEvaluation.objects.filter(
+        eval_type='end', status='pending'
+    ).count()
+
+    course_summaries = []
+    for c in Course.objects.order_by('option_number'):
+        evals = CourseEvaluation.objects.filter(course=c)
+        if not evals.exists():
+            continue
+        course_summaries.append({
+            'course':        c,
+            'mid_pending':   evals.filter(eval_type='mid', status='pending').count(),
+            'mid_completed': evals.filter(eval_type='mid', status='completed').count(),
+            'end_pending':   evals.filter(eval_type='end', status='pending').count(),
+            'end_completed': evals.filter(eval_type='end', status='completed').count(),
+            'total':         evals.count(),
+        })
+
+    return render(request, 'staff/course_eval_overview.html', {
+        'ce_pending_mid':  ce_pending_mid,
+        'ce_pending_end':  ce_pending_end,
+        'course_summaries': course_summaries,
+    })
+
+
+@staff_required
+def course_eval_send(request):
+    from evaluations.models import CourseEvaluation
+    courses       = Course.objects.filter(is_active=True).order_by('option_number')
+    preview_mode  = False
+    eval_links    = []
+    created_count = 0
+    students_in_course = []
+    selected_course    = None
+    selected_type      = None
+
+    if request.method == 'POST':
+        action    = request.POST.get('action', 'preview')
+        course_id = request.POST.get('course')
+        eval_type = request.POST.get('eval_type', 'mid')
+
+        if course_id:
+            selected_course = Course.objects.filter(pk=course_id).first()
+
+        if action == 'preview' and selected_course:
+            enrollments = CourseEnrollment.objects.filter(
+                course=selected_course
+            ).select_related('student')
+            for e in enrollments:
+                already = CourseEvaluation.objects.filter(
+                    student=e.student, course=selected_course, eval_type=eval_type
+                ).exists()
+                students_in_course.append({'student': e.student, 'already_sent': already})
+            selected_type = eval_type
+            preview_mode  = True
+
+        elif action == 'confirm' and selected_course:
+            student_ids   = request.POST.getlist('student_ids')
+            eval_type_val = request.POST.get('eval_type', 'mid')
+            for sid in student_ids:
+                try:
+                    st = Student.objects.get(pk=sid, role=Student.Role.STUDENT)
+                    obj, created = CourseEvaluation.objects.get_or_create(
+                        student=st, course=selected_course, eval_type=eval_type_val,
+                        defaults={'created_by': request.user},
+                    )
+                    if created:
+                        created_count += 1
+                    link = request.build_absolute_uri(f'/evaluations/course/{obj.token}/')
+                    eval_links.append({'student': st, 'eval': obj, 'link': link})
+                except Student.DoesNotExist:
+                    pass
+            selected_type = eval_type_val
+            if created_count:
+                messages.success(request, f'{created_count} evaluation(s) created.')
+
+    return render(request, 'staff/course_eval_send.html', {
+        'courses':            courses,
+        'students_in_course': students_in_course,
+        'selected_course':    selected_course,
+        'selected_type':      selected_type,
+        'preview_mode':       preview_mode,
+        'eval_links':         eval_links,
+        'created_count':      created_count,
+        'eval_types':         [('mid', 'Mid-Course Evaluation'), ('end', 'End-of-Course Evaluation')],
+    })
+
+
+@staff_required
+def course_eval_detail(request, pk):
+    from evaluations.models import CourseEvaluation
+    eval_obj = get_object_or_404(CourseEvaluation, pk=pk)
+    return render(request, 'staff/course_eval_detail.html', {'eval': eval_obj})
+
+
+@staff_required
+def course_eval_results(request, course_pk):
+    from evaluations.models import CourseEvaluation
+    course    = get_object_or_404(Course, pk=course_pk)
+    completed = list(CourseEvaluation.objects.filter(course=course, status='completed'))
+    total_sent = CourseEvaluation.objects.filter(course=course).count()
+
+    SECTIONS = [
+        ('Course Content & Curriculum', [
+            ('content_objectives_clear',       'Learning objectives were clear'),
+            ('content_material_relevant',      'Material was relevant to EMS practice'),
+            ('content_material_current',       'Material was current / up-to-date'),
+            ('content_difficulty_appropriate', 'Difficulty level was appropriate'),
+            ('content_theory_lab_balance',     'Theory vs. lab time balance was good'),
+        ]),
+        ('Instruction Quality', [
+            ('instruction_knowledge',          'Instructor demonstrated strong knowledge'),
+            ('instruction_communication',      'Instructor communicated effectively'),
+            ('instruction_feedback',           'Instructor provided helpful feedback'),
+            ('instruction_availability',       'Instructor was available and accessible'),
+            ('instruction_preparation',        'Instructor was well prepared'),
+            ('instruction_respected_students', 'Instructor respected all students'),
+        ]),
+        ('Facilities & Resources', [
+            ('facility_classroom_adequate',  'Classroom space was adequate'),
+            ('facility_equipment_adequate',  'Equipment was adequate'),
+            ('facility_supplies_adequate',   'Supplies were adequate'),
+            ('facility_schedule_reasonable', 'Class schedule was reasonable'),
+        ]),
+        ('Overall Experience', [
+            ('overall_satisfaction',       'Overall satisfaction with the course'),
+            ('overall_prepared_for_nremt', 'Course prepared me for NREMT'),
+        ]),
+    ]
+
+    sections_with_stats = []
+    for sec_name, fields in SECTIONS:
+        qs = []
+        for field, label in fields:
+            vals = [getattr(e, field) for e in completed if getattr(e, field) is not None]
+            avg  = round(sum(vals) / len(vals), 1) if vals else None
+            dist = {i: vals.count(i) for i in range(1, 6)}
+            colors_map = {1: '#dc2626', 2: '#f87171', 3: '#d97706', 4: '#10b981', 5: '#059669'}
+        max_cnt = max(dist.values()) if dist and max(dist.values()) > 0 else 1
+        bars = [
+            {
+                'val': i, 'count': dist[i],
+                'color': colors_map[i],
+                'height': max(2, round(dist[i] / max_cnt * 36)),
+            }
+            for i in range(1, 6)
+        ]
+        qs.append({'label': label, 'field': field, 'avg': avg, 'dist': dist, 'bars': bars, 'n': len(vals)})
+        sections_with_stats.append({'name': sec_name, 'questions': qs})
+
+    written = {
+        'What Worked Well':        [e.what_worked_well for e in completed if e.what_worked_well],
+        'What Could Be Improved':  [e.what_could_be_improved for e in completed if e.what_could_be_improved],
+        'Suggestions for Future':  [e.suggestions_for_future for e in completed if e.suggestions_for_future],
+        'Additional Comments':     [e.additional_comments for e in completed if e.additional_comments],
+    }
+
+    overall_scores = [e.average_score for e in completed if e.average_score is not None]
+    overall_avg = round(sum(overall_scores) / len(overall_scores), 1) if overall_scores else None
+
+    return render(request, 'staff/course_eval_results.html', {
+        'course':       course,
+        'completed':    completed,
+        'total_sent':   total_sent,
+        'sections':     sections_with_stats,
+        'written':      written,
+        'overall_avg':  overall_avg,
+    })
+
+
+@staff_required
+def course_eval_results_csv(request, course_pk):
+    import csv as _csv
+    from evaluations.models import CourseEvaluation
+    course    = get_object_or_404(Course, pk=course_pk)
+    completed = CourseEvaluation.objects.filter(course=course, status='completed').select_related('student')
+
+    resp = HttpResponse(content_type='text/csv')
+    safe = ''.join(c if c.isalnum() or c in '-_' else '' for c in course.name)
+    resp['Content-Disposition'] = f'attachment; filename="PEMSE-{safe}-evals.csv"'
+
+    w = _csv.writer(resp)
+    headers = [
+        'Student', 'Eval Type', 'Completed At',
+        'content_objectives_clear', 'content_material_relevant', 'content_material_current',
+        'content_difficulty_appropriate', 'content_theory_lab_balance',
+        'instruction_knowledge', 'instruction_communication', 'instruction_feedback',
+        'instruction_availability', 'instruction_preparation', 'instruction_respected_students',
+        'facility_classroom_adequate', 'facility_equipment_adequate',
+        'facility_supplies_adequate', 'facility_schedule_reasonable',
+        'overall_satisfaction', 'overall_prepared_for_nremt', 'average_score',
+        'what_worked_well', 'what_could_be_improved', 'suggestions_for_future', 'additional_comments',
+    ]
+    w.writerow(headers)
+    for e in completed:
+        w.writerow([
+            e.student.get_full_name(), e.get_eval_type_display(),
+            e.completed_at.strftime('%Y-%m-%d %H:%M') if e.completed_at else '',
+            e.content_objectives_clear, e.content_material_relevant, e.content_material_current,
+            e.content_difficulty_appropriate, e.content_theory_lab_balance,
+            e.instruction_knowledge, e.instruction_communication, e.instruction_feedback,
+            e.instruction_availability, e.instruction_preparation, e.instruction_respected_students,
+            e.facility_classroom_adequate, e.facility_equipment_adequate,
+            e.facility_supplies_adequate, e.facility_schedule_reasonable,
+            e.overall_satisfaction, e.overall_prepared_for_nremt, e.average_score,
+            e.what_worked_well, e.what_could_be_improved, e.suggestions_for_future, e.additional_comments,
+        ])
+    return resp
+
+
+@staff_required
+def course_eval_results_pdf(request, course_pk):
+    from evaluations.models import CourseEvaluation
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import HRFlowable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    course    = get_object_or_404(Course, pk=course_pk)
+    completed = list(CourseEvaluation.objects.filter(course=course, status='completed'))
+    total_sent = CourseEvaluation.objects.filter(course=course).count()
+
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buf, pagesize=letter,
+        leftMargin=0.75*inch, rightMargin=0.75*inch,
+        topMargin=0.75*inch,  bottomMargin=0.75*inch,
+    )
+    styles = getSampleStyleSheet()
+    navy   = colors.HexColor('#1a2e4a')
+    blue   = colors.HexColor('#2B5EA7')
+    lt     = colors.HexColor('#f3f6fb')
+    h1   = ParagraphStyle('h1', parent=styles['Heading1'], textColor=blue, fontSize=16, spaceAfter=2, alignment=1)
+    h2   = ParagraphStyle('h2', parent=styles['Heading2'], textColor=navy, fontSize=11, spaceBefore=14, spaceAfter=4)
+    body = ParagraphStyle('body', parent=styles['Normal'], fontSize=9, leading=13)
+    small = ParagraphStyle('small', parent=styles['Normal'], fontSize=8, textColor=colors.HexColor('#6b7280'))
+
+    overall_scores = [e.average_score for e in completed if e.average_score is not None]
+    overall_avg    = round(sum(overall_scores) / len(overall_scores), 1) if overall_scores else None
+
+    story = [
+        Paragraph('PANHANDLE EMS EDUCATION', h1),
+        Paragraph('Course Evaluation Results', ParagraphStyle('sub', parent=body, alignment=1, fontSize=11, textColor=blue)),
+        Spacer(1, 8),
+        HRFlowable(width='100%', thickness=2, color=blue),
+        Spacer(1, 8),
+        Paragraph(f'Course: {course.name}', h2),
+        Paragraph(
+            f'Responses: {len(completed)} of {total_sent} students   |   '
+            f'Response rate: {round(len(completed)/total_sent*100)}%   |   '
+            f'Overall average: {overall_avg if overall_avg else "—"}/5.0',
+            body,
+        ),
+        Spacer(1, 10),
+    ]
+
+    SECTIONS = [
+        ('Course Content & Curriculum', [
+            ('content_objectives_clear', 'Objectives were clear'),
+            ('content_material_relevant', 'Material was relevant'),
+            ('content_material_current', 'Material was current'),
+            ('content_difficulty_appropriate', 'Difficulty was appropriate'),
+            ('content_theory_lab_balance', 'Theory/lab balance was good'),
+        ]),
+        ('Instruction Quality', [
+            ('instruction_knowledge', 'Instructor knowledge'),
+            ('instruction_communication', 'Instructor communication'),
+            ('instruction_feedback', 'Helpful feedback provided'),
+            ('instruction_availability', 'Instructor availability'),
+            ('instruction_preparation', 'Instructor preparation'),
+            ('instruction_respected_students', 'Students were respected'),
+        ]),
+        ('Facilities & Resources', [
+            ('facility_classroom_adequate', 'Classroom space'),
+            ('facility_equipment_adequate', 'Equipment'),
+            ('facility_supplies_adequate', 'Supplies'),
+            ('facility_schedule_reasonable', 'Schedule'),
+        ]),
+        ('Overall Experience', [
+            ('overall_satisfaction', 'Overall satisfaction'),
+            ('overall_prepared_for_nremt', 'Prepared for NREMT'),
+        ]),
+    ]
+
+    ts = TableStyle([
+        ('BACKGROUND',    (0, 0), (-1, 0), colors.HexColor('#dde4ef')),
+        ('FONTNAME',      (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE',      (0, 0), (-1, -1), 8),
+        ('GRID',          (0, 0), (-1, -1), 0.5, colors.HexColor('#dde4ef')),
+        ('TOPPADDING',    (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, lt]),
+    ])
+
+    for sec_name, fields in SECTIONS:
+        story.append(Paragraph(sec_name, h2))
+        rows = [['Question', 'Avg', 'n', '1', '2', '3', '4', '5']]
+        for field, label in fields:
+            vals = [getattr(e, field) for e in completed if getattr(e, field) is not None]
+            avg  = round(sum(vals) / len(vals), 1) if vals else '—'
+            rows.append([label, str(avg), str(len(vals))] + [str(vals.count(i)) for i in range(1, 6)])
+        story.append(Table(rows, colWidths=[2.8*inch, 0.5*inch, 0.4*inch] + [0.45*inch]*5, style=ts))
+
+    # Written feedback
+    WRITTEN = [
+        ('what_worked_well', 'What Worked Well'),
+        ('what_could_be_improved', 'What Could Be Improved'),
+        ('suggestions_for_future', 'Suggestions for Future Courses'),
+        ('additional_comments', 'Additional Comments'),
+    ]
+    for field, label in WRITTEN:
+        items = [getattr(e, field) for e in completed if getattr(e, field)]
+        if items:
+            story.append(Paragraph(label, h2))
+            for item in items:
+                story.append(Paragraph(f'• {item}', body))
+                story.append(Spacer(1, 3))
+
+    story += [
+        Spacer(1, 16),
+        HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#d1d5db')),
+        Spacer(1, 4),
+        Paragraph(f'Generated {timezone.now().strftime("%B %d, %Y")} — Panhandle EMS Education', small),
+    ]
+
+    doc.build(story)
+    buf.seek(0)
+    safe = ''.join(c if c.isalnum() or c in '-_' else '' for c in course.name)
+    resp = HttpResponse(buf, content_type='application/pdf')
+    resp['Content-Disposition'] = f'attachment; filename="PEMSE-{safe}-eval-results.pdf"'
+    return resp

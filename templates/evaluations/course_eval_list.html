@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Course Evaluations — PEMSE{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h2 class="page-title mb-1">Course Evaluations</h2>
+    <p class="text-muted mb-0" style="font-size:13px;">Your mid-course and end-of-course evaluations</p>
+  </div>
+</div>
+
+{% if pending %}
+<div class="portal-card mb-4">
+  <div class="portal-card-title" style="color:#d97706;">
+    <i class="bi bi-exclamation-circle-fill me-2"></i>Pending Evaluations
+  </div>
+  <div class="portal-card-sub">Please complete these evaluations — your feedback helps improve the program.</div>
+
+  {% for eval in pending %}
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid #f0f4f8;">
+    <div>
+      <div style="font-weight:600;font-size:14px;color:#1a2e4a;">{{ eval.course.name }}</div>
+      <div style="font-size:12px;margin-top:3px;">
+        <span style="background:{% if eval.eval_type == 'mid' %}#fef3c7;color:#92600a{% else %}#dbeafe;color:#1e3a8a{% endif %};border-radius:6px;padding:2px 8px;font-weight:600;font-size:11px;">
+          {{ eval.get_eval_type_display }}
+        </span>
+        <span style="color:#6b7280;margin-left:8px;font-size:11px;">Sent {{ eval.created_at|date:"M j, Y" }}</span>
+      </div>
+    </div>
+    <a href="{% url 'course_eval_form' eval.token %}"
+       style="background:#2B5EA7;color:#fff;border-radius:8px;padding:9px 18px;text-decoration:none;font-size:13px;font-weight:600;white-space:nowrap;">
+      Complete →
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="portal-card mb-4">
+  <div style="text-align:center;padding:28px 0;color:#9ca3af;">
+    <i class="bi bi-check-circle-fill" style="font-size:32px;color:#059669;"></i>
+    <div class="mt-2" style="font-size:14px;">No evaluations pending at this time.</div>
+  </div>
+</div>
+{% endif %}
+
+{% if completed %}
+<div class="portal-card">
+  <div class="portal-card-title">Completed Evaluations</div>
+  {% for eval in completed %}
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f4f8;">
+    <div>
+      <div style="font-size:13px;font-weight:600;color:#374151;">{{ eval.course.name }}</div>
+      <div style="font-size:11px;color:#6b7280;margin-top:2px;">
+        <span style="background:{% if eval.eval_type == 'mid' %}#fef3c7;color:#92600a{% else %}#dbeafe;color:#1e3a8a{% endif %};border-radius:6px;padding:1px 7px;font-weight:600;">
+          {{ eval.get_eval_type_display }}
+        </span>
+        &nbsp;Completed {{ eval.completed_at|date:"M j, Y" }}
+      </div>
+    </div>
+    <span style="color:#059669;font-size:12px;font-weight:600;"><i class="bi bi-check-circle-fill me-1"></i>Submitted</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

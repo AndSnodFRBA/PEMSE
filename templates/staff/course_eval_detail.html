@@ -1,0 +1,144 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}{{ eval.student.get_full_name }} — Course Evaluation{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'staff_course_eval_overview' %}" style="color:#5a7a9a;font-size:13px;text-decoration:none;"><i class="bi bi-arrow-left"></i> Back</a>
+    <h1 class="staff-page-title mb-0">{{ eval.get_eval_type_display }}</h1>
+    <span class="badge badge-{{ eval.status }}" style="font-size:11px;padding:3px 9px;border-radius:6px;">{{ eval.get_status_display }}</span>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">Summary</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0" style="font-size:13px;">
+          {% include "staff/_kv_row.html" with label="Student" value=eval.student.get_full_name %}
+          {% include "staff/_kv_row.html" with label="Course" value=eval.course.name %}
+          {% include "staff/_kv_row.html" with label="Type" value=eval.get_eval_type_display %}
+          {% include "staff/_kv_row.html" with label="Status" value=eval.get_status_display %}
+          {% include "staff/_kv_row.html" with label="Sent" value=eval.created_at|date:"M j, Y" %}
+          {% if eval.completed_at %}
+            {% include "staff/_kv_row.html" with label="Completed" value=eval.completed_at|date:"M j, Y g:i A" %}
+          {% endif %}
+          {% if eval.average_score is not None %}
+            {% include "staff/_kv_row.html" with label="Avg Score" value=eval.average_score %}
+          {% endif %}
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% if eval.status == 'completed' %}
+  <div class="col-lg-8">
+
+    {% with sections=sections %}
+    <!-- Section 1 -->
+    <div class="card mb-3">
+      <div class="card-header py-2" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:12px;text-transform:uppercase;letter-spacing:.5px;">Course Content &amp; Curriculum</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0" style="font-size:13px;">
+          {% include "staff/_kv_row.html" with label="Objectives clear"          value=eval.content_objectives_clear %}
+          {% include "staff/_kv_row.html" with label="Material relevant"         value=eval.content_material_relevant %}
+          {% include "staff/_kv_row.html" with label="Material current"          value=eval.content_material_current %}
+          {% include "staff/_kv_row.html" with label="Difficulty appropriate"    value=eval.content_difficulty_appropriate %}
+          {% include "staff/_kv_row.html" with label="Theory/lab balance"        value=eval.content_theory_lab_balance %}
+        </table>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header py-2" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:12px;text-transform:uppercase;letter-spacing:.5px;">Instruction Quality</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0" style="font-size:13px;">
+          {% include "staff/_kv_row.html" with label="Knowledge"        value=eval.instruction_knowledge %}
+          {% include "staff/_kv_row.html" with label="Communication"    value=eval.instruction_communication %}
+          {% include "staff/_kv_row.html" with label="Feedback"         value=eval.instruction_feedback %}
+          {% include "staff/_kv_row.html" with label="Availability"     value=eval.instruction_availability %}
+          {% include "staff/_kv_row.html" with label="Preparation"      value=eval.instruction_preparation %}
+          {% include "staff/_kv_row.html" with label="Respected students" value=eval.instruction_respected_students %}
+        </table>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header py-2" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:12px;text-transform:uppercase;letter-spacing:.5px;">Facilities &amp; Resources</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0" style="font-size:13px;">
+          {% include "staff/_kv_row.html" with label="Classroom" value=eval.facility_classroom_adequate %}
+          {% include "staff/_kv_row.html" with label="Equipment" value=eval.facility_equipment_adequate %}
+          {% include "staff/_kv_row.html" with label="Supplies"  value=eval.facility_supplies_adequate %}
+          {% include "staff/_kv_row.html" with label="Schedule"  value=eval.facility_schedule_reasonable %}
+        </table>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header py-2" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:12px;text-transform:uppercase;letter-spacing:.5px;">Overall</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0" style="font-size:13px;">
+          {% include "staff/_kv_row.html" with label="Satisfaction"    value=eval.overall_satisfaction %}
+          {% include "staff/_kv_row.html" with label="NREMT prep"      value=eval.overall_prepared_for_nremt %}
+          {% include "staff/_kv_row.html" with label="Recommend"       value=eval.overall_recommend_to_others|yesno:"Yes,No,—" %}
+        </table>
+      </div>
+    </div>
+
+    {% if eval.eval_type == 'end' %}
+    <div class="card mb-3">
+      <div class="card-header py-2" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:12px;text-transform:uppercase;letter-spacing:.5px;">End-of-Course</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0" style="font-size:13px;">
+          {% include "staff/_kv_row.html" with label="Registration process" value=eval.eoc_registration_process %}
+          {% include "staff/_kv_row.html" with label="Staff helpfulness"    value=eval.eoc_staff_helpfulness %}
+          {% include "staff/_kv_row.html" with label="Value for money"      value=eval.eoc_value_for_money %}
+          {% include "staff/_kv_row.html" with label="Take future course"   value=eval.eoc_would_take_future_course|yesno:"Yes,No,—" %}
+          {% include "staff/_kv_row.html" with label="How heard"            value=eval.get_eoc_how_did_you_hear_display|default:"—" %}
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if eval.eval_type == 'mid' %}
+    <div class="card mb-3">
+      <div class="card-header py-2" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:12px;text-transform:uppercase;letter-spacing:.5px;">Mid-Course Check-In</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0" style="font-size:13px;">
+          {% include "staff/_kv_row.html" with label="Keeping up"    value=eval.mid_keeping_up_with_material %}
+          {% include "staff/_kv_row.html" with label="Support needed" value=eval.mid_support_needed|default:"—" %}
+          {% include "staff/_kv_row.html" with label="Concerns"      value=eval.mid_concerns|default:"—" %}
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if eval.what_worked_well or eval.what_could_be_improved or eval.suggestions_for_future or eval.additional_comments %}
+    <div class="card mb-3">
+      <div class="card-header py-2" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:12px;text-transform:uppercase;letter-spacing:.5px;">Written Feedback</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0" style="font-size:13px;">
+          {% include "staff/_kv_row.html" with label="What worked well"     value=eval.what_worked_well|default:"—" %}
+          {% include "staff/_kv_row.html" with label="Could be improved"    value=eval.what_could_be_improved|default:"—" %}
+          {% include "staff/_kv_row.html" with label="Suggestions"          value=eval.suggestions_for_future|default:"—" %}
+          {% include "staff/_kv_row.html" with label="Additional comments"  value=eval.additional_comments|default:"—" %}
+        </table>
+      </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+  </div>
+  {% else %}
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-body text-center py-5" style="color:#9ca3af;">
+        <i class="bi bi-hourglass-split" style="font-size:28px;"></i>
+        <div class="mt-2">This evaluation has not been completed yet.</div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

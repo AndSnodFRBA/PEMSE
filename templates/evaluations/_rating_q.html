@@ -1,0 +1,11 @@
+<div class="q-block">
+  <div class="rating-label">{{ label }}</div>
+  <input type="hidden" name="{{ field }}" id="{{ field }}">
+  <div class="rating-group">
+    <button type="button" class="rating-btn" onclick="setRating('{{ field }}', 1, this)">1<span>Strongly<br>Disagree</span></button>
+    <button type="button" class="rating-btn" onclick="setRating('{{ field }}', 2, this)">2<span>Disagree</span></button>
+    <button type="button" class="rating-btn" onclick="setRating('{{ field }}', 3, this)">3<span>Neutral</span></button>
+    <button type="button" class="rating-btn" onclick="setRating('{{ field }}', 4, this)">4<span>Agree</span></button>
+    <button type="button" class="rating-btn" onclick="setRating('{{ field }}', 5, this)">5<span>Strongly<br>Agree</span></button>
+  </div>
+</div>

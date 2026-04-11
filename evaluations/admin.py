@@ -1,6 +1,55 @@
 from django.contrib import admin
 
-from .models import ClinicalRotation, PreceptorEvaluation, StudentSiteEvaluation
+from .models import ClinicalRotation, CourseEvaluation, PreceptorEvaluation, StudentSiteEvaluation
+
+
+@admin.register(CourseEvaluation)
+class CourseEvaluationAdmin(admin.ModelAdmin):
+    list_display   = ('student', 'course', 'eval_type', 'status', 'average_score', 'completed_at', 'created_at')
+    list_filter    = ('eval_type', 'status', 'course')
+    search_fields  = ('student__first_name', 'student__last_name', 'student__email')
+    readonly_fields = ('token', 'created_at', 'completed_at')
+    fieldsets = (
+        ('Evaluation', {
+            'fields': ('student', 'course', 'eval_type', 'status', 'token', 'created_by', 'created_at', 'completed_at')
+        }),
+        ('Section 1 — Course Content', {
+            'fields': (
+                'content_objectives_clear', 'content_material_relevant', 'content_material_current',
+                'content_difficulty_appropriate', 'content_theory_lab_balance',
+            )
+        }),
+        ('Section 2 — Instruction Quality', {
+            'fields': (
+                'instruction_knowledge', 'instruction_communication', 'instruction_feedback',
+                'instruction_availability', 'instruction_preparation', 'instruction_respected_students',
+            )
+        }),
+        ('Section 3 — Facilities & Resources', {
+            'fields': (
+                'facility_classroom_adequate', 'facility_equipment_adequate',
+                'facility_supplies_adequate', 'facility_schedule_reasonable',
+            )
+        }),
+        ('Section 4 — Online/Hybrid', {
+            'fields': ('online_platform_easy_to_use', 'online_content_organized', 'online_support_available')
+        }),
+        ('Section 5 — Overall', {
+            'fields': ('overall_satisfaction', 'overall_recommend_to_others', 'overall_prepared_for_nremt')
+        }),
+        ('End-of-Course Fields', {
+            'fields': (
+                'eoc_registration_process', 'eoc_staff_helpfulness', 'eoc_value_for_money',
+                'eoc_would_take_future_course', 'eoc_how_did_you_hear',
+            )
+        }),
+        ('Mid-Course Fields', {
+            'fields': ('mid_keeping_up_with_material', 'mid_support_needed', 'mid_concerns')
+        }),
+        ('Written Feedback', {
+            'fields': ('what_worked_well', 'what_could_be_improved', 'suggestions_for_future', 'additional_comments')
+        }),
+    )
 
 
 @admin.register(ClinicalRotation)

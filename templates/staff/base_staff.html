@@ -122,14 +122,19 @@
 
     <div class="staff-nav-label">Evaluations</div>
     <a href="{% url 'staff_eval_list' %}"
-       class="{% if 'eval' in request.resolver_match.url_name %}active{% endif %}"
+       class="{% if request.resolver_match.url_name == 'staff_eval_list' or request.resolver_match.url_name == 'staff_eval_detail' %}active{% endif %}"
        style="position:relative;">
-      <i class="bi bi-clipboard2-pulse-fill"></i> Evaluations
+      <i class="bi bi-clipboard2-pulse-fill"></i> Preceptor Evals
       {% if eval_pending_count %}
         <span style="margin-left:auto;background:#f59e0b;color:#fff;border-radius:9px;padding:1px 7px;font-size:10px;font-weight:700;">
           {{ eval_pending_count }}
         </span>
       {% endif %}
+    </a>
+    <a href="{% url 'staff_course_eval_overview' %}"
+       class="{% if 'course_eval' in request.resolver_match.url_name %}active{% endif %}"
+       style="position:relative;">
+      <i class="bi bi-journal-check"></i> Course Evals
     </a>
 
     <div class="staff-nav-label">Compliance</div>

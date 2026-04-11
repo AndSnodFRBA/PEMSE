@@ -10,7 +10,7 @@ from django.utils import timezone
 from staff.mixins import staff_required
 
 from .forms import AddRotationForm, PreceptorEvalForm, StudentSiteEvalForm
-from .models import ClinicalRotation, PreceptorEvaluation, StudentSiteEvaluation
+from .models import ClinicalRotation, CourseEvaluation, PreceptorEvaluation, StudentSiteEvaluation
 
 
 # ── Student views ─────────────────────────────────────────────────────────────
@@ -135,6 +135,96 @@ def preceptor_eval(request, token):
 def preceptor_submitted(request, token):
     eval_request = get_object_or_404(PreceptorEvaluation, token=token)
     return render(request, 'evaluations/preceptor_submitted.html', {'eval': eval_request})
+
+
+# ── Course Evaluation — student views ─────────────────────────────────────────
+
+_CE_RATING_FIELDS = [
+    'content_objectives_clear', 'content_material_relevant', 'content_material_current',
+    'content_difficulty_appropriate', 'content_theory_lab_balance',
+    'instruction_knowledge', 'instruction_communication', 'instruction_feedback',
+    'instruction_availability', 'instruction_preparation', 'instruction_respected_students',
+    'facility_classroom_adequate', 'facility_equipment_adequate',
+    'facility_supplies_adequate', 'facility_schedule_reasonable',
+    'online_platform_easy_to_use', 'online_content_organized', 'online_support_available',
+    'overall_satisfaction', 'overall_prepared_for_nremt',
+    'eoc_registration_process', 'eoc_staff_helpfulness', 'eoc_value_for_money',
+    'mid_keeping_up_with_material',
+]
+
+_CE_TEXT_FIELDS = [
+    'eoc_how_did_you_hear',
+    'what_worked_well', 'what_could_be_improved',
+    'suggestions_for_future', 'additional_comments',
+    'mid_support_needed', 'mid_concerns',
+]
+
+
+@login_required
+def course_eval_list(request):
+    pending   = CourseEvaluation.objects.filter(
+        student=request.user, status=CourseEvaluation.Status.PENDING
+    ).select_related('course')
+    completed = CourseEvaluation.objects.filter(
+        student=request.user, status=CourseEvaluation.Status.COMPLETED
+    ).select_related('course').order_by('-completed_at')
+    return render(request, 'evaluations/course_eval_list.html', {
+        'pending':   pending,
+        'completed': completed,
+    })
+
+
+@login_required
+def course_eval_form(request, token):
+    eval_obj = get_object_or_404(CourseEvaluation, token=token, student=request.user)
+
+    if eval_obj.status == CourseEvaluation.Status.COMPLETED:
+        return redirect('course_eval_submitted', token=token)
+
+    if eval_obj.status == CourseEvaluation.Status.EXPIRED:
+        return render(request, 'evaluations/course_eval_expired.html', {'eval': eval_obj})
+
+    errors = []
+    if request.method == 'POST':
+        # Rating fields
+        for field in _CE_RATING_FIELDS:
+            raw = request.POST.get(field, '').strip()
+            if raw:
+                try:
+                    v = int(raw)
+                    if 1 <= v <= 5:
+                        setattr(eval_obj, field, v)
+                except (ValueError, TypeError):
+                    pass
+
+        # Boolean fields
+        for field in ('overall_recommend_to_others', 'eoc_would_take_future_course'):
+            val = request.POST.get(field, '')
+            if val == 'true':
+                setattr(eval_obj, field, True)
+            elif val == 'false':
+                setattr(eval_obj, field, False)
+
+        # Text fields
+        for field in _CE_TEXT_FIELDS:
+            setattr(eval_obj, field, request.POST.get(field, ''))
+
+        if not errors:
+            eval_obj.status       = CourseEvaluation.Status.COMPLETED
+            eval_obj.completed_at = timezone.now()
+            eval_obj.save()
+            return redirect('course_eval_submitted', token=token)
+
+    return render(request, 'evaluations/course_eval_form.html', {
+        'eval':   eval_obj,
+        'errors': errors,
+    })
+
+
+@login_required
+def course_eval_submitted(request, token):
+    eval_obj = get_object_or_404(CourseEvaluation, token=token, student=request.user)
+    return render(request, 'evaluations/course_eval_submitted.html', {'eval': eval_obj})
 
 
 # ── Staff views ───────────────────────────────────────────────────────────────

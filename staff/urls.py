@@ -43,4 +43,11 @@ urlpatterns = [
     path('course-reports/<int:course_pk>/pdf/',                     views.department_report_pdf,    name='staff_department_report_pdf'),
     # NREMT pass rates
     path('pass-rates/',                                             views.pass_rates,               name='staff_pass_rates'),
+    # Course evaluations
+    path('course-evaluations/',                                     views.course_eval_overview,     name='staff_course_eval_overview'),
+    path('course-evaluations/send/',                                views.course_eval_send,         name='staff_course_eval_send'),
+    path('course-evaluations/<int:pk>/',                            views.course_eval_detail,       name='staff_course_eval_detail'),
+    path('course-evaluations/results/<int:course_pk>/',             views.course_eval_results,      name='staff_course_eval_results'),
+    path('course-evaluations/results/<int:course_pk>/csv/',         views.course_eval_results_csv,  name='staff_course_eval_results_csv'),
+    path('course-evaluations/results/<int:course_pk>/pdf/',         views.course_eval_results_pdf,  name='staff_course_eval_results_pdf'),
 ]
