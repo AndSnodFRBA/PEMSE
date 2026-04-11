@@ -41,4 +41,6 @@ urlpatterns = [
     path('course-reports/',                                         views.course_reports,           name='staff_course_reports'),
     path('course-reports/<int:course_pk>/',                         views.course_report_detail,     name='staff_course_report_detail'),
     path('course-reports/<int:course_pk>/pdf/',                     views.department_report_pdf,    name='staff_department_report_pdf'),
+    # NREMT pass rates
+    path('pass-rates/',                                             views.pass_rates,               name='staff_pass_rates'),
 ]

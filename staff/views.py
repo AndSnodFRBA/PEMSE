@@ -75,7 +75,20 @@ def staff_dashboard(request):
             'docs_ok':    req_docs.filter(status='approved').count() >= 3,
         })
 
-    return render(request, 'staff/dashboard.html', {'rows': rows})
+    # NREMT pass-rate alerts: courses with any rate below 75%
+    pass_rate_alerts = []
+    for course in Course.objects.all():
+        records = CourseCompletionRecord.objects.filter(course=course)
+        if not records.exists():
+            continue
+        cog_taken = records.exclude(nremt_cognitive_result__in=['not_taken', '']).count()
+        cog_rate  = round(records.filter(nremt_cognitive_result='pass').count() / cog_taken * 100, 1) if cog_taken else None
+        psy_taken = records.exclude(nremt_psychomotor_result__in=['not_taken', '']).count()
+        psy_rate  = round(records.filter(nremt_psychomotor_result='pass').count() / psy_taken * 100, 1) if psy_taken else None
+        if (cog_rate is not None and cog_rate < 75) or (psy_rate is not None and psy_rate < 75):
+            pass_rate_alerts.append({'course': course, 'cog_rate': cog_rate, 'psy_rate': psy_rate})
+
+    return render(request, 'staff/dashboard.html', {'rows': rows, 'pass_rate_alerts': pass_rate_alerts})
 
 
 # ── Student detail ────────────────────────────────────────────────────────────
@@ -966,3 +979,52 @@ def department_report_pdf(request, course_pk):
     resp = HttpResponse(buf, content_type='application/pdf')
     resp['Content-Disposition'] = f'attachment; filename="PEMSE-dept-report-{safe}.pdf"'
     return resp
+
+
+# ── NREMT Pass Rates ──────────────────────────────────────────────────────────
+
+@staff_required
+def pass_rates(request):
+    """Per-course NREMT first-attempt pass rate tracker (75% minimum threshold)."""
+    courses = Course.objects.order_by('order', 'option_number')
+
+    course_data = []
+    for course in courses:
+        records = CourseCompletionRecord.objects.filter(course=course)
+        if not records.exists():
+            continue
+
+        total = records.count()
+
+        # Cognitive: exclude not-taken / blank; count pass
+        cog_taken = records.exclude(
+            nremt_cognitive_result__in=['not_taken', '']
+        ).count()
+        cog_pass = records.filter(nremt_cognitive_result='pass').count()
+        cog_rate = round(cog_pass / cog_taken * 100, 1) if cog_taken else None
+
+        # Psychomotor
+        psy_taken = records.exclude(
+            nremt_psychomotor_result__in=['not_taken', '']
+        ).count()
+        psy_pass = records.filter(nremt_psychomotor_result='pass').count()
+        psy_rate = round(psy_pass / psy_taken * 100, 1) if psy_taken else None
+
+        below_75 = (
+            (cog_rate is not None and cog_rate < 75) or
+            (psy_rate is not None and psy_rate < 75)
+        )
+
+        course_data.append({
+            'course':    course,
+            'total':     total,
+            'cog_taken': cog_taken,
+            'cog_pass':  cog_pass,
+            'cog_rate':  cog_rate,
+            'psy_taken': psy_taken,
+            'psy_pass':  psy_pass,
+            'psy_rate':  psy_rate,
+            'below_75':  below_75,
+        })
+
+    return render(request, 'staff/pass_rates.html', {'course_data': course_data})

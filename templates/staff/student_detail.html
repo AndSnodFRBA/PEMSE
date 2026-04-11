@@ -736,6 +736,13 @@
             <div class="col-md-3"><label class="form-label" style="font-size:11px;font-weight:600;">Certificate Date</label>{{ completion_form.certificate_issued_date }}</div>
             <div class="col-md-2 d-flex align-items-end pb-1"><div class="form-check">{{ completion_form.nremt_eligibility_sent }}<label class="form-check-label" style="font-size:12px;">NREMT Sent</label></div></div>
             <div class="col-md-3"><label class="form-label" style="font-size:11px;font-weight:600;">NREMT Date</label>{{ completion_form.nremt_eligibility_date }}</div>
+
+            <div class="col-12 mt-2"><div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">NREMT Exam Outcomes</div></div>
+            <div class="col-md-3"><label class="form-label" style="font-size:11px;font-weight:600;">Cognitive Result</label>{{ completion_form.nremt_cognitive_result }}</div>
+            <div class="col-md-3"><label class="form-label" style="font-size:11px;font-weight:600;">Cognitive Date</label>{{ completion_form.nremt_cognitive_date }}</div>
+            <div class="col-md-2"><label class="form-label" style="font-size:11px;font-weight:600;">Attempts</label>{{ completion_form.nremt_cognitive_attempts }}</div>
+            <div class="col-md-3"><label class="form-label" style="font-size:11px;font-weight:600;">Psychomotor Result</label>{{ completion_form.nremt_psychomotor_result }}</div>
+            <div class="col-md-3"><label class="form-label" style="font-size:11px;font-weight:600;">Psychomotor Date</label>{{ completion_form.nremt_psychomotor_date }}</div>
           </div>
           <button type="submit" class="btn btn-sm btn-primary mt-3" style="font-size:12px;border-radius:6px;">Save Completion Record</button>
         </form>

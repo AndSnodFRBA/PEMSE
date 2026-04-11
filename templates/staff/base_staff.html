@@ -104,6 +104,10 @@
        class="{% if 'course_report' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-send-check-fill"></i> Dept. Reports
     </a>
+    <a href="{% url 'staff_pass_rates' %}"
+       class="{% if request.resolver_match.url_name == 'staff_pass_rates' %}active{% endif %}">
+      <i class="bi bi-graph-up-arrow"></i> NREMT Pass Rates
+    </a>
 
     <div class="staff-nav-label">Content</div>
     <a href="{% url 'staff_announcements' %}"
