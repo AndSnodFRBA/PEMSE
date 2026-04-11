@@ -178,6 +178,15 @@ def add_payment(request, pk):
     return redirect('staff_student_detail', pk=pk)
 
 
+# ── Document download (pre-signed S3 URL or local) ───────────────────────────
+
+@staff_required
+def document_download(request, doc_id):
+    """Redirect to a pre-signed download URL (5-min expiry on S3, direct URL locally)."""
+    doc = get_object_or_404(StudentDocument, pk=doc_id)
+    return redirect(doc.file.url)
+
+
 # ── Document review ───────────────────────────────────────────────────────────
 
 @staff_required

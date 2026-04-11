@@ -178,8 +178,8 @@
               {% if doc.notes %}<br><em style="color:#92600a;">Note: {{ doc.notes }}</em>{% endif %}
             </div>
             <div class="mb-2">
-              <a href="{{ doc.file.url }}" target="_blank" class="btn btn-sm btn-outline-secondary" style="font-size:11px;border-radius:6px;">
-                <i class="bi bi-eye me-1"></i>View File
+              <a href="{% url 'staff_document_download' doc.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary" style="font-size:11px;border-radius:6px;">
+                <i class="bi bi-download me-1"></i>Download
               </a>
             </div>
             <form method="post" action="{% url 'staff_review_document' doc.pk %}">

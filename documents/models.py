@@ -4,10 +4,10 @@ from django.conf import settings
 
 
 def student_document_path(instance, filename):
-    """Upload to: documents/<student_id>/<doc_type>/<filename>"""
+    """Upload to: student-documents/<student_id>/<doc_type>/<filename>"""
     ext = os.path.splitext(filename)[1].lower()
     safe_name = f'{instance.doc_type.slug}{ext}'
-    return f'documents/{instance.student.id}/{instance.doc_type.slug}/{safe_name}'
+    return f'student-documents/{instance.student.id}/{instance.doc_type.slug}/{safe_name}'
 
 
 class DocumentType(models.Model):
