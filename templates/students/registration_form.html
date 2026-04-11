@@ -35,7 +35,7 @@
   <div class="portal-card-sub">Please complete your profile. Fields marked * are required.</div>
   <form method="post" action="{% url 'profile' %}">
     {% csrf_token %}
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <div class="form-grid-2">
       <div>
         <label class="form-label">First name *</label>
         <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}" required>
@@ -168,7 +168,7 @@
     <input type="hidden" name="action" value="save_payment">
 
     <div class="section-divider">Method of payment</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+    <div class="pm-grid">
       {% for val, label in pay_form.method.field.choices %}{% if val %}
       <div class="pm-option {% if payment.method == val %}selected{% endif %}" onclick="selectPM('{{ val }}',this)">
         <div class="pm-icon">{% if val == 'cash' %}💵{% elif val == 'check' %}🖊️{% else %}🏛️{% endif %}</div>

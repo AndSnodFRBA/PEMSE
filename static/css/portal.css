@@ -248,10 +248,52 @@ textarea.form-control { resize: vertical; }
 .alert-warning { background: #fff8e1; border-color: var(--gold); color: #7a5c00; }
 .alert-info    { background: #eaf4fb; border-color: var(--accent); color: var(--navy); }
 
+/* FORM GRID HELPERS */
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.pm-grid     { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+
+/* HAMBURGER BUTTON */
+.hamburger-btn {
+  display: none;
+  position: fixed; top: 12px; left: 12px; z-index: 200;
+  background: #163366; border: none; border-radius: 8px;
+  width: 42px; height: 42px; cursor: pointer;
+  flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+.hamburger-btn span { display: block; width: 20px; height: 2px; background: #fff; border-radius: 1px; transition: all .2s; }
+
+/* SIDEBAR OVERLAY */
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45); z-index: 99;
+}
+.sidebar-overlay.open { display: block; }
+
 /* RESPONSIVE */
 @media (max-width: 900px) {
-  .sidebar         { display: none; }
-  .portal-main     { margin-left: 0; padding: 16px; }
-  .course-grid     { grid-template-columns: 1fr; }
+  .hamburger-btn  { display: flex; }
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    display: flex !important;
+  }
+  .sidebar.open   { transform: translateX(0); }
+  .portal-main    { margin-left: 0; padding: 16px; padding-top: 64px; }
+  .course-grid    { grid-template-columns: 1fr; }
   .handbook-layout { grid-template-columns: 1fr; }
+  .form-grid-2    { grid-template-columns: 1fr; }
+  .pm-grid        { grid-template-columns: 1fr 1fr; }
+
+  /* Touch-friendly form controls */
+  .form-control, .form-select { min-height: 44px; font-size: 16px; /* prevents iOS zoom */ }
+  .btn-navy, .btn-ghost, .btn-red { padding: 13px 22px; width: 100%; text-align: center; margin-bottom: 8px; }
+
+  /* Smaller page hero on mobile */
+  .page-hero { padding: 20px 20px; border-radius: 12px; }
+  .page-hero h1 { font-size: 20px; }
+  .hero-stats { gap: 16px; flex-wrap: wrap; }
+
+  /* Portal card spacing */
+  .portal-card { padding: 18px 16px; }
 }
