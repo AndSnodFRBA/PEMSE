@@ -99,6 +99,12 @@
       {% endif %}
     </a>
 
+    <div class="staff-nav-label">Compliance</div>
+    <a href="{% url 'staff_course_reports' %}"
+       class="{% if 'course_report' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-send-check-fill"></i> Dept. Reports
+    </a>
+
     <div class="staff-nav-label">Content</div>
     <a href="{% url 'staff_announcements' %}"
        class="{% if 'announcement' in request.resolver_match.url_name %}active{% endif %}">

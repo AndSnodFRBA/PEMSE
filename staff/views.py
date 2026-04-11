@@ -9,12 +9,22 @@ from django.utils import timezone
 from courses.models import Course, CourseEnrollment
 from documents.models import StudentDocument
 from students.forms import StudentLoginForm
-from students.models import Announcement, PaymentHistory, Student
+from students.models import (
+    Announcement, CognitiveExamRecord, CourseCompletionRecord,
+    CourseReportRecord, EntranceRequirementRecord,
+    PatientContactRecord, PaymentHistory, PsychomotorSkillRecord, Student,
+)
 from .forms import (
+    CognitiveExamForm,
+    CourseCompletionForm,
     CourseForm,
+    CourseReportForm,
     DocumentReviewForm,
+    EntranceRequirementForm,
     InvitationForm,
+    PatientContactForm,
     PaymentHistoryForm,
+    PsychomotorSkillForm,
     StaffAnnouncementForm,
     StaffStudentEditForm,
 )
@@ -87,16 +97,57 @@ def student_detail(request, pk):
 
     add_payment_form = PaymentHistoryForm()
 
+    # ── 172 NAC Compliance records ────────────────────────────────────────────
+    course = enrollment.course if enrollment else None
+
+    cognitive_exams    = CognitiveExamRecord.objects.filter(student=student).select_related('course')
+    psychomotor_skills = PsychomotorSkillRecord.objects.filter(student=student).select_related('course')
+    patient_contacts   = PatientContactRecord.objects.filter(student=student).select_related('course')
+
+    # Ensure default entrance requirements exist for this student/course combo
+    if course:
+        _ensure_entrance_requirements(student, course)
+    entrance_reqs = EntranceRequirementRecord.objects.filter(student=student).select_related('course')
+
+    completion_rec, _ = (
+        CourseCompletionRecord.objects.get_or_create(student=student, course=course)
+        if course else (None, False)
+    )
+
+    # Patient contact totals
+    pc_totals = {
+        'total':                patient_contacts.count(),
+        'iv_attempted':         patient_contacts.filter(iv_start_attempted=True).count(),
+        'iv_successful':        patient_contacts.filter(iv_start_successful=True).count(),
+        'airway_attempted':     patient_contacts.filter(airway_placement_attempted=True).count(),
+        'airway_successful':    patient_contacts.filter(airway_placement_successful=True).count(),
+    }
+
+    is_aemt = course and course.licensure in ('AEMT', 'PARA') if course else False
+
     return render(request, 'staff/student_detail.html', {
-        'student':          student,
-        'enrollment':       enrollment,
-        'doc_forms':        doc_forms,
-        'payment':          payment,
-        'history':          history,
-        'total_paid':       total_paid,
-        'total_owed':       total_owed,
-        'balance_due':      balance_due,
-        'add_payment_form': add_payment_form,
+        'student':            student,
+        'enrollment':         enrollment,
+        'doc_forms':          doc_forms,
+        'payment':            payment,
+        'history':            history,
+        'total_paid':         total_paid,
+        'total_owed':         total_owed,
+        'balance_due':        balance_due,
+        'add_payment_form':   add_payment_form,
+        # Compliance
+        'cognitive_exams':    cognitive_exams,
+        'psychomotor_skills': psychomotor_skills,
+        'patient_contacts':   patient_contacts,
+        'entrance_reqs':      entrance_reqs,
+        'completion_rec':     completion_rec,
+        'pc_totals':          pc_totals,
+        'is_aemt':            is_aemt,
+        'exam_form':          CognitiveExamForm(),
+        'skill_form':         PsychomotorSkillForm(),
+        'contact_form':       PatientContactForm(),
+        'completion_form':    CourseCompletionForm(instance=completion_rec) if completion_rec else CourseCompletionForm(),
+        'active_tab':         request.GET.get('tab', 'overview'),
     })
 
 
@@ -455,3 +506,454 @@ def student_pdf(request, pk):
     response  = HttpResponse(buf, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="PEMSE-{safe_name}-registration.pdf"'
     return response
+
+
+# ── 172 NAC Compliance — helpers ─────────────────────────────────────────────
+
+_DEFAULT_ENTRANCE_REQS = [
+    'Government-issued Photo ID / Driver\'s License',
+    'CPR Certification Card',
+    'Immunization Records',
+    'High School Diploma or GED',
+    'Background Check Authorization',
+]
+
+def _ensure_entrance_requirements(student, course):
+    """Auto-create default entrance requirement rows if none exist yet."""
+    if not EntranceRequirementRecord.objects.filter(student=student, course=course).exists():
+        EntranceRequirementRecord.objects.bulk_create([
+            EntranceRequirementRecord(student=student, course=course, requirement_name=name)
+            for name in _DEFAULT_ENTRANCE_REQS
+        ])
+
+
+def _detail_redirect(pk, tab):
+    return redirect(f'/staff/students/{pk}/?tab={tab}')
+
+
+# ── Cognitive Exams ───────────────────────────────────────────────────────────
+
+@staff_required
+def add_cognitive_exam(request, pk):
+    student    = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
+    enrollment = CourseEnrollment.objects.filter(student=student).first()
+    if request.method == 'POST':
+        form = CognitiveExamForm(request.POST)
+        if form.is_valid():
+            rec             = form.save(commit=False)
+            rec.student     = student
+            rec.course      = enrollment.course if enrollment else None
+            rec.recorded_by = request.user
+            rec.save()
+            messages.success(request, f'Exam "{rec.exam_name}" recorded.')
+        else:
+            messages.error(request, 'Please correct the errors in the exam form.')
+    return _detail_redirect(pk, 'exams')
+
+
+@staff_required
+def delete_cognitive_exam(request, pk, exam_pk):
+    exam = get_object_or_404(CognitiveExamRecord, pk=exam_pk, student_id=pk)
+    if request.method == 'POST':
+        exam.delete()
+        messages.success(request, 'Exam record deleted.')
+    return _detail_redirect(pk, 'exams')
+
+
+# ── Psychomotor Skills ────────────────────────────────────────────────────────
+
+@staff_required
+def add_psychomotor_skill(request, pk):
+    student    = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
+    enrollment = CourseEnrollment.objects.filter(student=student).first()
+    if request.method == 'POST':
+        form = PsychomotorSkillForm(request.POST)
+        if form.is_valid():
+            rec             = form.save(commit=False)
+            rec.student     = student
+            rec.course      = enrollment.course if enrollment else None
+            rec.recorded_by = request.user
+            rec.save()
+            messages.success(request, f'Skill "{rec.skill_name}" recorded.')
+        else:
+            messages.error(request, 'Please correct the errors in the skill form.')
+    return _detail_redirect(pk, 'skills')
+
+
+@staff_required
+def delete_psychomotor_skill(request, pk, skill_pk):
+    skill = get_object_or_404(PsychomotorSkillRecord, pk=skill_pk, student_id=pk)
+    if request.method == 'POST':
+        skill.delete()
+        messages.success(request, 'Skill record deleted.')
+    return _detail_redirect(pk, 'skills')
+
+
+# ── Patient Contacts ──────────────────────────────────────────────────────────
+
+@staff_required
+def add_patient_contact(request, pk):
+    student    = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
+    enrollment = CourseEnrollment.objects.filter(student=student).first()
+    if request.method == 'POST':
+        form = PatientContactForm(request.POST)
+        if form.is_valid():
+            rec         = form.save(commit=False)
+            rec.student = student
+            rec.course  = enrollment.course if enrollment else None
+            rec.save()
+            messages.success(request, 'Patient contact recorded.')
+        else:
+            messages.error(request, 'Please correct the errors in the contact form.')
+    return _detail_redirect(pk, 'contacts')
+
+
+@staff_required
+def delete_patient_contact(request, pk, contact_pk):
+    contact = get_object_or_404(PatientContactRecord, pk=contact_pk, student_id=pk)
+    if request.method == 'POST':
+        contact.delete()
+        messages.success(request, 'Patient contact deleted.')
+    return _detail_redirect(pk, 'contacts')
+
+
+# ── Entrance Requirements ─────────────────────────────────────────────────────
+
+@staff_required
+def save_entrance_requirements(request, pk):
+    student    = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
+    enrollment = CourseEnrollment.objects.filter(student=student).first()
+    if request.method == 'POST' and enrollment:
+        _ensure_entrance_requirements(student, enrollment.course)
+        reqs = EntranceRequirementRecord.objects.filter(student=student, course=enrollment.course)
+        for req in reqs:
+            prefix  = f'req_{req.pk}_'
+            req.verified         = request.POST.get(prefix + 'verified') == 'on'
+            req.document_on_file = request.POST.get(prefix + 'document_on_file') == 'on'
+            req.verified_date    = request.POST.get(prefix + 'verified_date') or None
+            req.notes            = request.POST.get(prefix + 'notes', '')
+            if req.verified:
+                req.verified_by = request.user
+            req.save()
+        # Allow adding a custom requirement
+        custom_name = request.POST.get('new_req_name', '').strip()
+        if custom_name:
+            EntranceRequirementRecord.objects.create(
+                student=student, course=enrollment.course,
+                requirement_name=custom_name,
+            )
+        messages.success(request, 'Entrance requirements updated.')
+    return _detail_redirect(pk, 'entrance')
+
+
+# ── Course Completion ─────────────────────────────────────────────────────────
+
+@staff_required
+def save_completion_record(request, pk):
+    student    = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
+    enrollment = CourseEnrollment.objects.filter(student=student).first()
+    if request.method == 'POST' and enrollment:
+        rec, _ = CourseCompletionRecord.objects.get_or_create(
+            student=student, course=enrollment.course
+        )
+        form = CourseCompletionForm(request.POST, instance=rec)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Completion record saved.')
+        else:
+            messages.error(request, 'Please check the completion form fields.')
+    return _detail_redirect(pk, 'completion')
+
+
+@staff_required
+def verification_pdf(request, pk):
+    """Per 172 NAC 13-004(A) — Official verification of course completion."""
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import (
+        HRFlowable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle,
+    )
+
+    student    = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
+    enrollment = CourseEnrollment.objects.filter(student=student).first()
+    rec        = CourseCompletionRecord.objects.filter(student=student).first()
+
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buf, pagesize=letter,
+        leftMargin=inch, rightMargin=inch,
+        topMargin=0.75*inch, bottomMargin=0.75*inch,
+    )
+
+    styles  = getSampleStyleSheet()
+    navy    = colors.HexColor('#1a2e4a')
+    blue    = colors.HexColor('#2B5EA7')
+    lt_gray = colors.HexColor('#f3f6fb')
+
+    center = ParagraphStyle('center', parent=styles['Normal'], alignment=1, fontSize=10)
+    h1     = ParagraphStyle('h1', parent=styles['Heading1'], textColor=blue, fontSize=18, spaceAfter=4, alignment=1)
+    h2     = ParagraphStyle('h2', parent=styles['Heading2'], textColor=navy, fontSize=11, spaceBefore=14, spaceAfter=4)
+    body   = ParagraphStyle('body', parent=styles['Normal'], fontSize=10, leading=14)
+    small  = ParagraphStyle('small', parent=styles['Normal'], fontSize=9, textColor=colors.HexColor('#6b7280'))
+
+    course = enrollment.course if enrollment else None
+    is_aemt = course and course.licensure in ('AEMT', 'PARA') if course else False
+
+    story = [
+        Paragraph('PANHANDLE EMS EDUCATION', h1),
+        Paragraph('Official Verification of Course Completion', ParagraphStyle('sub', parent=center, textColor=blue, fontSize=12)),
+        Paragraph('172 NAC Chapter 13-004(A)', ParagraphStyle('reg', parent=center, textColor=colors.HexColor('#9ca3af'), fontSize=9)),
+        Spacer(1, 14),
+        HRFlowable(width='100%', thickness=2, color=blue),
+        Spacer(1, 14),
+    ]
+
+    def kv(label, value):
+        return Table(
+            [[label, value]],
+            colWidths=[2.2*inch, 4.3*inch],
+            style=TableStyle([
+                ('FONTNAME',   (0, 0), (0, 0), 'Helvetica-Bold'),
+                ('FONTSIZE',   (0, 0), (-1, -1), 10),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                ('BACKGROUND', (0, 0), (0, 0), lt_gray),
+                ('GRID',       (0, 0), (-1, -1), 0.5, colors.HexColor('#dde4ef')),
+            ]),
+        )
+
+    story += [
+        Paragraph('Training Agency', h2),
+        kv('Agency Name',     'Panhandle EMS Education'),
+        kv('Agency Location', course.location_display if course and course.location_display else 'Scottsbluff, NE'),
+        Spacer(1, 8),
+        Paragraph('Student Information', h2),
+        kv('Student Full Name', student.get_full_name()),
+        kv('Course Completed',  course.name if course else '—'),
+        kv('Completion Date',   rec.completion_date.strftime('%B %d, %Y') if rec and rec.completion_date else '—'),
+        kv('Total Hours',       str(rec.total_hours) if rec else '—'),
+    ]
+
+    if is_aemt and rec:
+        story += [
+            kv('Didactic Hours',         str(rec.didactic_hours)),
+            kv('Clinical Hours',         str(rec.clinical_hours)),
+            kv('Field Internship Hours', str(rec.field_internship_hours)),
+        ]
+
+    story += [Spacer(1, 14)]
+
+    story += [
+        Paragraph('Official Attestation', h2),
+        Paragraph(
+            f'This is to certify that the above-named student has successfully completed the '
+            f'<b>{course.name if course else "EMS"}</b> course offered by Panhandle EMS Education '
+            f'in accordance with Nebraska Department of Health and Human Services regulations '
+            f'(172 NAC Chapter 13).',
+            body,
+        ),
+        Spacer(1, 28),
+    ]
+
+    sig_name  = rec.verified_by_name  if rec and rec.verified_by_name  else '___________________________'
+    sig_title = rec.verified_by_title if rec and rec.verified_by_title else '___________________________'
+    sig_date  = rec.verification_date.strftime('%B %d, %Y') if rec and rec.verification_date else '___________________________'
+
+    story.append(Table(
+        [
+            ['Signature:', '___________________________', 'Date:', sig_date],
+            ['Printed Name:', sig_name, 'Title:', sig_title],
+        ],
+        colWidths=[1.1*inch, 2.8*inch, 0.6*inch, 2*inch],
+        style=TableStyle([
+            ('FONTNAME',   (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTNAME',   (2, 0), (2, -1), 'Helvetica-Bold'),
+            ('FONTSIZE',   (0, 0), (-1, -1), 10),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('LINEBELOW',  (1, 0), (1, 0), 0.5, colors.black),
+            ('LINEBELOW',  (1, 1), (1, 1), 0.5, colors.black),
+            ('LINEBELOW',  (3, 0), (3, 0), 0.5, colors.black),
+            ('LINEBELOW',  (3, 1), (3, 1), 0.5, colors.black),
+        ]),
+    ))
+
+    story += [
+        Spacer(1, 24),
+        HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#d1d5db')),
+        Spacer(1, 6),
+        Paragraph(
+            f'Generated {timezone.now().strftime("%B %d, %Y")} — Panhandle EMS Education — '
+            f'This document constitutes official verification per 172 NAC 13-004(A).',
+            small,
+        ),
+    ]
+
+    doc.build(story)
+    buf.seek(0)
+    safe = ''.join(c if c.isalnum() or c in '-_ ' else '' for c in student.get_full_name()).strip()
+    resp = HttpResponse(buf, content_type='application/pdf')
+    resp['Content-Disposition'] = f'attachment; filename="PEMSE-{safe}-verification.pdf"'
+    return resp
+
+
+# ── Course Reports ────────────────────────────────────────────────────────────
+
+@staff_required
+def course_reports(request):
+    from datetime import timedelta
+    today   = timezone.now().date()
+    courses = Course.objects.all().order_by('order', 'option_number')
+
+    rows = []
+    for c in courses:
+        report   = getattr(c, 'department_report', None)
+        deadline = None
+        if c.end_date:
+            deadline = c.end_date + timedelta(days=30)
+        overdue = (
+            not (report and report.report_submitted_to_department)
+            and deadline
+            and today > deadline
+        )
+        soon = (
+            not (report and report.report_submitted_to_department)
+            and deadline
+            and today >= deadline - timedelta(days=7)
+            and not overdue
+        )
+        rows.append({
+            'course':   c,
+            'report':   report,
+            'deadline': deadline,
+            'overdue':  overdue,
+            'soon':     soon,
+        })
+
+    return render(request, 'staff/course_reports.html', {'rows': rows, 'today': today})
+
+
+@staff_required
+def course_report_detail(request, course_pk):
+    from datetime import timedelta
+    course  = get_object_or_404(Course, pk=course_pk)
+    report, _ = CourseReportRecord.objects.get_or_create(
+        course=course,
+        defaults={
+            'course_location':  course.location_display or '',
+            'submission_deadline': (course.end_date + timedelta(days=30)) if course.end_date else None,
+        },
+    )
+    form = CourseReportForm(request.POST or None, instance=report)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Course report saved.')
+        return redirect('staff_course_reports')
+    return render(request, 'staff/course_report_form.html', {
+        'form':   form,
+        'course': course,
+        'report': report,
+    })
+
+
+@staff_required
+def department_report_pdf(request, course_pk):
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import (
+        HRFlowable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle,
+    )
+
+    course  = get_object_or_404(Course, pk=course_pk)
+    report  = getattr(course, 'department_report', None)
+
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buf, pagesize=letter,
+        leftMargin=inch, rightMargin=inch,
+        topMargin=0.75*inch, bottomMargin=0.75*inch,
+    )
+
+    styles = getSampleStyleSheet()
+    navy   = colors.HexColor('#1a2e4a')
+    blue   = colors.HexColor('#2B5EA7')
+    lt     = colors.HexColor('#f3f6fb')
+
+    h1   = ParagraphStyle('h1', parent=styles['Heading1'], textColor=blue, fontSize=16, spaceAfter=4, alignment=1)
+    h2   = ParagraphStyle('h2', parent=styles['Heading2'], textColor=navy, fontSize=11, spaceBefore=12, spaceAfter=4)
+    body = styles['Normal']
+    body.fontSize = 10
+    small = ParagraphStyle('small', parent=styles['Normal'], fontSize=9, textColor=colors.HexColor('#6b7280'))
+
+    is_aemt = course.licensure in ('AEMT', 'PARA')
+
+    def kv(label, value):
+        return Table(
+            [[label, str(value) if value is not None else '—']],
+            colWidths=[2.5*inch, 4*inch],
+            style=TableStyle([
+                ('FONTNAME',      (0, 0), (0, 0), 'Helvetica-Bold'),
+                ('FONTSIZE',      (0, 0), (-1, -1), 10),
+                ('TOPPADDING',    (0, 0), (-1, -1), 4),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                ('BACKGROUND',    (0, 0), (0, 0), lt),
+                ('GRID',          (0, 0), (-1, -1), 0.5, colors.HexColor('#dde4ef')),
+            ]),
+        )
+
+    story = [
+        Paragraph('PANHANDLE EMS EDUCATION', h1),
+        Paragraph('Course Completion Report — Nebraska DHHS', ParagraphStyle('sub', parent=styles['Normal'], alignment=1, fontSize=11, textColor=blue)),
+        Paragraph('172 NAC Chapter 13-004(D)', ParagraphStyle('reg', parent=styles['Normal'], alignment=1, fontSize=9, textColor=colors.HexColor('#9ca3af'))),
+        Spacer(1, 12),
+        HRFlowable(width='100%', thickness=2, color=blue),
+        Spacer(1, 12),
+        Paragraph('Course Information', h2),
+        kv('Training Agency',    report.training_agency_name if report else 'Panhandle EMS Education'),
+        kv('Course Location',    report.course_location if report else course.location_display or '—'),
+        kv('Course Name',        course.name),
+        kv('Instructor(s)',      report.instructor_names if report else '—'),
+        kv('Course Start Date',  str(course.start_date) if course.start_date else '—'),
+        kv('Course End Date',    str(course.end_date) if course.end_date else '—'),
+        Spacer(1, 8),
+        Paragraph('Enrollment Statistics', h2),
+        kv('Students Enrolled',  report.students_enrolled if report else '—'),
+        kv('Students Withdrew',  report.students_withdrew if report else '—'),
+        kv('Students Completed', report.students_completed if report else '—'),
+        kv('Pass Rate',          f"{report.pass_rate}%" if report and report.pass_rate is not None else '—'),
+        Spacer(1, 8),
+        Paragraph('Hours', h2),
+        kv('Total Didactic Hours', report.total_didactic_hours if report else '—'),
+    ]
+
+    if is_aemt and report:
+        story += [
+            kv('Total Clinical Hours',        report.total_clinical_hours),
+            kv('Total Field Internship Hours', report.total_field_hours),
+        ]
+
+    story += [
+        Spacer(1, 8),
+        Paragraph('Submission Status', h2),
+        kv('Submitted to DHHS',    'Yes' if report and report.report_submitted_to_department else 'No'),
+        kv('Submission Date',      str(report.report_submitted_date) if report and report.report_submitted_date else '—'),
+        kv('Submission Deadline',  str(report.submission_deadline) if report and report.submission_deadline else '—'),
+        Spacer(1, 20),
+        HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#d1d5db')),
+        Spacer(1, 6),
+        Paragraph(
+            f'Generated {timezone.now().strftime("%B %d, %Y")} — Panhandle EMS Education — '
+            f'172 NAC Chapter 13-004(D) Department Report',
+            small,
+        ),
+    ]
+
+    doc.build(story)
+    buf.seek(0)
+    safe = ''.join(c if c.isalnum() or c in '-_ ' else '' for c in course.name).strip()
+    resp = HttpResponse(buf, content_type='application/pdf')
+    resp['Content-Disposition'] = f'attachment; filename="PEMSE-dept-report-{safe}.pdf"'
+    return resp

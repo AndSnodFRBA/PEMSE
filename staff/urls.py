@@ -23,4 +23,21 @@ urlpatterns = [
     path('evaluations/',                       eval_views.staff_eval_list,     name='staff_eval_list'),
     path('evaluations/<int:pk>/',              eval_views.staff_eval_detail,   name='staff_eval_detail'),
     path('evaluations/<int:pk>/pdf/',          eval_views.staff_eval_pdf,      name='staff_eval_pdf'),
+    # Compliance — cognitive exams
+    path('students/<int:pk>/add-exam/',                             views.add_cognitive_exam,       name='staff_add_exam'),
+    path('students/<int:pk>/exams/<int:exam_pk>/delete/',           views.delete_cognitive_exam,    name='staff_delete_exam'),
+    # Compliance — psychomotor skills
+    path('students/<int:pk>/add-skill/',                            views.add_psychomotor_skill,    name='staff_add_skill'),
+    path('students/<int:pk>/skills/<int:skill_pk>/delete/',         views.delete_psychomotor_skill, name='staff_delete_skill'),
+    # Compliance — patient contacts
+    path('students/<int:pk>/add-contact/',                          views.add_patient_contact,      name='staff_add_contact'),
+    path('students/<int:pk>/contacts/<int:contact_pk>/delete/',     views.delete_patient_contact,   name='staff_delete_contact'),
+    # Compliance — entrance requirements & completion
+    path('students/<int:pk>/entrance-reqs/',                        views.save_entrance_requirements, name='staff_save_entrance_reqs'),
+    path('students/<int:pk>/completion/',                           views.save_completion_record,   name='staff_save_completion'),
+    path('students/<int:pk>/completion/pdf/',                       views.verification_pdf,         name='staff_verification_pdf'),
+    # Course reports
+    path('course-reports/',                                         views.course_reports,           name='staff_course_reports'),
+    path('course-reports/<int:course_pk>/',                         views.course_report_detail,     name='staff_course_report_detail'),
+    path('course-reports/<int:course_pk>/pdf/',                     views.department_report_pdf,    name='staff_department_report_pdf'),
 ]
