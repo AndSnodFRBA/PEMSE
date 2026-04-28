@@ -161,4 +161,53 @@
   </div>
 </div>
 {% endif %}
+
+{% if meeting_compliance %}
+<div class="mt-4">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <h2 style="font-size:15px;font-weight:600;color:#1a2e4a;margin:0;">
+      <i class="bi bi-person-badge-fill me-1" style="color:#d97706;"></i>
+      Instructor Meeting Compliance
+    </h2>
+    <a href="{% url 'staff_instructor_list' %}" style="font-size:12px;color:#2B5EA7;">All instructors →</a>
+  </div>
+  <div class="card">
+    <div class="card-body p-0">
+      <table class="table mb-0" style="font-size:13px;">
+        <thead style="background:#fffbeb;border-bottom:2px solid #fde68a;">
+          <tr>
+            <th class="ps-4 py-2" style="color:#92600a;font-weight:600;">Instructor</th>
+            <th class="py-2" style="color:#92600a;font-weight:600;">Last Meeting</th>
+            <th class="py-2" style="color:#92600a;font-weight:600;">Status</th>
+            <th class="py-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in meeting_compliance %}
+          <tr>
+            <td class="ps-4 py-2" style="font-weight:600;color:#1a2e4a;">{{ item.instructor.get_full_name }}</td>
+            <td class="py-2">{{ item.last_meeting.meeting_date|default:"Never" }}</td>
+            <td class="py-2">
+              {% if item.status == 'overdue' %}
+                <span style="background:#fee2e2;color:#991b1b;border-radius:12px;font-size:11px;padding:2px 8px;">
+                  <i class="bi bi-exclamation-circle-fill me-1"></i>Overdue
+                </span>
+              {% else %}
+                <span style="background:#fef3c7;color:#92600a;border-radius:12px;font-size:11px;padding:2px 8px;">
+                  <i class="bi bi-clock me-1"></i>Due Soon
+                </span>
+              {% endif %}
+            </td>
+            <td class="py-2 pe-3">
+              <a href="{% url 'staff_instructor_meeting' item.instructor.pk %}"
+                 style="font-size:12px;color:#2B5EA7;">Log Meeting →</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}

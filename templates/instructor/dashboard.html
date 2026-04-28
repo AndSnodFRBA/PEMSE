@@ -1,0 +1,140 @@
+{% extends 'instructor/base_instructor.html' %}
+{% block title %}Dashboard — PEMSE Instructor Portal{% endblock %}
+
+{% block content %}
+<div class="inst-topbar">
+  <h1 class="inst-page-title">Welcome, {{ request.user.first_name }}</h1>
+  <div class="d-flex gap-2">
+    <a href="{% url 'instructor_hours_add' %}" class="btn btn-sm btn-primary">
+      <i class="bi bi-plus-circle me-1"></i> Log Hours
+    </a>
+    <a href="{% url 'instructor_attendance_add' %}" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-check2-square me-1"></i> Take Attendance
+    </a>
+  </div>
+</div>
+
+{% if license_warning %}
+  <div class="alert alert-warning d-flex align-items-center gap-2 mb-4" role="alert">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <div>
+      <strong>License Expiring Soon</strong> —
+      Your instructor license expires on <strong>{{ license_warning.expiry }}</strong>
+      ({{ license_warning.days }} days).
+      <a href="{% url 'instructor_profile' %}">Update your profile.</a>
+    </div>
+  </div>
+{% endif %}
+
+{% if pending_obs or pending_meetings %}
+  <div class="alert alert-info d-flex align-items-center gap-2 mb-4">
+    <i class="bi bi-bell-fill"></i>
+    <div>
+      You have pending acknowledgments —
+      {% if pending_obs %}<a href="{% url 'instructor_observations' %}">{{ pending_obs|length }} observation(s)</a>{% endif %}
+      {% if pending_obs and pending_meetings %} and {% endif %}
+      {% if pending_meetings %}<a href="{% url 'instructor_meetings' %}">{{ pending_meetings|length }} meeting(s)</a>{% endif %}
+      requiring your signature.
+    </div>
+  </div>
+{% endif %}
+
+<!-- Hours summary -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-val">{{ hours_this_month }}</div>
+      <div class="stat-lbl">Hours This Month</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-val">{{ hours_total }}</div>
+      <div class="stat-lbl">Total Hours Logged</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-val">{{ course_cards|length }}</div>
+      <div class="stat-lbl">Active Courses</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-val">{{ recent_attendance|length }}</div>
+      <div class="stat-lbl">Recent Sessions</div>
+    </div>
+  </div>
+</div>
+
+<!-- Course cards -->
+{% if course_cards %}
+<h6 class="text-muted fw-semibold mb-3" style="font-size:11px;letter-spacing:1px;text-transform:uppercase;">Your Courses</h6>
+<div class="row g-3 mb-4">
+  {% for card in course_cards %}
+  <div class="col-12 col-md-6">
+    <div class="card p-0 overflow-hidden">
+      <div class="p-3 border-bottom d-flex align-items-center justify-content-between"
+           style="background:#f8fafc;">
+        <div>
+          <div class="fw-semibold" style="color:#1a2e4a;">{{ card.course.name }}</div>
+          <div class="text-muted" style="font-size:12px;">
+            {{ card.assignment.get_role_display }}
+            {% if card.course.start_date %}
+              &nbsp;·&nbsp; {{ card.course.start_date }} – {{ card.course.end_date|default:"TBD" }}
+            {% endif %}
+          </div>
+        </div>
+        <a href="{% url 'instructor_course_detail' card.course.pk %}"
+           class="btn btn-sm btn-outline-primary">View</a>
+      </div>
+      <div class="px-3 py-2 d-flex gap-4" style="font-size:13px;">
+        <div><span class="fw-semibold">{{ card.enrolled }}</span> <span class="text-muted">students</span></div>
+        {% if card.next_session %}
+          <div class="text-muted">Next: {{ card.next_session.session_date }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+  <div class="card p-4 text-center text-muted mb-4">
+    <i class="bi bi-journal-text" style="font-size:32px;color:#dde4ef;"></i>
+    <div class="mt-2">No courses assigned yet. Contact the office to get assigned.</div>
+  </div>
+{% endif %}
+
+<!-- Recent attendance -->
+{% if recent_attendance %}
+<h6 class="text-muted fw-semibold mb-3" style="font-size:11px;letter-spacing:1px;text-transform:uppercase;">Recent Attendance Sessions</h6>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-sm mb-0" style="font-size:13px;">
+      <thead style="background:#f8fafc;">
+        <tr>
+          <th class="px-3 py-2">Date</th>
+          <th class="py-2">Course</th>
+          <th class="py-2">Type</th>
+          <th class="py-2">Topic</th>
+          <th class="py-2"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in recent_attendance %}
+        <tr>
+          <td class="px-3 py-2">{{ s.session_date }}</td>
+          <td class="py-2">{{ s.course.tag }}</td>
+          <td class="py-2">{{ s.get_session_type_display }}</td>
+          <td class="py-2">{{ s.session_topic|default:"—" }}</td>
+          <td class="py-2">
+            <a href="{% url 'instructor_attendance_detail' s.pk %}" class="text-primary" style="font-size:12px;">View</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

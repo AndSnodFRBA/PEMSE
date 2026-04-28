@@ -1,0 +1,99 @@
+{% extends 'instructor/base_instructor.html' %}
+{% block title %}Observations — PEMSE Instructor Portal{% endblock %}
+
+{% block content %}
+<div class="inst-topbar">
+  <h1 class="inst-page-title">Instructor Observations</h1>
+</div>
+
+<p class="text-muted mb-4" style="font-size:13px;">
+  Per 172 NAC 13-004(F)(i) — periodic observations are conducted by the program director. Review and acknowledge each observation below.
+</p>
+
+{% if observations %}
+  {% for obs in observations %}
+  <div class="card mb-3">
+    <div class="card-body py-2 px-3 border-bottom d-flex justify-content-between align-items-center"
+         style="background:#f8fafc;">
+      <div>
+        <span class="fw-semibold" style="font-size:14px;">{{ obs.observation_date }}</span>
+        <span class="text-muted ms-2" style="font-size:12px;">
+          {{ obs.session_observed }}{% if obs.course %} — {{ obs.course.tag }}{% endif %}
+        </span>
+      </div>
+      <div>
+        {% if obs.instructor_acknowledged %}
+          <span style="background:#d1fae5;color:#065f46;border-radius:12px;font-size:11px;padding:3px 10px;">
+            <i class="bi bi-check-circle-fill me-1"></i>Acknowledged
+          </span>
+        {% else %}
+          <span style="background:#fef3c7;color:#92600a;border-radius:12px;font-size:11px;padding:3px 10px;">
+            <i class="bi bi-clock me-1"></i>Needs Acknowledgment
+          </span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="p-3">
+      {% if obs.overall_rating %}
+        <div class="mb-3 d-flex gap-3 flex-wrap" style="font-size:13px;">
+          {% if obs.preparation %}<span>Preparation: <strong>{{ obs.preparation }}/5</strong></span>{% endif %}
+          {% if obs.content_knowledge %}<span>Content: <strong>{{ obs.content_knowledge }}/5</strong></span>{% endif %}
+          {% if obs.delivery %}<span>Delivery: <strong>{{ obs.delivery }}/5</strong></span>{% endif %}
+          {% if obs.student_engagement %}<span>Engagement: <strong>{{ obs.student_engagement }}/5</strong></span>{% endif %}
+          {% if obs.time_management %}<span>Time Mgmt: <strong>{{ obs.time_management }}/5</strong></span>{% endif %}
+          {% if obs.professionalism %}<span>Professionalism: <strong>{{ obs.professionalism }}/5</strong></span>{% endif %}
+          <span class="fw-bold" style="color:#1a2e4a;">Overall: {{ obs.overall_rating }}/5</span>
+        </div>
+      {% endif %}
+
+      {% if obs.strengths %}
+        <div class="mb-2">
+          <div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Strengths</div>
+          <div style="font-size:13px;">{{ obs.strengths }}</div>
+        </div>
+      {% endif %}
+      {% if obs.opportunities %}
+        <div class="mb-2">
+          <div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Growth Opportunities</div>
+          <div style="font-size:13px;">{{ obs.opportunities }}</div>
+        </div>
+      {% endif %}
+      {% if obs.action_items %}
+        <div class="mb-2">
+          <div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Action Items</div>
+          <div style="font-size:13px;">{{ obs.action_items }}</div>
+        </div>
+      {% endif %}
+
+      {% if not obs.instructor_acknowledged %}
+        <div class="border-top pt-3 mt-3">
+          <form method="post" action="{% url 'instructor_observation_acknowledge' obs.pk %}">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label fw-semibold" style="font-size:13px;">Your Response (optional)</label>
+              <textarea name="response" class="form-control" rows="2"
+                        placeholder="Add a response or comment…"></textarea>
+            </div>
+            <button type="submit" class="btn btn-sm btn-primary">
+              <i class="bi bi-check2 me-1"></i> Acknowledge Observation
+            </button>
+          </form>
+        </div>
+      {% else %}
+        <div class="border-top pt-3 mt-3 text-muted" style="font-size:12px;">
+          Acknowledged on {{ obs.instructor_acknowledged_at|date:"M d, Y" }}
+          {% if obs.instructor_response %}
+            <div class="mt-1"><em>Your response: {{ obs.instructor_response }}</em></div>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="card p-5 text-center text-muted">
+    <i class="bi bi-eye" style="font-size:40px;color:#dde4ef;"></i>
+    <div class="mt-3">No observations on record yet.</div>
+  </div>
+{% endif %}
+{% endblock %}

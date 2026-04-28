@@ -1,0 +1,168 @@
+{% extends 'instructor/base_instructor.html' %}
+{% block title %}{{ course.name }} — PEMSE Instructor Portal{% endblock %}
+
+{% block content %}
+<div class="inst-topbar">
+  <h1 class="inst-page-title">{{ course.name }}</h1>
+  <a href="{% url 'instructor_courses' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> My Courses
+  </a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-val">{{ student_rows|length }}</div>
+      <div class="stat-lbl">Enrolled Students</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-val">{{ total_sessions }}</div>
+      <div class="stat-lbl">Sessions Held</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-val">{{ hours_total }}</div>
+      <div class="stat-lbl">Hours Logged</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-val">{{ assignment.get_role_display }}</div>
+      <div class="stat-lbl">Your Role</div>
+    </div>
+  </div>
+</div>
+
+<!-- Student roster with attendance summary -->
+<h6 class="text-muted fw-semibold mb-2" style="font-size:11px;letter-spacing:1px;text-transform:uppercase;">
+  Student Roster — Attendance Summary
+</h6>
+<div class="card mb-4">
+  {% if student_rows %}
+    <div class="table-responsive">
+      <table class="table table-sm mb-0" style="font-size:13px;">
+        <thead style="background:#f8fafc;">
+          <tr>
+            <th class="px-3 py-2">Student</th>
+            <th class="py-2 text-center">Present</th>
+            <th class="py-2 text-center">Absent</th>
+            <th class="py-2 text-center">Late</th>
+            <th class="py-2 text-center">Attendance %</th>
+            <th class="py-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in student_rows %}
+          <tr {% if row.low_attendance %}style="background:#fff5f5;"{% endif %}>
+            <td class="px-3 py-2 fw-semibold">
+              {{ row.student.get_full_name }}
+              {% if row.low_attendance %}
+                <i class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Below 80% attendance"></i>
+              {% endif %}
+            </td>
+            <td class="py-2 text-center">{{ row.present }}</td>
+            <td class="py-2 text-center">{{ row.absent }}</td>
+            <td class="py-2 text-center">{{ row.late }}</td>
+            <td class="py-2 text-center">
+              {% if row.pct is not None %}
+                <span style="font-weight:600;color:{% if row.low_attendance %}#dc2626{% else %}#059669{% endif %};">
+                  {{ row.pct }}%
+                </span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td class="py-2 pe-3">
+              <a href="{% url 'instructor_student_detail' row.student.pk %}"
+                 class="text-primary" style="font-size:12px;">View</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="p-4 text-center text-muted">No students enrolled in this course.</div>
+  {% endif %}
+</div>
+
+<!-- Recent attendance sessions -->
+{% if sessions %}
+<h6 class="text-muted fw-semibold mb-2" style="font-size:11px;letter-spacing:1px;text-transform:uppercase;">
+  Recent Sessions
+</h6>
+<div class="card mb-4">
+  <div class="table-responsive">
+    <table class="table table-sm mb-0" style="font-size:13px;">
+      <thead style="background:#f8fafc;">
+        <tr>
+          <th class="px-3 py-2">Date</th>
+          <th class="py-2">Type</th>
+          <th class="py-2">Topic</th>
+          <th class="py-2"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sessions %}
+        <tr>
+          <td class="px-3 py-2">{{ s.session_date }}</td>
+          <td class="py-2">{{ s.get_session_type_display }}</td>
+          <td class="py-2">{{ s.session_topic|default:"—" }}</td>
+          <td class="py-2 pe-3">
+            <a href="{% url 'instructor_attendance_detail' s.pk %}" class="text-primary" style="font-size:12px;">View</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Hour logs -->
+{% if hour_logs %}
+<h6 class="text-muted fw-semibold mb-2" style="font-size:11px;letter-spacing:1px;text-transform:uppercase;">
+  Hour Log for This Course
+</h6>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-sm mb-0" style="font-size:13px;">
+      <thead style="background:#f8fafc;">
+        <tr>
+          <th class="px-3 py-2">Date</th>
+          <th class="py-2">Type</th>
+          <th class="py-2">Topic</th>
+          <th class="py-2 text-end">Hrs</th>
+          <th class="py-2 text-center">Verified</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in hour_logs %}
+        <tr>
+          <td class="px-3 py-2">{{ log.session_date }}</td>
+          <td class="py-2">{{ log.get_session_type_display }}</td>
+          <td class="py-2">{{ log.topic_covered }}</td>
+          <td class="py-2 text-end">{{ log.hours }}</td>
+          <td class="py-2 text-center">
+            {% if log.verified %}
+              <i class="bi bi-check-circle-fill text-success"></i>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        <tr style="background:#f8fafc;font-weight:700;">
+          <td class="px-3 py-2" colspan="3">Total</td>
+          <td class="py-2 text-end">{{ hours_total }}</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

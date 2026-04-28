@@ -1,0 +1,96 @@
+{% extends 'instructor/base_instructor.html' %}
+{% block title %}Attendance Session — PEMSE Instructor Portal{% endblock %}
+
+{% block content %}
+<div class="inst-topbar">
+  <h1 class="inst-page-title">{{ session.course.tag }} — {{ session.session_date }}</h1>
+  <div class="d-flex gap-2">
+    {% if can_edit %}
+      <a href="{% url 'instructor_attendance_edit' session.pk %}" class="btn btn-sm btn-primary">
+        <i class="bi bi-pencil me-1"></i> Edit Attendance
+      </a>
+    {% endif %}
+    <a href="{% url 'instructor_attendance' %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back
+    </a>
+  </div>
+</div>
+
+<!-- Session info -->
+<div class="card p-3 mb-4">
+  <div class="row g-3">
+    <div class="col-6 col-md-3">
+      <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Type</div>
+      <div class="fw-semibold" style="font-size:14px;">{{ session.get_session_type_display }}</div>
+    </div>
+    {% if session.session_topic %}
+    <div class="col-6 col-md-3">
+      <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Topic</div>
+      <div class="fw-semibold" style="font-size:14px;">{{ session.session_topic }}</div>
+    </div>
+    {% endif %}
+    {% if session.session_start %}
+    <div class="col-6 col-md-3">
+      <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Time</div>
+      <div class="fw-semibold" style="font-size:14px;">
+        {{ session.session_start }} – {{ session.session_end|default:"—" }}
+      </div>
+    </div>
+    {% endif %}
+    <div class="col-6 col-md-3">
+      <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Status</div>
+      <div>
+        {% if not can_edit %}
+          <span style="background:#fee2e2;color:#991b1b;border-radius:12px;font-size:11px;padding:2px 8px;">
+            <i class="bi bi-lock-fill"></i> Locked
+          </span>
+        {% else %}
+          <span style="background:#d1fae5;color:#065f46;border-radius:12px;font-size:11px;padding:2px 8px;">
+            Editable
+          </span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Running totals -->
+<div class="d-flex flex-wrap gap-2 mb-3">
+  <span class="badge-present px-3 py-2">Present: {{ counts.present }}</span>
+  <span class="badge-absent px-3 py-2">Absent: {{ counts.absent }}</span>
+  <span class="badge-late px-3 py-2">Late: {{ counts.late }}</span>
+  <span class="badge-excused px-3 py-2">Excused: {{ counts.excused }}</span>
+</div>
+
+<!-- Attendance roster -->
+<div class="card">
+  {% if attendances %}
+    <div class="table-responsive">
+      <table class="table mb-0" style="font-size:13px;">
+        <thead style="background:#f8fafc;">
+          <tr>
+            <th class="px-3 py-2">Student</th>
+            <th class="py-2">Status</th>
+            <th class="py-2">Arrival</th>
+            <th class="py-2">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for att in attendances %}
+          <tr>
+            <td class="px-3 py-2 fw-semibold">{{ att.student.get_full_name }}</td>
+            <td class="py-2">
+              <span class="badge-{{ att.status }}">{{ att.get_status_display }}</span>
+            </td>
+            <td class="py-2">{{ att.arrival_time|default:"—" }}</td>
+            <td class="py-2 text-muted">{{ att.notes|default:"" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="p-4 text-center text-muted">No students found for this session.</div>
+  {% endif %}
+</div>
+{% endblock %}

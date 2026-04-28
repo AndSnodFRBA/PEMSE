@@ -147,6 +147,12 @@
       <i class="bi bi-graph-up-arrow"></i> NREMT Pass Rates
     </a>
 
+    <div class="staff-nav-label">Instructors</div>
+    <a href="{% url 'staff_instructor_list' %}"
+       class="{% if 'instructor' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-person-badge-fill"></i> Instructors
+    </a>
+
     <div class="staff-nav-label">Content</div>
     <a href="{% url 'staff_announcements' %}"
        class="{% if 'announcement' in request.resolver_match.url_name %}active{% endif %}">

@@ -1,0 +1,279 @@
+{% extends 'staff/base_staff.html' %}
+{% block title %}{{ instructor.get_full_name }} — PEMSE Staff Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+  .tab-btn { background: none; border: none; padding: 8px 16px; font-size: 13px;
+             font-weight: 500; color: #6b7280; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab-btn.active { color: #1a2e4a; border-bottom-color: #2B5EA7; }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">{{ instructor.get_full_name }}</h1>
+  <div class="d-flex gap-2">
+    <a href="{% url 'staff_instructor_assign_course' instructor.pk %}" class="btn btn-sm btn-outline-primary">
+      Assign Course
+    </a>
+    <a href="{% url 'staff_instructor_observe' instructor.pk %}" class="btn btn-sm btn-outline-secondary">
+      Log Observation
+    </a>
+    <a href="{% url 'staff_instructor_meeting' instructor.pk %}" class="btn btn-sm btn-outline-secondary">
+      Log Meeting
+    </a>
+    <a href="{% url 'staff_instructor_list' %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back
+    </a>
+  </div>
+</div>
+
+<!-- Tab navigation -->
+<div class="card mb-3 p-0" style="overflow:hidden;">
+  <div class="d-flex border-bottom px-2" style="gap:0;">
+    {% for tab_id, tab_label in tab_list %}
+      <button class="tab-btn {% if active_tab == tab_id %}active{% endif %}"
+              onclick="showTab('{{ tab_id }}')" id="tab-btn-{{ tab_id }}">
+        {{ tab_label }}
+      </button>
+    {% endfor %}
+  </div>
+
+  <!-- Profile -->
+  <div class="tab-pane {% if active_tab == 'profile' %}active{% endif %} p-4" id="tab-profile">
+    <div class="row g-4">
+      <div class="col-12 col-md-6">
+        <h6 style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Contact</h6>
+        <table style="font-size:13px;width:100%;">
+          <tr><td class="text-muted pe-3" style="width:130px;">Email</td><td>{{ instructor.email }}</td></tr>
+          <tr><td class="text-muted pe-3">Phone</td><td>{{ instructor.phone|default:"—" }}</td></tr>
+          <tr><td class="text-muted pe-3">Employer</td><td>{{ instructor.instructor_employer|default:"—" }}</td></tr>
+        </table>
+      </div>
+      <div class="col-12 col-md-6">
+        <h6 style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">License</h6>
+        <table style="font-size:13px;width:100%;">
+          <tr><td class="text-muted pe-3" style="width:130px;">Number</td><td>{{ instructor.instructor_license_number|default:"—" }}</td></tr>
+          <tr><td class="text-muted pe-3">Level</td><td>{{ instructor.get_instructor_license_level_display|default:"—" }}</td></tr>
+          <tr><td class="text-muted pe-3">Expires</td>
+            <td>
+              {% if instructor.instructor_license_expiry %}
+                {{ instructor.instructor_license_expiry }}
+              {% else %}—{% endif %}
+            </td>
+          </tr>
+          <tr><td class="text-muted pe-3">Experience</td>
+            <td>{{ instructor.instructor_years_experience|default:"—" }} yrs</td>
+          </tr>
+        </table>
+      </div>
+      {% if instructor.instructor_bio %}
+      <div class="col-12">
+        <h6 style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Bio</h6>
+        <p style="font-size:13px;">{{ instructor.instructor_bio }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Course Assignments -->
+  <div class="tab-pane {% if active_tab == 'courses' %}active{% endif %}" id="tab-courses">
+    {% if assignments %}
+      <table class="table table-sm mb-0" style="font-size:13px;">
+        <thead style="background:#f8fafc;">
+          <tr>
+            <th class="px-3 py-2">Course</th>
+            <th class="py-2">Role</th>
+            <th class="py-2">Assigned By</th>
+            <th class="py-2">Assigned</th>
+            <th class="py-2 text-center">Active</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in assignments %}
+          <tr>
+            <td class="px-3 py-2 fw-semibold">{{ a.course.name }}</td>
+            <td class="py-2">{{ a.get_role_display }}</td>
+            <td class="py-2">{{ a.assigned_by.get_full_name|default:"—" }}</td>
+            <td class="py-2">{{ a.assigned_at|date:"M d, Y" }}</td>
+            <td class="py-2 text-center">
+              {% if a.is_active %}<i class="bi bi-check-circle-fill text-success"></i>
+              {% else %}<i class="bi bi-dash-circle text-muted"></i>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="p-4 text-center text-muted" style="font-size:13px;">No course assignments.</div>
+    {% endif %}
+  </div>
+
+  <!-- Hour Logs -->
+  <div class="tab-pane {% if active_tab == 'hours' %}active{% endif %}" id="tab-hours">
+    <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center"
+         style="background:#f8fafc;">
+      <span style="font-size:13px;font-weight:600;">Total: {{ hours_total }} hours</span>
+      <form method="post" action="{% url 'staff_instructor_verify_hours' instructor.pk %}">
+        {% csrf_token %}
+        {% for log in hour_logs %}{% if not log.verified %}
+          <input type="hidden" name="hour_ids" value="{{ log.pk }}">
+        {% endif %}{% endfor %}
+        <button type="submit" class="btn btn-sm btn-success">
+          <i class="bi bi-check2-all me-1"></i> Verify All Unverified
+        </button>
+      </form>
+    </div>
+    {% if hour_logs %}
+      <div class="table-responsive">
+        <table class="table table-sm mb-0" style="font-size:12px;">
+          <thead style="background:#f8fafc;">
+            <tr>
+              <th class="px-3 py-2">Date</th>
+              <th class="py-2">Course</th>
+              <th class="py-2">Type</th>
+              <th class="py-2">Topic</th>
+              <th class="py-2 text-end">Hrs</th>
+              <th class="py-2 text-center">Students</th>
+              <th class="py-2 text-center">Verified</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in hour_logs %}
+            <tr>
+              <td class="px-3 py-2">{{ log.session_date }}</td>
+              <td class="py-2">{{ log.course.tag }}</td>
+              <td class="py-2">{{ log.get_session_type_display }}</td>
+              <td class="py-2">{{ log.topic_covered|truncatechars:50 }}</td>
+              <td class="py-2 text-end">{{ log.hours }}</td>
+              <td class="py-2 text-center">{{ log.students_present }}</td>
+              <td class="py-2 text-center">
+                {% if log.verified %}
+                  <span class="text-success"><i class="bi bi-check-circle-fill"></i></span>
+                {% else %}
+                  <form method="post" action="{% url 'staff_instructor_verify_hours' instructor.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="hour_ids" value="{{ log.pk }}">
+                    <button type="submit" class="btn btn-link p-0 text-muted" style="font-size:11px;">Verify</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-4 text-center text-muted" style="font-size:13px;">No hour logs.</div>
+    {% endif %}
+  </div>
+
+  <!-- Observations -->
+  <div class="tab-pane {% if active_tab == 'observations' %}active{% endif %}" id="tab-observations">
+    <div class="px-3 py-2 border-bottom text-end" style="background:#f8fafc;">
+      <a href="{% url 'staff_instructor_observe' instructor.pk %}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> Log Observation
+      </a>
+    </div>
+    {% if observations %}
+      {% for obs in observations %}
+        <div class="p-3 border-bottom" style="font-size:13px;">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <strong>{{ obs.observation_date }}</strong> — {{ obs.session_observed }}
+              {% if obs.overall_rating %}
+                <span class="ms-2 badge" style="background:#dbeafe;color:#1e3a8a;">{{ obs.overall_rating }}/5</span>
+              {% endif %}
+            </div>
+            {% if obs.instructor_acknowledged %}
+              <span style="background:#d1fae5;color:#065f46;border-radius:12px;font-size:11px;padding:2px 8px;">Acknowledged</span>
+            {% else %}
+              <span style="background:#fef3c7;color:#92600a;border-radius:12px;font-size:11px;padding:2px 8px;">Pending</span>
+            {% endif %}
+          </div>
+          {% if obs.strengths %}<div class="text-muted mt-1">Strengths: {{ obs.strengths|truncatechars:100 }}</div>{% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="p-4 text-center text-muted" style="font-size:13px;">No observations on record.</div>
+    {% endif %}
+  </div>
+
+  <!-- Meetings -->
+  <div class="tab-pane {% if active_tab == 'meetings' %}active{% endif %}" id="tab-meetings">
+    <div class="px-3 py-2 border-bottom text-end" style="background:#f8fafc;">
+      <a href="{% url 'staff_instructor_meeting' instructor.pk %}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> Log Meeting
+      </a>
+    </div>
+    {% if meetings %}
+      {% for m in meetings %}
+        <div class="p-3 border-bottom" style="font-size:13px;">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <strong>{{ m.meeting_date }}</strong> — {{ m.get_meeting_type_display }}
+            </div>
+            {% if m.instructor_acknowledged %}
+              <span style="background:#d1fae5;color:#065f46;border-radius:12px;font-size:11px;padding:2px 8px;">Signed</span>
+            {% else %}
+              <span style="background:#fef3c7;color:#92600a;border-radius:12px;font-size:11px;padding:2px 8px;">Needs Signature</span>
+            {% endif %}
+          </div>
+          <div class="text-muted mt-1">{{ m.topics_discussed|truncatechars:120 }}</div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="p-4 text-center text-muted" style="font-size:13px;">No meetings on record.</div>
+    {% endif %}
+  </div>
+
+  <!-- Remediation Plans -->
+  <div class="tab-pane {% if active_tab == 'remediation' %}active{% endif %}" id="tab-remediation">
+    <div class="px-3 py-2 border-bottom text-end" style="background:#f8fafc;">
+      <a href="{% url 'staff_instructor_remediation' instructor.pk %}" class="btn btn-sm btn-warning">
+        <i class="bi bi-plus-circle me-1"></i> New Plan
+      </a>
+    </div>
+    {% if rem_plans %}
+      {% for plan in rem_plans %}
+        <div class="p-3 border-bottom" style="font-size:13px;">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <strong>Created: {{ plan.created_date }}</strong>
+              <span class="ms-2 badge {% if plan.status == 'active' %}bg-warning text-dark{% elif plan.status == 'completed' %}bg-success{% else %}bg-secondary{% endif %}">
+                {{ plan.get_status_display }}
+              </span>
+              <span class="text-muted ms-2" style="font-size:11px;">Target: {{ plan.target_date }}</span>
+            </div>
+            {% if plan.instructor_acknowledged %}
+              <span style="background:#d1fae5;color:#065f46;border-radius:12px;font-size:11px;padding:2px 8px;">Signed</span>
+            {% endif %}
+          </div>
+          <div class="mt-1">{{ plan.issue_identified|truncatechars:150 }}</div>
+          {% if plan.retain_until %}
+            <div class="text-muted mt-1" style="font-size:11px;">Retain until: {{ plan.retain_until }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="p-4 text-center text-muted" style="font-size:13px;">No remediation plans.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const TAB_LIST = ['profile','courses','hours','observations','meetings','remediation'];
+function showTab(id) {
+  TAB_LIST.forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('active', t === id);
+    const btn = document.getElementById('tab-btn-' + t);
+    if (btn) btn.classList.toggle('active', t === id);
+  });
+  history.replaceState(null, '', '?tab=' + id);
+}
+</script>
+{% endblock %}

@@ -97,11 +97,36 @@ def staff_dashboard(request):
         eval_type=CourseEvaluation.EvalType.END_COURSE, status=CourseEvaluation.Status.PENDING
     ).count()
 
+    # Semi-annual meeting compliance widget
+    from instructor.models import InstructorMeeting
+    today = timezone.now().date()
+    instructors = Student.objects.filter(role=Student.Role.INSTRUCTOR)
+    meeting_compliance = []
+    for inst in instructors:
+        last_meeting = InstructorMeeting.objects.filter(instructor=inst).order_by('-meeting_date').first()
+        if last_meeting:
+            days_since = (today - last_meeting.meeting_date).days
+            if days_since > 180:
+                status = 'overdue'
+            elif days_since > 150:
+                status = 'due_soon'
+            else:
+                status = 'ok'
+        else:
+            status = 'overdue'
+        if status in ('overdue', 'due_soon'):
+            meeting_compliance.append({
+                'instructor':   inst,
+                'last_meeting': last_meeting,
+                'status':       status,
+            })
+
     return render(request, 'staff/dashboard.html', {
         'rows': rows,
         'pass_rate_alerts': pass_rate_alerts,
         'ce_pending_mid': ce_pending_mid,
         'ce_pending_end': ce_pending_end,
+        'meeting_compliance': meeting_compliance,
     })
 
 
@@ -1398,3 +1423,197 @@ def course_eval_results_pdf(request, course_pk):
     resp = HttpResponse(buf, content_type='application/pdf')
     resp['Content-Disposition'] = f'attachment; filename="PEMSE-{safe}-eval-results.pdf"'
     return resp
+
+
+# ── Instructor Management ─────────────────────────────────────────────────────
+
+@staff_required
+def staff_instructor_list(request):
+    from datetime import timedelta
+    from instructor.models import InstructorMeeting
+    today = timezone.now().date()
+    instructors = Student.objects.filter(role=Student.Role.INSTRUCTOR).order_by('last_name', 'first_name')
+
+    rows = []
+    for inst in instructors:
+        assignments = inst.course_assignments.filter(is_active=True).select_related('course')
+        last_obs    = inst.observations.order_by('-observation_date').first()
+        last_meeting = InstructorMeeting.objects.filter(instructor=inst).order_by('-meeting_date').first()
+
+        # Semi-annual meeting status
+        meeting_status = 'overdue'
+        if last_meeting:
+            months_since = (today - last_meeting.meeting_date).days / 30
+            if months_since <= 5:
+                meeting_status = 'ok'
+            elif months_since <= 6:
+                meeting_status = 'due_soon'
+
+        # License status
+        license_status = 'ok'
+        if inst.instructor_license_expiry:
+            days_left = (inst.instructor_license_expiry - today).days
+            if days_left < 0:
+                license_status = 'expired'
+            elif days_left <= 90:
+                license_status = 'expiring'
+
+        from decimal import Decimal
+        from django.db.models import Sum
+        hours_year = inst.hour_logs.filter(
+            session_date__gte=today.replace(month=1, day=1)
+        ).aggregate(t=Sum('hours'))['t'] or Decimal('0')
+
+        rows.append({
+            'instructor':     inst,
+            'assignments':    assignments,
+            'last_obs':       last_obs,
+            'last_meeting':   last_meeting,
+            'meeting_status': meeting_status,
+            'license_status': license_status,
+            'hours_year':     hours_year,
+        })
+
+    return render(request, 'staff/instructor_list.html', {'rows': rows})
+
+
+@staff_required
+def staff_instructor_add(request):
+    from .forms import InstructorCreateForm
+    form = InstructorCreateForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        instructor = form.save()
+        messages.success(request, f'Instructor account created for {instructor.get_full_name()}.')
+        return redirect('staff_instructor_detail', pk=instructor.pk)
+    return render(request, 'staff/instructor_add.html', {'form': form})
+
+
+@staff_required
+def staff_instructor_detail(request, pk):
+    from datetime import timedelta
+    from django.db.models import Sum
+    from decimal import Decimal
+    from instructor.models import (
+        InstructorCourseAssignment, InstructionalHourLog,
+        InstructorObservation, InstructorMeeting, RemediationPlan,
+    )
+
+    instructor  = get_object_or_404(Student, pk=pk, role=Student.Role.INSTRUCTOR)
+    assignments = InstructorCourseAssignment.objects.filter(
+        instructor=instructor
+    ).select_related('course', 'assigned_by').order_by('-assigned_at')
+    hour_logs   = InstructionalHourLog.objects.filter(
+        instructor=instructor
+    ).select_related('course', 'verified_by').order_by('-session_date')
+    observations  = InstructorObservation.objects.filter(instructor=instructor).order_by('-observation_date')
+    meetings      = InstructorMeeting.objects.filter(instructor=instructor).order_by('-meeting_date')
+    rem_plans     = RemediationPlan.objects.filter(instructor=instructor).order_by('-created_date')
+
+    hours_total = hour_logs.aggregate(t=Sum('hours'))['t'] or Decimal('0')
+
+    active_tab = request.GET.get('tab', 'profile')
+    tab_list = [
+        ('profile',      'Profile'),
+        ('courses',      'Course Assignments'),
+        ('hours',        'Hour Logs'),
+        ('observations', 'Observations'),
+        ('meetings',     'Meetings'),
+        ('remediation',  'Remediation Plans'),
+    ]
+
+    return render(request, 'staff/instructor_detail.html', {
+        'instructor':   instructor,
+        'assignments':  assignments,
+        'hour_logs':    hour_logs,
+        'observations': observations,
+        'meetings':     meetings,
+        'rem_plans':    rem_plans,
+        'hours_total':  hours_total,
+        'active_tab':   active_tab,
+        'tab_list':     tab_list,
+    })
+
+
+@staff_required
+def staff_instructor_assign_course(request, pk):
+    from .forms import InstructorCourseAssignmentForm
+    instructor = get_object_or_404(Student, pk=pk, role=Student.Role.INSTRUCTOR)
+    form = InstructorCourseAssignmentForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        assignment             = form.save(commit=False)
+        assignment.instructor  = instructor
+        assignment.assigned_by = request.user
+        assignment.save()
+        messages.success(request, f'{instructor.get_full_name()} assigned to {assignment.course}.')
+        return redirect('staff_instructor_detail', pk=pk)
+    return render(request, 'staff/instructor_assign_course.html', {
+        'form': form, 'instructor': instructor,
+    })
+
+
+@staff_required
+def staff_instructor_verify_hours(request, pk):
+    from instructor.models import InstructionalHourLog
+    instructor = get_object_or_404(Student, pk=pk, role=Student.Role.INSTRUCTOR)
+    if request.method == 'POST':
+        ids = request.POST.getlist('hour_ids')
+        updated = InstructionalHourLog.objects.filter(
+            pk__in=ids, instructor=instructor, verified=False
+        ).update(verified=True, verified_by=request.user, verified_at=timezone.now())
+        messages.success(request, f'{updated} hour log(s) verified.')
+    return redirect('staff_instructor_detail', pk=pk)
+
+
+@staff_required
+def staff_instructor_observe(request, pk):
+    from .forms import InstructorObservationForm
+    instructor = get_object_or_404(Student, pk=pk, role=Student.Role.INSTRUCTOR)
+    form = InstructorObservationForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        obs             = form.save(commit=False)
+        obs.instructor  = instructor
+        obs.observed_by = request.user
+        obs.save()
+        messages.success(request, 'Observation recorded.')
+        return redirect('staff_instructor_detail', pk=f'{pk}?tab=observations')
+    return render(request, 'staff/instructor_observe.html', {
+        'form': form, 'instructor': instructor,
+    })
+
+
+@staff_required
+def staff_instructor_meeting(request, pk):
+    from .forms import InstructorMeetingForm
+    instructor = get_object_or_404(Student, pk=pk, role=Student.Role.INSTRUCTOR)
+    form = InstructorMeetingForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        meeting              = form.save(commit=False)
+        meeting.instructor   = instructor
+        meeting.conducted_by = request.user
+        meeting.save()
+        messages.success(request, 'Meeting record saved.')
+        return redirect('staff_instructor_detail', pk=f'{pk}?tab=meetings')
+    return render(request, 'staff/instructor_meeting.html', {
+        'form': form, 'instructor': instructor,
+    })
+
+
+@staff_required
+def staff_instructor_remediation(request, pk):
+    from .forms import RemediationPlanForm
+    from datetime import timedelta
+    instructor = get_object_or_404(Student, pk=pk, role=Student.Role.INSTRUCTOR)
+    form = RemediationPlanForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        plan            = form.save(commit=False)
+        plan.instructor = instructor
+        plan.created_by = request.user
+        # Default retain_until to 5 years from today per 172 NAC Chapter 13
+        if not plan.retain_until:
+            plan.retain_until = timezone.now().date() + timedelta(days=5*365)
+        plan.save()
+        messages.success(request, 'Remediation plan created.')
+        return redirect('staff_instructor_detail', pk=f'{pk}?tab=remediation')
+    return render(request, 'staff/instructor_remediation.html', {
+        'form': form, 'instructor': instructor,
+    })

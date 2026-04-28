@@ -1,0 +1,48 @@
+{% extends 'staff/base_staff.html' %}
+{% block title %}Log Meeting — PEMSE Staff Portal{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">Log Meeting — {{ instructor.get_full_name }}</h1>
+  <a href="{% url 'staff_instructor_detail' instructor.pk %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> Back
+  </a>
+</div>
+
+<div style="max-width:640px;">
+  <div class="card p-4">
+    <p class="text-muted mb-4" style="font-size:13px;">
+      Per 172 NAC 13-004(F)(iv) — semi-annual meetings with each instructor.
+    </p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-12 col-sm-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">Meeting Date</label>
+          {{ form.meeting_date }}
+        </div>
+        <div class="col-12 col-sm-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">Meeting Type</label>
+          {{ form.meeting_type }}
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold" style="font-size:13px;">Topics Discussed</label>
+          {{ form.topics_discussed }}
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold" style="font-size:13px;">Action Items <span class="text-muted fw-normal">(optional)</span></label>
+          {{ form.action_items }}
+        </div>
+        <div class="col-12 col-sm-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">Next Meeting Date <span class="text-muted fw-normal">(optional)</span></label>
+          {{ form.next_meeting_date }}
+        </div>
+      </div>
+      <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save Meeting Record</button>
+        <a href="{% url 'staff_instructor_detail' instructor.pk %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

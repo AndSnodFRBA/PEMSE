@@ -1,0 +1,94 @@
+{% extends 'staff/base_staff.html' %}
+{% block title %}Log Observation — PEMSE Staff Portal{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">Log Observation — {{ instructor.get_full_name }}</h1>
+  <a href="{% url 'staff_instructor_detail' instructor.pk %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> Back
+  </a>
+</div>
+
+<div style="max-width:700px;">
+  <div class="card p-4">
+    <p class="text-muted mb-4" style="font-size:13px;">
+      Per 172 NAC 13-004(F)(i) — periodic observation records.
+    </p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-12 col-sm-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">Observation Date</label>
+          {{ form.observation_date }}
+        </div>
+        <div class="col-12 col-sm-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">Course (optional)</label>
+          {{ form.course }}
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold" style="font-size:13px;">Session Observed</label>
+          {{ form.session_observed }}
+        </div>
+        <div class="col-12">
+          <h6 class="mt-2" style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">
+            Ratings (1 = Needs Development, 5 = Exceptional)
+          </h6>
+          <div class="row g-2">
+            {% for field_name in 'preparation,content_knowledge,delivery,student_engagement,time_management,professionalism,overall_rating'|split:',' %}
+              <div class="col-6 col-md-4">
+                <label class="form-label" style="font-size:12px;">{{ form|getitem:field_name|default:field_name }}</label>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="row g-2 mt-1">
+            <div class="col-6 col-md-4">
+              <label class="form-label" style="font-size:12px;">Preparation</label>
+              {{ form.preparation }}
+            </div>
+            <div class="col-6 col-md-4">
+              <label class="form-label" style="font-size:12px;">Content Knowledge</label>
+              {{ form.content_knowledge }}
+            </div>
+            <div class="col-6 col-md-4">
+              <label class="form-label" style="font-size:12px;">Delivery</label>
+              {{ form.delivery }}
+            </div>
+            <div class="col-6 col-md-4">
+              <label class="form-label" style="font-size:12px;">Student Engagement</label>
+              {{ form.student_engagement }}
+            </div>
+            <div class="col-6 col-md-4">
+              <label class="form-label" style="font-size:12px;">Time Management</label>
+              {{ form.time_management }}
+            </div>
+            <div class="col-6 col-md-4">
+              <label class="form-label" style="font-size:12px;">Professionalism</label>
+              {{ form.professionalism }}
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold" style="font-size:13px;">Strengths</label>
+          {{ form.strengths }}
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold" style="font-size:13px;">Growth Opportunities</label>
+          {{ form.opportunities }}
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold" style="font-size:13px;">Action Items</label>
+          {{ form.action_items }}
+        </div>
+        <div class="col-12 col-sm-4">
+          <label class="form-label fw-semibold" style="font-size:13px;">Overall Rating</label>
+          {{ form.overall_rating }}
+        </div>
+      </div>
+      <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save Observation</button>
+        <a href="{% url 'staff_instructor_detail' instructor.pk %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

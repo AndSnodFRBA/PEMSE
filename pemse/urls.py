@@ -19,6 +19,7 @@ urlpatterns = [
     path('handbook/', include('handbook.urls')),
     path('staff/',       include('staff.urls')),
     path('evaluations/', include('evaluations.urls')),
+    path('instructor/',  include('instructor.urls')),
 ]
 
 if settings.DEBUG:

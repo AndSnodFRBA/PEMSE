@@ -1,0 +1,61 @@
+{% extends 'instructor/base_instructor.html' %}
+{% block title %}Attendance — PEMSE Instructor Portal{% endblock %}
+
+{% block content %}
+<div class="inst-topbar">
+  <h1 class="inst-page-title">Attendance</h1>
+  <a href="{% url 'instructor_attendance_add' %}" class="btn btn-sm btn-primary">
+    <i class="bi bi-plus-circle me-1"></i> New Session
+  </a>
+</div>
+
+<div class="card">
+  {% if sessions %}
+    <div class="table-responsive">
+      <table class="table table-sm mb-0" style="font-size:13px;">
+        <thead style="background:#f8fafc;">
+          <tr>
+            <th class="px-3 py-2">Date</th>
+            <th class="py-2">Course</th>
+            <th class="py-2">Type</th>
+            <th class="py-2">Topic</th>
+            <th class="py-2 text-center">Students</th>
+            <th class="py-2 text-center">Locked</th>
+            <th class="py-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in sessions %}
+          <tr>
+            <td class="px-3 py-2">{{ s.session_date }}</td>
+            <td class="py-2">{{ s.course.tag }}</td>
+            <td class="py-2">{{ s.get_session_type_display }}</td>
+            <td class="py-2">{{ s.session_topic|default:"—" }}</td>
+            <td class="py-2 text-center">{{ s.student_count }}</td>
+            <td class="py-2 text-center">
+              {% if not s.is_editable %}
+                <i class="bi bi-lock-fill text-muted" title="Locked after 48 hours"></i>
+              {% else %}
+                <i class="bi bi-unlock text-success" title="Editable"></i>
+              {% endif %}
+            </td>
+            <td class="py-2 pe-3">
+              <a href="{% url 'instructor_attendance_detail' s.pk %}" class="text-primary" style="font-size:12px;">View</a>
+              {% if s.is_editable %}
+                &nbsp;·&nbsp;
+                <a href="{% url 'instructor_attendance_edit' s.pk %}" class="text-warning" style="font-size:12px;">Edit</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="p-4 text-center text-muted">
+      <i class="bi bi-check2-square" style="font-size:32px;color:#dde4ef;"></i>
+      <div class="mt-2">No attendance sessions yet. <a href="{% url 'instructor_attendance_add' %}">Create the first one.</a></div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

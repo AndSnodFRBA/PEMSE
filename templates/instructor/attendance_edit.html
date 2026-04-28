@@ -1,0 +1,106 @@
+{% extends 'instructor/base_instructor.html' %}
+{% block title %}Edit Attendance — PEMSE Instructor Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+  .student-row { border-bottom: 1px solid #f0f4f8; padding: 14px 0; }
+  .student-row:last-child { border-bottom: none; }
+  .status-btns .btn { font-size: 13px; padding: 6px 14px; border-radius: 20px; }
+  .status-btns input[type=radio] { display: none; }
+  .status-btns input[type=radio]:checked + label { font-weight: 700; }
+  .status-btns input[type=radio]:checked + label.btn-present { background: #d1fae5; color: #065f46; border-color: #059669; }
+  .status-btns input[type=radio]:checked + label.btn-absent  { background: #fee2e2; color: #991b1b; border-color: #dc2626; }
+  .status-btns input[type=radio]:checked + label.btn-late    { background: #fef3c7; color: #92600a; border-color: #d97706; }
+  .status-btns input[type=radio]:checked + label.btn-excused { background: #dbeafe; color: #1e3a8a; border-color: #2563eb; }
+  .status-btns label { border: 1px solid #dde4ef; background: #fff; color: #6b7280; cursor: pointer; }
+  .status-btns label:hover { border-color: #1a2e4a; color: #1a2e4a; }
+  .arrival-field { display: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="inst-topbar">
+  <h1 class="inst-page-title">Edit Attendance — {{ session.session_date }}</h1>
+  <a href="{% url 'instructor_attendance_detail' session.pk %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> Cancel
+  </a>
+</div>
+
+<!-- Running count bar -->
+<div class="card p-2 mb-3">
+  <div class="d-flex gap-3 justify-content-center" id="countBar" style="font-size:13px;">
+    <span><span class="text-success fw-semibold" id="cnt-present">0</span> Present</span>
+    <span><span class="text-danger fw-semibold" id="cnt-absent">0</span> Absent</span>
+    <span><span class="text-warning fw-semibold" id="cnt-late">0</span> Late</span>
+    <span><span class="text-info fw-semibold" id="cnt-excused">0</span> Excused</span>
+  </div>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  <div class="card p-3">
+    {% for att in attendances %}
+    <div class="student-row" data-att="{{ att.pk }}">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="fw-semibold" style="font-size:14px;min-width:160px;">
+          {{ att.student.get_full_name }}
+        </div>
+        <div class="status-btns d-flex gap-1 flex-wrap">
+          {% for val, lbl in att.Status.choices %}
+            <input type="radio" name="att_{{ att.pk }}_status"
+                   id="att_{{ att.pk }}_{{ val }}"
+                   value="{{ val }}"
+                   {% if att.status == val %}checked{% endif %}
+                   onchange="updateCounts(); toggleArrival({{ att.pk }}, this.value)">
+            <label for="att_{{ att.pk }}_{{ val }}" class="btn btn-{{ val }}">{{ lbl }}</label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="arrival-field mt-2" id="arrival-{{ att.pk }}"
+           {% if att.status == 'late' %}style="display:block;"{% endif %}>
+        <div class="row g-2 align-items-center">
+          <div class="col-auto">
+            <label style="font-size:12px;color:#6b7280;">Arrival time:</label>
+          </div>
+          <div class="col-auto">
+            <input type="time" name="att_{{ att.pk }}_arrival_time"
+                   class="form-control form-control-sm"
+                   value="{{ att.arrival_time|default:'' }}">
+          </div>
+        </div>
+      </div>
+      <div class="mt-2">
+        <input type="text" name="att_{{ att.pk }}_notes"
+               class="form-control form-control-sm"
+               placeholder="Note (optional)"
+               value="{{ att.notes }}">
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="mt-3 d-grid">
+    <button type="submit" class="btn btn-primary btn-lg">
+      <i class="bi bi-save me-1"></i> Save All Attendance
+    </button>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateCounts() {
+  const statuses = ['present','absent','late','excused'];
+  statuses.forEach(s => {
+    const count = document.querySelectorAll(`input[type=radio][value="${s}"]:checked`).length;
+    const el = document.getElementById(`cnt-${s}`);
+    if (el) el.textContent = count;
+  });
+}
+function toggleArrival(pk, val) {
+  const el = document.getElementById(`arrival-${pk}`);
+  if (el) el.style.display = (val === 'late') ? 'block' : 'none';
+}
+document.addEventListener('DOMContentLoaded', updateCounts);
+</script>
+{% endblock %}

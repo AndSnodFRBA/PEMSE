@@ -7,6 +7,10 @@ from students.models import (
     CourseReportRecord, EntranceRequirementRecord,
     PatientContactRecord, PaymentHistory, PsychomotorSkillRecord, Student,
 )
+from instructor.models import (
+    InstructorCourseAssignment, InstructorObservation,
+    InstructorMeeting, RemediationPlan,
+)
 
 
 class InvitationForm(forms.Form):
@@ -237,4 +241,134 @@ class CourseReportForm(forms.ModelForm):
             'report_submitted_date': forms.DateInput(attrs=_date),
             'submission_deadline':   forms.DateInput(attrs=_date),
             'notes':                 forms.Textarea(attrs={**_fc, 'rows': 2}),
+        }
+
+
+# ── Instructor Management Forms ───────────────────────────────────────────────
+
+class InstructorCreateForm(forms.ModelForm):
+    password1 = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(attrs={**_fc, 'placeholder': 'Min. 8 characters'}),
+    )
+    password2 = forms.CharField(
+        label='Confirm Password',
+        widget=forms.PasswordInput(attrs={**_fc, 'placeholder': 'Repeat password'}),
+    )
+
+    class Meta:
+        model  = Student
+        fields = [
+            'first_name', 'last_name', 'email', 'phone',
+            'instructor_license_number', 'instructor_license_level',
+            'instructor_license_expiry', 'instructor_employer',
+        ]
+        widgets = {
+            'first_name':                  forms.TextInput(attrs=_fc),
+            'last_name':                   forms.TextInput(attrs=_fc),
+            'email':                       forms.EmailInput(attrs=_fc),
+            'phone':                       forms.TextInput(attrs=_fc),
+            'instructor_license_number':   forms.TextInput(attrs=_fc),
+            'instructor_license_level':    forms.Select(attrs=_fs),
+            'instructor_license_expiry':   forms.DateInput(attrs=_date),
+            'instructor_employer':         forms.TextInput(attrs=_fc),
+        }
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].lower()
+        if Student.objects.filter(email=email).exists():
+            raise forms.ValidationError('An account with this email already exists.')
+        return email
+
+    def clean(self):
+        cleaned = super().clean()
+        p1 = cleaned.get('password1')
+        p2 = cleaned.get('password2')
+        if p1 and p2 and p1 != p2:
+            raise forms.ValidationError('Passwords do not match.')
+        return cleaned
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.username = self.cleaned_data['email'].lower()
+        user.email    = self.cleaned_data['email'].lower()
+        user.role     = Student.Role.INSTRUCTOR
+        user.set_password(self.cleaned_data['password1'])
+        if commit:
+            user.save()
+        return user
+
+
+class InstructorCourseAssignmentForm(forms.ModelForm):
+    class Meta:
+        model  = InstructorCourseAssignment
+        fields = ['course', 'role', 'is_active']
+        widgets = {
+            'course': forms.Select(attrs=_fs),
+            'role':   forms.Select(attrs=_fs),
+        }
+
+
+class InstructorObservationForm(forms.ModelForm):
+    class Meta:
+        model  = InstructorObservation
+        fields = [
+            'course', 'observation_date', 'session_observed',
+            'preparation', 'content_knowledge', 'delivery',
+            'student_engagement', 'time_management', 'professionalism',
+            'strengths', 'opportunities', 'action_items', 'overall_rating',
+        ]
+        widgets = {
+            'course':            forms.Select(attrs=_fs),
+            'observation_date':  forms.DateInput(attrs=_date),
+            'session_observed':  forms.TextInput(attrs={**_fc, 'placeholder': 'e.g. EMT Unit 3 — Airway'}),
+            'preparation':       forms.Select(attrs=_fs, choices=[('', '—')] + [(i, i) for i in range(1, 6)]),
+            'content_knowledge': forms.Select(attrs=_fs, choices=[('', '—')] + [(i, i) for i in range(1, 6)]),
+            'delivery':          forms.Select(attrs=_fs, choices=[('', '—')] + [(i, i) for i in range(1, 6)]),
+            'student_engagement': forms.Select(attrs=_fs, choices=[('', '—')] + [(i, i) for i in range(1, 6)]),
+            'time_management':   forms.Select(attrs=_fs, choices=[('', '—')] + [(i, i) for i in range(1, 6)]),
+            'professionalism':   forms.Select(attrs=_fs, choices=[('', '—')] + [(i, i) for i in range(1, 6)]),
+            'overall_rating':    forms.Select(attrs=_fs, choices=[('', '—')] + [(i, i) for i in range(1, 6)]),
+            'strengths':         forms.Textarea(attrs={**_fc, 'rows': 3}),
+            'opportunities':     forms.Textarea(attrs={**_fc, 'rows': 3}),
+            'action_items':      forms.Textarea(attrs={**_fc, 'rows': 3}),
+        }
+
+
+class InstructorMeetingForm(forms.ModelForm):
+    class Meta:
+        model  = InstructorMeeting
+        fields = [
+            'meeting_date', 'meeting_type', 'topics_discussed',
+            'action_items', 'next_meeting_date',
+        ]
+        widgets = {
+            'meeting_date':      forms.DateInput(attrs=_date),
+            'meeting_type':      forms.Select(attrs=_fs),
+            'topics_discussed':  forms.Textarea(attrs={**_fc, 'rows': 5}),
+            'action_items':      forms.Textarea(attrs={**_fc, 'rows': 3}),
+            'next_meeting_date': forms.DateInput(attrs=_date),
+        }
+
+
+class RemediationPlanForm(forms.ModelForm):
+    class Meta:
+        model  = RemediationPlan
+        fields = ['issue_identified', 'plan_details', 'target_date', 'retain_until']
+        widgets = {
+            'issue_identified': forms.Textarea(attrs={**_fc, 'rows': 4}),
+            'plan_details':     forms.Textarea(attrs={**_fc, 'rows': 5}),
+            'target_date':      forms.DateInput(attrs=_date),
+            'retain_until':     forms.DateInput(attrs=_date),
+        }
+
+
+class RemediationUpdateForm(forms.ModelForm):
+    class Meta:
+        model  = RemediationPlan
+        fields = ['status', 'completion_date', 'completion_notes']
+        widgets = {
+            'status':           forms.Select(attrs=_fs),
+            'completion_date':  forms.DateInput(attrs=_date),
+            'completion_notes': forms.Textarea(attrs={**_fc, 'rows': 3}),
         }

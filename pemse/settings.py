@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'handbook',
     'staff',
     'evaluations',
+    'instructor',
 ]
 
 MIDDLEWARE = [

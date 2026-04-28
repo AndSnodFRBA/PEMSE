@@ -1,0 +1,98 @@
+{% extends 'instructor/base_instructor.html' %}
+{% block title %}Hour Log — PEMSE Instructor Portal{% endblock %}
+
+{% block content %}
+<div class="inst-topbar">
+  <h1 class="inst-page-title">Instructional Hour Log</h1>
+  <div class="d-flex gap-2">
+    <a href="{% url 'instructor_hours_pdf' %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+    </a>
+    <a href="{% url 'instructor_hours_add' %}" class="btn btn-sm btn-primary">
+      <i class="bi bi-plus-circle me-1"></i> Log Session
+    </a>
+  </div>
+</div>
+
+<!-- Monthly summary -->
+<div class="card p-3 mb-4">
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <span class="fw-semibold" style="color:#1a2e4a;font-size:14px;">
+      {{ this_month|date:"F Y" }} Summary
+    </span>
+    <span class="text-muted" style="font-size:12px;">Total: <strong>{{ monthly_total }} hrs</strong></span>
+  </div>
+  {% if monthly_summary %}
+    <div class="d-flex flex-wrap gap-2">
+      {% for label, hrs in monthly_summary.items %}
+        <span class="badge" style="background:#dbeafe;color:#1e3a8a;font-size:11px;padding:4px 10px;border-radius:20px;">
+          {{ label }}: {{ hrs }}h
+        </span>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-muted" style="font-size:13px;">No hours logged this month.</div>
+  {% endif %}
+  <div class="mt-2 text-muted" style="font-size:12px;">All time: <strong>{{ overall_total }} hrs</strong></div>
+</div>
+
+<!-- Hour log table -->
+<div class="card">
+  {% if logs %}
+    <div class="table-responsive">
+      <table class="table table-sm mb-0" style="font-size:13px;">
+        <thead style="background:#f8fafc;">
+          <tr>
+            <th class="px-3 py-2">Date</th>
+            <th class="py-2">Course</th>
+            <th class="py-2">Type</th>
+            <th class="py-2">Topic</th>
+            <th class="py-2 text-end">Hrs</th>
+            <th class="py-2 text-center">Students</th>
+            <th class="py-2 text-center">Verified</th>
+            <th class="py-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td class="px-3 py-2">{{ log.session_date }}</td>
+            <td class="py-2">{{ log.course.tag }}</td>
+            <td class="py-2">{{ log.get_session_type_display }}</td>
+            <td class="py-2" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              {{ log.topic_covered }}
+            </td>
+            <td class="py-2 text-end fw-semibold">{{ log.hours }}</td>
+            <td class="py-2 text-center">{{ log.students_present }}</td>
+            <td class="py-2 text-center">
+              {% if log.verified %}
+                <span class="text-success"><i class="bi bi-check-circle-fill"></i></span>
+              {% else %}
+                <span class="text-muted" style="font-size:12px;">—</span>
+              {% endif %}
+            </td>
+            <td class="py-2 text-end pe-3">
+              {% if not log.verified %}
+                <a href="{% url 'instructor_hours_edit' log.pk %}"
+                   class="text-primary me-2" style="font-size:12px;">Edit</a>
+                <form method="post" action="{% url 'instructor_hours_delete' log.pk %}"
+                      style="display:inline;"
+                      onsubmit="return confirm('Delete this entry?')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-link p-0 text-danger" style="font-size:12px;">Delete</button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="p-4 text-center text-muted">
+      <i class="bi bi-clock" style="font-size:32px;color:#dde4ef;"></i>
+      <div class="mt-2">No hours logged yet. <a href="{% url 'instructor_hours_add' %}">Log your first session.</a></div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

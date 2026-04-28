@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}PEMSE Instructor Portal{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  {% load static %}
+  <style>
+    body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; margin: 0; }
+    .inst-sidebar {
+      position: fixed; top: 0; left: 0; width: 220px; height: 100vh;
+      background: #1a2e4a; display: flex; flex-direction: column; z-index: 100;
+    }
+    .inst-brand {
+      padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+    .inst-brand-name { color: #fff; font-weight: 600; font-size: 14px; line-height: 1.3; }
+    .inst-brand-sub  { color: rgba(255,255,255,.5); font-size: 11px; }
+    .inst-nav { padding: 12px 0; flex: 1; overflow-y: auto; }
+    .inst-nav a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 18px; color: rgba(255,255,255,.7); text-decoration: none;
+      font-size: 13px; font-weight: 500; transition: all .15s;
+    }
+    .inst-nav a:hover, .inst-nav a.active { background: rgba(255,255,255,.08); color: #fff; }
+    .inst-nav a i { font-size: 15px; width: 18px; text-align: center; }
+    .inst-nav-label {
+      padding: 10px 18px 4px; color: rgba(255,255,255,.35);
+      font-size: 10px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase;
+    }
+    .inst-user {
+      padding: 14px 18px; border-top: 1px solid rgba(255,255,255,.1);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .inst-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #2B5EA7; color: #fff; display: flex; align-items: center;
+      justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .inst-user-name  { color: #fff; font-size: 12px; font-weight: 600; line-height: 1.2; }
+    .inst-user-role  { color: rgba(255,255,255,.45); font-size: 10px; }
+    .inst-signout    { color: rgba(255,255,255,.5); text-decoration: none; margin-left: auto; font-size: 16px; }
+    .inst-signout:hover { color: #fff; }
+    .inst-main { margin-left: 220px; min-height: 100vh; padding: 28px 32px; }
+    .inst-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .inst-page-title { font-size: 20px; font-weight: 600; color: #1a2e4a; margin: 0; }
+    .card { border: 1px solid #dde4ef; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.04); }
+    .stat-card { background: #fff; border-radius: 10px; border: 1px solid #dde4ef;
+                 padding: 18px 20px; text-align: center; }
+    .stat-card .stat-val { font-size: 28px; font-weight: 700; color: #1a2e4a; }
+    .stat-card .stat-lbl { font-size: 12px; color: #6b7280; margin-top: 2px; }
+    .badge-present  { background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+    .badge-absent   { background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+    .badge-late     { background: #fef3c7; color: #92600a; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+    .badge-excused  { background: #dbeafe; color: #1e3a8a; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+    .badge-makeup   { background: #ede9fe; color: #4c1d95; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+    /* Mobile */
+    .inst-hamburger {
+      display: none; position: fixed; top: 12px; left: 12px; z-index: 200;
+      background: #1a2e4a; border: none; border-radius: 8px;
+      width: 42px; height: 42px; cursor: pointer;
+      flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+    .inst-hamburger span { display: block; width: 20px; height: 2px; background: #fff; border-radius: 1px; }
+    .inst-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 99;
+    }
+    .inst-overlay.open { display: block; }
+    @media (max-width: 900px) {
+      .inst-hamburger { display: flex; }
+      .inst-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+      }
+      .inst-sidebar.open { transform: translateX(0); }
+      .inst-main { margin-left: 0; padding: 16px; padding-top: 64px; }
+      .inst-topbar { flex-wrap: wrap; gap: 8px; }
+      .card { border-radius: 8px; }
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<button class="inst-hamburger" id="instHamburger" aria-label="Open navigation menu">
+  <span></span><span></span><span></span>
+</button>
+<div class="inst-overlay" id="instOverlay"></div>
+
+<aside class="inst-sidebar" id="instSidebar">
+  <div class="inst-brand">
+    <div class="inst-brand-name">Panhandle EMS Education</div>
+    <div class="inst-brand-sub">Instructor Portal</div>
+  </div>
+
+  <nav class="inst-nav">
+    <a href="{% url 'instructor_dashboard' %}"
+       class="{% if request.resolver_match.url_name == 'instructor_dashboard' %}active{% endif %}">
+      <i class="bi bi-house-fill"></i> Dashboard
+    </a>
+
+    <div class="inst-nav-label">Teaching</div>
+    <a href="{% url 'instructor_courses' %}"
+       class="{% if 'course' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-journal-text"></i> My Courses
+    </a>
+    <a href="{% url 'instructor_hours' %}"
+       class="{% if 'hours' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-clock-fill"></i> Log Hours
+    </a>
+    <a href="{% url 'instructor_attendance' %}"
+       class="{% if 'attendance' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-check2-square"></i> Attendance
+    </a>
+
+    <div class="inst-nav-label">Students</div>
+    <a href="{% url 'instructor_courses' %}"
+       class="{% if request.resolver_match.url_name == 'instructor_student_detail' %}active{% endif %}">
+      <i class="bi bi-people-fill"></i> My Students
+    </a>
+
+    <div class="inst-nav-label">Account</div>
+    <a href="{% url 'instructor_profile' %}"
+       class="{% if request.resolver_match.url_name == 'instructor_profile' %}active{% endif %}">
+      <i class="bi bi-person-fill"></i> My Profile
+    </a>
+    <a href="{% url 'instructor_observations' %}"
+       class="{% if 'observation' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-eye-fill"></i> Observations
+    </a>
+    <a href="{% url 'instructor_meetings' %}"
+       class="{% if 'meeting' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-calendar-check-fill"></i> Meetings &amp; Reviews
+    </a>
+  </nav>
+
+  <div class="inst-user">
+    <div class="inst-avatar">{{ request.user.initials }}</div>
+    <div>
+      <div class="inst-user-name">{{ request.user.get_full_name }}</div>
+      <div class="inst-user-role">{{ request.user.get_instructor_license_level_display|default:"Instructor" }}</div>
+    </div>
+    <a href="{% url 'instructor_logout' %}" class="inst-signout" title="Sign out">
+      <i class="bi bi-box-arrow-right"></i>
+    </a>
+  </div>
+</aside>
+
+<main class="inst-main">
+  {% if messages %}
+    {% for msg in messages %}
+      <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">
+        {{ msg }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function () {
+  const btn     = document.getElementById('instHamburger');
+  const overlay = document.getElementById('instOverlay');
+  const sidebar = document.getElementById('instSidebar');
+  if (!btn) return;
+  function open()  { sidebar.classList.add('open');    overlay.classList.add('open'); }
+  function close() { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
+  btn.addEventListener('click', function () { sidebar.classList.contains('open') ? close() : open(); });
+  overlay.addEventListener('click', close);
+  sidebar.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+})();
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

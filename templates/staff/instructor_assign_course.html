@@ -1,0 +1,38 @@
+{% extends 'staff/base_staff.html' %}
+{% block title %}Assign Course — PEMSE Staff Portal{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">Assign Course to {{ instructor.get_full_name }}</h1>
+  <a href="{% url 'staff_instructor_detail' instructor.pk %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> Back
+  </a>
+</div>
+
+<div style="max-width:520px;">
+  <div class="card p-4">
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label fw-semibold" style="font-size:13px;">Course</label>
+        {{ form.course }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold" style="font-size:13px;">Role</label>
+        {{ form.role }}
+      </div>
+      <div class="mb-4">
+        <label class="form-label fw-semibold" style="font-size:13px;">Active</label>
+        <div>{{ form.is_active }}</div>
+      </div>
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger py-2 mb-3" style="font-size:13px;">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Assign</button>
+        <a href="{% url 'staff_instructor_detail' instructor.pk %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

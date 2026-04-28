@@ -1,0 +1,130 @@
+{% extends 'instructor/base_instructor.html' %}
+{% block title %}My Profile — PEMSE Instructor Portal{% endblock %}
+
+{% block content %}
+<div class="inst-topbar">
+  <h1 class="inst-page-title">My Profile</h1>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  <div class="row g-3">
+    <div class="col-12 col-md-8">
+
+      <div class="card p-4 mb-3">
+        <h6 style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#6b7280;margin-bottom:16px;">
+          Personal Information
+        </h6>
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label fw-semibold" style="font-size:13px;">First Name</label>
+            {{ form.first_name }}
+          </div>
+          <div class="col-6">
+            <label class="form-label fw-semibold" style="font-size:13px;">Last Name</label>
+            {{ form.last_name }}
+          </div>
+          <div class="col-12 col-sm-6">
+            <label class="form-label fw-semibold" style="font-size:13px;">Email</label>
+            {{ form.email }}
+          </div>
+          <div class="col-12 col-sm-6">
+            <label class="form-label fw-semibold" style="font-size:13px;">Phone</label>
+            {{ form.phone }}
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold" style="font-size:13px;">Address</label>
+            {{ form.address }}
+          </div>
+          <div class="col-5">
+            <label class="form-label fw-semibold" style="font-size:13px;">City</label>
+            {{ form.city }}
+          </div>
+          <div class="col-3">
+            <label class="form-label fw-semibold" style="font-size:13px;">State</label>
+            {{ form.state }}
+          </div>
+          <div class="col-4">
+            <label class="form-label fw-semibold" style="font-size:13px;">ZIP</label>
+            {{ form.zip_code }}
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-4 mb-3">
+        <h6 style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#6b7280;margin-bottom:16px;">
+          Instructor License
+        </h6>
+        <div class="row g-3">
+          <div class="col-12 col-sm-6">
+            <label class="form-label fw-semibold" style="font-size:13px;">License Number</label>
+            {{ form.instructor_license_number }}
+          </div>
+          <div class="col-12 col-sm-6">
+            <label class="form-label fw-semibold" style="font-size:13px;">License Level</label>
+            {{ form.instructor_license_level }}
+          </div>
+          <div class="col-12 col-sm-6">
+            <label class="form-label fw-semibold" style="font-size:13px;">License Expiry</label>
+            {{ form.instructor_license_expiry }}
+          </div>
+          <div class="col-12 col-sm-6">
+            <label class="form-label fw-semibold" style="font-size:13px;">Years of Experience</label>
+            {{ form.instructor_years_experience }}
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold" style="font-size:13px;">
+              Additional Certifications
+              <span class="text-muted fw-normal">(comma-separated)</span>
+            </label>
+            {{ form.instructor_certifications }}
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-4 mb-3">
+        <h6 style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#6b7280;margin-bottom:16px;">
+          Employment
+        </h6>
+        <div class="row g-3">
+          <div class="col-12 col-sm-6">
+            <label class="form-label fw-semibold" style="font-size:13px;">Employer</label>
+            {{ form.instructor_employer }}
+          </div>
+          <div class="col-12 col-sm-6">
+            <label class="form-label fw-semibold" style="font-size:13px;">Employer Address</label>
+            {{ form.instructor_employer_address }}
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-4 mb-3">
+        <h6 style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#6b7280;margin-bottom:16px;">
+          Bio
+        </h6>
+        {{ form.instructor_bio }}
+      </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <div class="card p-3 mb-3">
+        <h6 style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#6b7280;">
+          License Status
+        </h6>
+        {% if request.user.instructor_license_expiry %}
+          {% load tz %}
+          {% now "Y-m-d" as today %}
+          <div style="font-size:13px;">
+            Expires: <strong>{{ request.user.instructor_license_expiry }}</strong>
+          </div>
+        {% else %}
+          <div class="text-muted" style="font-size:13px;">No expiry date set.</div>
+        {% endif %}
+      </div>
+      <div class="d-grid">
+        <button type="submit" class="btn btn-primary">Save Profile</button>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

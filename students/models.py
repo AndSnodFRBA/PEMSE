@@ -7,11 +7,13 @@ class Student(AbstractUser):
     """Custom user model — one row = one enrolled student or staff member."""
 
     class Role(models.TextChoices):
-        STUDENT = 'student', 'Student'
-        STAFF   = 'staff',   'Office Staff'
+        STUDENT    = 'student',    'Student'
+        INSTRUCTOR = 'instructor', 'Instructor'
+        STAFF      = 'staff',      'Office Staff'
+        ADMIN      = 'admin',      'Administrator'
 
     role = models.CharField(
-        max_length=10, choices=Role.choices, default=Role.STUDENT,
+        max_length=20, choices=Role.choices, default=Role.STUDENT,
     )
 
     # ── Contact ───────────────────────────────────────────────────────────────
@@ -50,6 +52,22 @@ class Student(AbstractUser):
     # ── Shirt (AEMT courses) ──────────────────────────────────────────────────
     shirt_size = models.CharField(max_length=10, blank=True)
 
+    # ── Instructor profile ────────────────────────────────────────────────────
+    instructor_license_number   = models.CharField(max_length=100, blank=True)
+    instructor_license_level    = models.CharField(max_length=50, blank=True, choices=[
+        ('EMR',       'EMR Instructor'),
+        ('EMT',       'EMT Instructor'),
+        ('AEMT',      'AEMT Instructor'),
+        ('Paramedic', 'Paramedic Instructor'),
+    ])
+    instructor_license_expiry   = models.DateField(null=True, blank=True)
+    instructor_certifications   = models.TextField(blank=True, help_text='Additional certifications, comma-separated')
+    instructor_bio              = models.TextField(blank=True)
+    instructor_employer         = models.CharField(max_length=200, blank=True)
+    instructor_employer_address = models.CharField(max_length=300, blank=True)
+    instructor_years_experience = models.PositiveIntegerField(null=True, blank=True)
+    instructor_primary          = models.BooleanField(default=False, help_text='Primary instructor for a course')
+
     class Meta:
         verbose_name = 'Student'
         ordering = ['-date_joined']
@@ -67,7 +85,11 @@ class Student(AbstractUser):
 
     @property
     def is_office_staff(self):
-        return self.role == self.Role.STAFF or self.is_superuser or self.is_staff
+        return self.role in (self.Role.STAFF, self.Role.ADMIN) or self.is_superuser or self.is_staff
+
+    @property
+    def is_instructor(self):
+        return self.role == self.Role.INSTRUCTOR
 
     @property
     def enrollment_complete(self):

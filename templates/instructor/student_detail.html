@@ -1,0 +1,218 @@
+{% extends 'instructor/base_instructor.html' %}
+{% block title %}{{ student.get_full_name }} — PEMSE Instructor Portal{% endblock %}
+
+{% block content %}
+<div class="inst-topbar">
+  <h1 class="inst-page-title">{{ student.get_full_name }}</h1>
+  <a href="{% url 'instructor_course_detail' course.pk %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> Back to Roster
+  </a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-12 col-md-4">
+    <div class="card p-3">
+      <h6 style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6b7280;">
+        Student Info
+      </h6>
+      <div style="font-size:13px;">
+        <div class="mb-1"><i class="bi bi-envelope me-2 text-muted"></i>{{ student.email }}</div>
+        {% if student.phone %}
+          <div class="mb-1"><i class="bi bi-telephone me-2 text-muted"></i>{{ student.phone }}</div>
+        {% endif %}
+        <div class="mb-1">
+          <i class="bi bi-journal-text me-2 text-muted"></i>
+          {{ course.name }}
+        </div>
+        <div>
+          <span class="badge" style="background:#dbeafe;color:#1e3a8a;border-radius:8px;">
+            {{ student.get_enroll_status_display }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="stat-card">
+      <div class="stat-val" style="{% if att_pct is not None and att_pct < 80 %}color:#dc2626;{% endif %}">
+        {% if att_pct is not None %}{{ att_pct }}%{% else %}—{% endif %}
+      </div>
+      <div class="stat-lbl">Attendance</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="stat-card">
+      <div class="stat-val">{{ cognitive_exams.count }}</div>
+      <div class="stat-lbl">Exams Recorded</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="stat-card">
+      <div class="stat-val">{{ psychomotor_skills.count }}</div>
+      <div class="stat-lbl">Skills Evals</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="stat-card">
+      <div class="stat-val">{{ pc_totals.total }}</div>
+      <div class="stat-lbl">Patient Contacts</div>
+    </div>
+  </div>
+</div>
+
+<!-- Attendance record -->
+<div class="card mb-3">
+  <div class="card-body py-2 px-3 border-bottom d-flex justify-content-between align-items-center"
+       style="background:#f8fafc;">
+    <span class="fw-semibold" style="font-size:13px;">Attendance Record</span>
+    <span style="font-size:12px;color:#6b7280;">
+      {{ present_count }} present / {{ absent_count }} absent / {{ late_count }} late of {{ total_sessions }} sessions
+    </span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0" style="font-size:12px;">
+      <thead style="background:#f8fafc;">
+        <tr>
+          <th class="px-3 py-2">Date</th>
+          <th class="py-2">Type</th>
+          <th class="py-2">Status</th>
+          <th class="py-2">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for att in att_records %}
+        <tr>
+          <td class="px-3 py-2">{{ att.session.session_date }}</td>
+          <td class="py-2">{{ att.session.get_session_type_display }}</td>
+          <td class="py-2">
+            <span class="badge-{{ att.status }}">{{ att.get_status_display }}</span>
+          </td>
+          <td class="py-2 text-muted">{{ att.notes|default:"" }}</td>
+        </tr>
+        {% empty %}
+          <tr><td colspan="4" class="px-3 py-3 text-muted text-center">No attendance records yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Cognitive exams (read-only) -->
+{% if cognitive_exams %}
+<div class="card mb-3">
+  <div class="card-body py-2 px-3 border-bottom" style="background:#f8fafc;">
+    <span class="fw-semibold" style="font-size:13px;">Cognitive Exams</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0" style="font-size:12px;">
+      <thead style="background:#f8fafc;">
+        <tr>
+          <th class="px-3 py-2">Exam</th>
+          <th class="py-2">Date</th>
+          <th class="py-2 text-center">Score</th>
+          <th class="py-2 text-center">Result</th>
+          <th class="py-2 text-center">Attempt</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for exam in cognitive_exams %}
+        <tr>
+          <td class="px-3 py-2">{{ exam.exam_name }}</td>
+          <td class="py-2">{{ exam.exam_date }}</td>
+          <td class="py-2 text-center">{{ exam.score }}%</td>
+          <td class="py-2 text-center">
+            <span style="color:{% if exam.passed %}#059669{% else %}#dc2626{% endif %};">
+              {% if exam.passed %}Pass{% else %}Fail{% endif %}
+            </span>
+          </td>
+          <td class="py-2 text-center">{{ exam.attempt_number }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Skills (read-only) -->
+{% if psychomotor_skills %}
+<div class="card mb-3">
+  <div class="card-body py-2 px-3 border-bottom" style="background:#f8fafc;">
+    <span class="fw-semibold" style="font-size:13px;">Psychomotor Skills</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0" style="font-size:12px;">
+      <thead style="background:#f8fafc;">
+        <tr>
+          <th class="px-3 py-2">Skill</th>
+          <th class="py-2">Date</th>
+          <th class="py-2 text-center">Result</th>
+          <th class="py-2 text-center">Attempt</th>
+          <th class="py-2">Evaluator</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for skill in psychomotor_skills %}
+        <tr>
+          <td class="px-3 py-2">{{ skill.skill_name }}</td>
+          <td class="py-2">{{ skill.evaluation_date }}</td>
+          <td class="py-2 text-center" style="color:{% if skill.passed %}#059669{% else %}#dc2626{% endif %};">
+            {% if skill.passed %}Pass{% else %}Fail{% endif %}
+          </td>
+          <td class="py-2 text-center">{{ skill.attempt_number }}</td>
+          <td class="py-2">{{ skill.evaluator_name }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Patient contacts (read-only) -->
+<div class="card mb-3">
+  <div class="card-body py-2 px-3 border-bottom d-flex justify-content-between align-items-center"
+       style="background:#f8fafc;">
+    <span class="fw-semibold" style="font-size:13px;">Patient Contacts</span>
+    <span class="text-muted" style="font-size:12px;">Total: {{ pc_totals.total }}</span>
+  </div>
+  {% if is_aemt %}
+    <div class="px-3 py-2 d-flex gap-4" style="font-size:12px;border-bottom:1px solid #f0f4f8;">
+      <span>IV Attempts: {{ pc_totals.iv_attempted }}</span>
+      <span>IV Successful: {{ pc_totals.iv_successful }}</span>
+      <span>Airway Attempts: {{ pc_totals.airway_attempted }}</span>
+      <span>Airway Successful: {{ pc_totals.airway_successful }}</span>
+    </div>
+  {% endif %}
+  {% if not patient_contacts %}
+    <div class="p-3 text-muted text-center" style="font-size:13px;">No patient contacts recorded.</div>
+  {% endif %}
+</div>
+
+<!-- Instructor notes -->
+<div class="card mb-3">
+  <div class="card-body py-2 px-3 border-bottom" style="background:#f8fafc;">
+    <span class="fw-semibold" style="font-size:13px;">
+      My Notes <span class="text-muted fw-normal" style="font-size:11px;">(visible to staff only)</span>
+    </span>
+  </div>
+  <div class="p-3">
+    <form method="post" class="mb-3">
+      {% csrf_token %}
+      <div class="d-flex gap-2">
+        <input type="text" name="note_text" class="form-control form-control-sm"
+               placeholder="Add a note about this student…">
+        <button type="submit" class="btn btn-sm btn-primary">Add</button>
+      </div>
+    </form>
+    {% for note in notes %}
+      <div class="p-2 mb-2 rounded" style="background:#f8fafc;font-size:13px;">
+        <div>{{ note.note }}</div>
+        <div class="text-muted mt-1" style="font-size:11px;">{{ note.created_at|date:"M d, Y g:i a" }}</div>
+      </div>
+    {% empty %}
+      <div class="text-muted" style="font-size:13px;">No notes yet.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

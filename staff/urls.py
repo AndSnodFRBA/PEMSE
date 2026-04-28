@@ -50,4 +50,13 @@ urlpatterns = [
     path('course-evaluations/results/<int:course_pk>/',             views.course_eval_results,      name='staff_course_eval_results'),
     path('course-evaluations/results/<int:course_pk>/csv/',         views.course_eval_results_csv,  name='staff_course_eval_results_csv'),
     path('course-evaluations/results/<int:course_pk>/pdf/',         views.course_eval_results_pdf,  name='staff_course_eval_results_pdf'),
+    # Instructor management
+    path('instructors/',                              views.staff_instructor_list,         name='staff_instructor_list'),
+    path('instructors/add/',                          views.staff_instructor_add,          name='staff_instructor_add'),
+    path('instructors/<int:pk>/',                     views.staff_instructor_detail,       name='staff_instructor_detail'),
+    path('instructors/<int:pk>/assign-course/',       views.staff_instructor_assign_course, name='staff_instructor_assign_course'),
+    path('instructors/<int:pk>/verify-hours/',        views.staff_instructor_verify_hours, name='staff_instructor_verify_hours'),
+    path('instructors/<int:pk>/observe/',             views.staff_instructor_observe,      name='staff_instructor_observe'),
+    path('instructors/<int:pk>/meeting/',             views.staff_instructor_meeting,      name='staff_instructor_meeting'),
+    path('instructors/<int:pk>/remediation/',         views.staff_instructor_remediation,  name='staff_instructor_remediation'),
 ]

@@ -17,6 +17,8 @@ def login_view(request):
     if request.user.is_authenticated:
         if request.user.is_office_staff:
             return redirect('staff_dashboard')
+        if request.user.is_instructor:
+            return redirect('instructor_dashboard')
         return redirect('dashboard')
     form = StudentLoginForm(request, data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
@@ -27,6 +29,8 @@ def login_view(request):
             return redirect(next_url)
         if user.is_office_staff:
             return redirect('staff_dashboard')
+        if user.is_instructor:
+            return redirect('instructor_dashboard')
         return redirect('dashboard')
     return render(request, 'students/login.html', {'form': form})
 
@@ -83,6 +87,8 @@ def logout_view(request):
 def dashboard_view(request):
     if request.user.is_office_staff:
         return redirect('staff_dashboard')
+    if request.user.is_instructor:
+        return redirect('instructor_dashboard')
 
     student = request.user
     enrollment = CourseEnrollment.objects.filter(student=student).first()

@@ -1,0 +1,77 @@
+{% extends 'staff/base_staff.html' %}
+{% block title %}Add Instructor — PEMSE Staff Portal{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">Add Instructor</h1>
+  <a href="{% url 'staff_instructor_list' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> Back
+  </a>
+</div>
+
+<div style="max-width:700px;">
+  <div class="card p-4">
+    <p class="text-muted mb-4" style="font-size:13px;">
+      Creates an instructor account. The instructor will use their email and the password you set to sign in at <code>/instructor/</code>.
+    </p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">First Name</label>
+          {{ form.first_name }}
+        </div>
+        <div class="col-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">Last Name</label>
+          {{ form.last_name }}
+        </div>
+        <div class="col-12 col-sm-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">Email</label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <div class="text-danger" style="font-size:12px;">{{ form.email.errors }}</div>
+          {% endif %}
+        </div>
+        <div class="col-12 col-sm-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">Phone</label>
+          {{ form.phone }}
+        </div>
+        <div class="col-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">Password</label>
+          {{ form.password1 }}
+        </div>
+        <div class="col-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">Confirm Password</label>
+          {{ form.password2 }}
+        </div>
+        <div class="col-12"><hr class="my-1"></div>
+        <div class="col-12 col-sm-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">License Number</label>
+          {{ form.instructor_license_number }}
+        </div>
+        <div class="col-12 col-sm-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">License Level</label>
+          {{ form.instructor_license_level }}
+        </div>
+        <div class="col-12 col-sm-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">License Expiry</label>
+          {{ form.instructor_license_expiry }}
+        </div>
+        <div class="col-12 col-sm-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">Employer</label>
+          {{ form.instructor_employer }}
+        </div>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger mt-3 py-2" style="font-size:13px;">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Create Instructor Account</button>
+        <a href="{% url 'staff_instructor_list' %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
