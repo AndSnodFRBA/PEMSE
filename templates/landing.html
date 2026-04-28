@@ -300,5 +300,26 @@
     <div style="margin-top:8px;">&copy; {% now "Y" %} Panhandle EMS Education. All rights reserved.</div>
   </div>
 
+<!-- Discrete admin access -->
+<div style="position:fixed;bottom:16px;right:16px;z-index:100;">
+  <a href="/admin/"
+     style="display:inline-flex;align-items:center;gap:6px;
+            background:rgba(255,255,255,0.08);
+            color:rgba(255,255,255,0.35);
+            border:1px solid rgba(255,255,255,0.12);
+            border-radius:8px;
+            padding:6px 12px;
+            font-size:11px;
+            font-family:'DM Sans',system-ui,sans-serif;
+            text-decoration:none;
+            letter-spacing:0.5px;
+            backdrop-filter:blur(4px);
+            transition:all 0.2s;"
+     onmouseover="this.style.color='rgba(255,255,255,0.7)';this.style.background='rgba(255,255,255,0.14)'"
+     onmouseout="this.style.color='rgba(255,255,255,0.35)';this.style.background='rgba(255,255,255,0.08)'">
+    <i class="bi bi-shield-lock"></i> Admin
+  </a>
+</div>
+
 </body>
 </html>
