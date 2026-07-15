@@ -106,15 +106,16 @@
         {% endif %}
         {% if course.includes_shirt %}
         <label style="font-size:11px;font-weight:600;color:#0a2540;display:block;margin-bottom:4px;">Polo shirt size *</label>
-        <select name="shirt_size" class="form-select form-select-sm" style="margin-bottom:8px;">
+        <select name="shirt_size" class="form-select form-select-sm" style="margin-bottom:4px;">
           <option value="">Select size…</option>
           <option value="S">Small</option>
           <option value="M">Medium</option>
           <option value="L">Large</option>
           <option value="XL">X-Large</option>
-          <option value="2XL">2X-Large</option>
-          <option value="3XL">3X-Large</option>
+          <option value="2XL">2X-Large (+$5)</option>
+          <option value="3XL">3X-Large (+$5)</option>
         </select>
+        <div style="font-size:10px;color:#6b7280;margin-bottom:8px;">2XL and 3XL add $5 to tuition.</div>
         {% endif %}
       </div>
       {% endif %}

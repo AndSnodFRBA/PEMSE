@@ -42,14 +42,14 @@
     <div style="margin-bottom:16px;">
       <label class="form-label">Polo shirt size (men's sizing)</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        {% for size in "S,M,L,XL,XXL,2XL+" %}
-        <div class="size-opt" data-size="{{ size }}" onclick="pickSize(this,'{{ size }}')"
+        {% for size in "S,M,L,XL,2XL,3XL" %}
+        <div class="size-opt" data-size="{{ size }}" data-surcharge="{% if size == '2XL' or size == '3XL' %}5{% else %}0{% endif %}" onclick="pickSize(this,'{{ size }}')"
           style="width:50px;height:38px;border:1.5px solid #dde1e8;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;cursor:pointer;">{{ size }}
         </div>
         {% endfor %}
       </div>
       <input type="hidden" name="shirt_size" id="shirt-size-val">
-      <div style="font-size:11px;color:#6b7280;margin-top:6px;">2XL and larger add $5 to tuition.</div>
+      <div style="font-size:11px;color:#6b7280;margin-top:6px;">2XL and 3XL add $5 to tuition.</div>
     </div>
     {% endif %}
 
@@ -63,16 +63,25 @@
 
 {% block extra_js %}
 <script>
+let currentBookPrice = {{ course.price|floatformat:0 }};
+let currentShirtSurcharge = 0;
+
+function updateTuitionDisplay() {
+  document.getElementById('tuition-val').textContent = '$' + (currentBookPrice + currentShirtSurcharge);
+}
 function pickSize(el, val) {
   document.querySelectorAll('.size-opt').forEach(e => { e.style.borderColor='#dde1e8'; e.style.background='white'; e.style.color='#1a1a2e'; });
   el.style.borderColor='#0a2540'; el.style.background='#0a2540'; el.style.color='white';
   document.getElementById('shirt-size-val').value = val;
+  currentShirtSurcharge = parseInt(el.dataset.surcharge, 10);
+  updateTuitionDisplay();
 }
 function pickBook(el, val) {
   document.querySelectorAll('.book-opt').forEach(e => { e.style.borderColor='#dde1e8'; e.style.background='white'; e.style.color='#1a1a2e'; });
   el.style.borderColor='#0a2540'; el.style.background='#0a2540'; el.style.color='white';
   document.getElementById('book-included-val').value = val;
-  document.getElementById('tuition-val').textContent = '$' + el.dataset.price;
+  currentBookPrice = parseInt(el.dataset.price, 10);
+  updateTuitionDisplay();
 }
 </script>
 {% endblock %}

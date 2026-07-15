@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from django.conf import settings
 
@@ -101,6 +103,9 @@ class Course(models.Model):
 class CourseEnrollment(models.Model):
     """Links a Student to the Course they selected."""
 
+    SHIRT_SURCHARGE_SIZES = {'2XL', '3XL'}
+    SHIRT_SURCHARGE_AMOUNT = Decimal('5')
+
     student = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -116,8 +121,13 @@ class CourseEnrollment(models.Model):
         return f'{self.student} → {self.course}'
 
     @property
+    def shirt_surcharge(self):
+        return self.SHIRT_SURCHARGE_AMOUNT if self.shirt_size in self.SHIRT_SURCHARGE_SIZES else Decimal('0')
+
+    @property
     def total_tuition(self):
-        return self.course.price_with_book if self.book_included else self.course.price
+        base = self.course.price_with_book if self.book_included else self.course.price
+        return base + self.shirt_surcharge
 
     @property
     def remaining_balance(self):
