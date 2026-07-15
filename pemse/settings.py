@@ -32,6 +32,10 @@ if os.environ.get('RAILWAY_PROJECT_ID'):
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
+    # Railway's healthcheck hits the container directly over plain HTTP
+    # (not through the public HTTPS edge), so /health/ must stay exempt
+    # or every deploy's healthcheck fails on the redirect and never goes live.
+    SECURE_REDIRECT_EXEMPT = [r'^health/$']
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000
