@@ -42,7 +42,7 @@
     <div style="margin-bottom:16px;">
       <label class="form-label">Polo shirt size (men's sizing)</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        {% for size in "S,M,L,XL,2XL,3XL" %}
+        {% for size in shirt_sizes %}
         <div class="size-opt" data-size="{{ size }}" data-surcharge="{% if size == '2XL' or size == '3XL' %}5{% else %}0{% endif %}" onclick="pickSize(this,'{{ size }}')"
           style="width:50px;height:38px;border:1.5px solid #dde1e8;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;cursor:pointer;">{{ size }}
         </div>

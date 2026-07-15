@@ -103,6 +103,7 @@ class Course(models.Model):
 class CourseEnrollment(models.Model):
     """Links a Student to the Course they selected."""
 
+    SHIRT_SIZES = ['S', 'M', 'L', 'XL', '2XL', '3XL']
     SHIRT_SURCHARGE_SIZES = {'2XL', '3XL'}
     SHIRT_SURCHARGE_AMOUNT = Decimal('5')
 

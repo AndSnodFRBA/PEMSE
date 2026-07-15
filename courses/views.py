@@ -29,4 +29,7 @@ def enroll_view(request, course_id):
         action = 'selected' if created else 'updated to'
         messages.success(request, f'Course {action}: {course.name}')
         return redirect('registration_form')
-    return render(request, 'courses/enroll_confirm.html', {'course': course})
+    return render(request, 'courses/enroll_confirm.html', {
+        'course': course,
+        'shirt_sizes': CourseEnrollment.SHIRT_SIZES,
+    })
