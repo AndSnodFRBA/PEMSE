@@ -39,9 +39,15 @@
           {% if form.licensure.errors %}<div class="text-danger" style="font-size:11px;">{{ form.licensure.errors }}</div>{% endif %}
         </div>
         <div class="col-sm-4">
-          <label class="form-label" style="font-size:12px;font-weight:600;">Price ($)</label>
+          <label class="form-label" style="font-size:12px;font-weight:600;">Price ($, without textbook)</label>
           {{ form.price }}
           {% if form.price.errors %}<div class="text-danger" style="font-size:11px;">{{ form.price.errors }}</div>{% endif %}
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Textbook add-on ($)</label>
+          {{ form.book_price }}
+          <div style="font-size:11px;color:#6b7280;margin-top:3px;">{{ form.book_price.help_text }}</div>
+          {% if form.book_price.errors %}<div class="text-danger" style="font-size:11px;">{{ form.book_price.errors }}</div>{% endif %}
         </div>
         <div class="col-12">
           <label class="form-label" style="font-size:12px;font-weight:600;">Course Name</label>

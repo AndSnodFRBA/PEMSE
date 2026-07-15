@@ -58,7 +58,10 @@
               {% include "staff/_kv_row.html" with label="Licensure" value=enrollment.course.get_licensure_display %}
             {% endif %}
             {% include "staff/_kv_row.html" with label="Tag" value=enrollment.course.tag %}
-            {% include "staff/_kv_row.html" with label="Price" value=enrollment.course.price %}
+            {% if enrollment.course.has_book_option %}
+              {% include "staff/_kv_row.html" with label="Textbook" value=enrollment.book_included|yesno:"Included,Not included" %}
+            {% endif %}
+            {% include "staff/_kv_row.html" with label="Total Tuition" value=enrollment.total_tuition %}
             {% include "staff/_kv_row.html" with label="Min. Down" value=enrollment.course.min_down %}
             {% include "staff/_kv_row.html" with label="Shirt Size" value=enrollment.shirt_size|default:"—" %}
             {% if enrollment.course.location_name or enrollment.course.location_city %}

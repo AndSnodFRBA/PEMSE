@@ -95,8 +95,16 @@
     {% for course in courses %}
     <form method="post" action="{% url 'enroll' course.id %}" class="course-card-form">
       {% csrf_token %}
-      {% if course.includes_shirt %}
-      <div class="course-shirt-select" id="shirt-select-{{ course.id }}" style="display:none;">
+      {% if course.includes_shirt or course.has_book_option %}
+      <div class="course-extra-select" id="extra-select-{{ course.id }}" style="display:none;">
+        {% if course.has_book_option %}
+        <label style="font-size:11px;font-weight:600;color:#0a2540;display:block;margin-bottom:4px;">Textbook option *</label>
+        <select name="book_included" class="form-select form-select-sm" style="margin-bottom:8px;">
+          <option value="0">Without textbook (${{ course.price|floatformat:0 }})</option>
+          <option value="1">With physical textbook (${{ course.price_with_book|floatformat:0 }})</option>
+        </select>
+        {% endif %}
+        {% if course.includes_shirt %}
         <label style="font-size:11px;font-weight:600;color:#0a2540;display:block;margin-bottom:4px;">Polo shirt size *</label>
         <select name="shirt_size" class="form-select form-select-sm" style="margin-bottom:8px;">
           <option value="">Select size…</option>
@@ -107,12 +115,13 @@
           <option value="2XL">2X-Large</option>
           <option value="3XL">3X-Large</option>
         </select>
+        {% endif %}
       </div>
       {% endif %}
-      <button type="{% if course.includes_shirt %}button{% else %}submit{% endif %}"
+      <button type="{% if course.includes_shirt or course.has_book_option %}button{% else %}submit{% endif %}"
               class="course-card {% if enrollment.course == course %}selected{% endif %}"
               style="width:100%;text-align:left;background:none;border:none;padding:0;cursor:pointer;"
-              {% if course.includes_shirt %}onclick="toggleShirt({{ course.id }}, this)"{% endif %}>
+              {% if course.includes_shirt or course.has_book_option %}onclick="toggleExtra({{ course.id }}, this)"{% endif %}>
         <div class="course-tag" style="background:{{ course.tag_bg }};color:{{ course.tag_color }};">
           {% if course.licensure %}{{ course.get_licensure_display }}{% else %}{{ course.tag }}{% endif %}
         </div>
@@ -131,6 +140,7 @@
 
         <div class="course-price">${{ course.price|floatformat:0 }}</div>
         <div class="course-down">Min. down: ${{ course.min_down|floatformat:0 }}</div>
+        {% if course.has_book_option %}<div style="font-size:11px;color:#6b7280;margin-top:2px;">+${{ course.book_price|floatformat:0 }} with physical textbook (${{ course.price_with_book|floatformat:0 }} total)</div>{% endif %}
         {% if course.includes_shirt %}<div style="font-size:11px;color:var(--green);margin-top:4px;">✓ Polo shirt included</div>{% endif %}
         {% with spots=course.spots_remaining %}
           {% if spots is not None %}
@@ -204,8 +214,11 @@
       <div class="pay-row"><span class="pay-label">2nd payment — 60 days from signature</span><span>Per schedule</span></div>
       <div class="pay-row"><span class="pay-label">3rd payment — 90 days from signature</span><span>Per schedule</span></div>
       <div class="pay-row"><span class="pay-label">4th payment — 120 days from signature</span><span>Per schedule</span></div>
-      <div class="pay-row"><span class="pay-label">Final balance (before FISDAP &amp; final testing)</span><span>${{ enrollment.course.remaining_balance|floatformat:0 }}</span></div>
-      <div class="pay-row"><span class="pay-label">Total tuition</span><span>${{ enrollment.course.price|floatformat:0 }}</span></div>
+      <div class="pay-row"><span class="pay-label">Final balance (before FISDAP &amp; final testing)</span><span>${{ enrollment.remaining_balance|floatformat:0 }}</span></div>
+      {% if enrollment.course.has_book_option %}
+      <div class="pay-row"><span class="pay-label">Textbook</span><span>{% if enrollment.book_included %}Included{% else %}Not included{% endif %}</span></div>
+      {% endif %}
+      <div class="pay-row"><span class="pay-label">Total tuition</span><span>${{ enrollment.total_tuition|floatformat:0 }}</span></div>
     </div>
     <div>
       <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer;">
@@ -238,7 +251,7 @@
     {% if enrollment %}
     <div style="margin-top:14px;background:#fff;border-radius:8px;padding:12px;border:1px solid var(--border);font-size:12px;color:#6b7280;">
       Course: <strong style="color:#0a2540;">Option {{ enrollment.course.option_number }} — {{ enrollment.course.name }}</strong> &nbsp;|&nbsp;
-      Total: <strong style="color:#0a2540;">${{ enrollment.course.price|floatformat:0 }}</strong> &nbsp;|&nbsp;
+      Total: <strong style="color:#0a2540;">${{ enrollment.total_tuition|floatformat:0 }}</strong> &nbsp;|&nbsp;
       Min. down: <strong style="color:#0a2540;">${{ enrollment.course.min_down|floatformat:0 }}</strong>
     </div>
     {% endif %}
@@ -304,18 +317,18 @@
 
 {% block extra_js %}
 <script>
-  // ── AEMT shirt size toggle ───────────────────────────────────────────────
-  function toggleShirt(courseId, btn) {
-    const shirtDiv = document.getElementById('shirt-select-' + courseId);
-    if (!shirtDiv) return;
-    if (shirtDiv.style.display === 'none') {
-      shirtDiv.style.display = 'block';
+  // ── Shirt size / textbook option toggle ──────────────────────────────────
+  function toggleExtra(courseId, btn) {
+    const extraDiv = document.getElementById('extra-select-' + courseId);
+    if (!extraDiv) return;
+    if (extraDiv.style.display === 'none') {
+      extraDiv.style.display = 'block';
       btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } else {
-      // Size chosen — submit the parent form
+      // Options chosen — submit the parent form
       const form = btn.closest('form');
-      const select = shirtDiv.querySelector('select');
-      if (!select.value) { alert('Please select a shirt size.'); return; }
+      const shirtSelect = extraDiv.querySelector('select[name="shirt_size"]');
+      if (shirtSelect && !shirtSelect.value) { alert('Please select a shirt size.'); return; }
       form.submit();
     }
   }

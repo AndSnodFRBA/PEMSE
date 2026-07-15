@@ -77,7 +77,7 @@ class CourseForm(forms.ModelForm):
         model  = Course
         fields = [
             'option_number', 'tag', 'name', 'description', 'licensure',
-            'price', 'min_down', 'includes_shirt', 'is_active',
+            'price', 'book_price', 'min_down', 'includes_shirt', 'is_active',
             'location_name', 'location_address', 'location_city', 'location_state',
             'start_date', 'end_date', 'registration_close_date',
             'max_students', 'schedule_notes',
@@ -89,6 +89,7 @@ class CourseForm(forms.ModelForm):
             'description':            forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'licensure':              forms.Select(attrs={'class': 'form-select'}),
             'price':                  forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'book_price':             forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'min_down':               forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'location_name':          forms.TextInput(attrs={'class': 'form-control'}),
             'location_address':       forms.TextInput(attrs={'class': 'form-control'}),

@@ -21,7 +21,11 @@ class Course(models.Model):
     tag_bg         = models.CharField(max_length=7, default='#d8f5ec')
     name           = models.CharField(max_length=200)
     description    = models.TextField(blank=True)
-    price          = models.DecimalField(max_digits=8, decimal_places=2)
+    price          = models.DecimalField(max_digits=8, decimal_places=2, help_text='Base tuition, without textbook')
+    book_price     = models.DecimalField(
+        max_digits=8, decimal_places=2, default=0,
+        help_text='Extra cost added to tuition if the student chooses the physical textbook. Leave at 0 to hide the textbook option.',
+    )
     min_down       = models.DecimalField(max_digits=8, decimal_places=2)
     includes_shirt = models.BooleanField(default=False)
     is_active      = models.BooleanField(default=True)
@@ -63,6 +67,14 @@ class Course(models.Model):
         return self.price - self.min_down
 
     @property
+    def has_book_option(self):
+        return self.book_price > 0
+
+    @property
+    def price_with_book(self):
+        return self.price + self.book_price
+
+    @property
     def registration_open(self):
         from django.utils import timezone
         today = timezone.now().date()
@@ -96,11 +108,20 @@ class CourseEnrollment(models.Model):
     )
     course      = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='enrollments')
     shirt_size  = models.CharField(max_length=10, blank=True)
+    book_included = models.BooleanField(default=False, help_text='Student chose to include the physical textbook')
     enrolled_at = models.DateTimeField(auto_now_add=True)
     updated_at  = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f'{self.student} → {self.course}'
+
+    @property
+    def total_tuition(self):
+        return self.course.price_with_book if self.book_included else self.course.price
+
+    @property
+    def remaining_balance(self):
+        return self.total_tuition - self.course.min_down
 
 
 class CourseAnnouncement(models.Model):

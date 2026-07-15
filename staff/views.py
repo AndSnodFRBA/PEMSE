@@ -144,7 +144,7 @@ def student_detail(request, pk):
     doc_forms = [(doc, DocumentReviewForm(initial={'status': doc.status, 'notes': doc.notes})) for doc in docs]
 
     total_paid  = sum(p.amount for p in history)
-    total_owed  = enrollment.course.price if enrollment else Decimal('0')
+    total_owed  = enrollment.total_tuition if enrollment else Decimal('0')
     balance_due = max(Decimal('0'), total_owed - total_paid)
 
     add_payment_form = PaymentHistoryForm()
@@ -470,7 +470,11 @@ def student_pdf(request, pk):
             ['Course',       f'Option {c.option_number} — {c.name}'],
             ['Licensure',    c.get_licensure_display() if c.licensure else '—'],
             ['Tag',          c.tag],
-            ['Price',        f'${c.price:,.0f}'],
+        ]
+        if c.has_book_option:
+            rows.append(['Textbook', 'Included' if enrollment.book_included else 'Not included'])
+        rows += [
+            ['Total Tuition', f'${enrollment.total_tuition:,.0f}'],
             ['Min. Down',    f'${c.min_down:,.0f}'],
             ['Shirt Size',   enrollment.shirt_size or '—'],
             ['Location',     ', '.join(location_parts) if location_parts else '—'],

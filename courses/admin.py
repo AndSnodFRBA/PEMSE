@@ -5,15 +5,15 @@ from .models import Course, CourseEnrollment, CourseAnnouncement
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display  = [
-        'option_number', 'tag', 'licensure', 'name', 'price', 'min_down',
+        'option_number', 'tag', 'licensure', 'name', 'price', 'book_price', 'min_down',
         'includes_shirt', 'start_date', 'registration_close_date', 'max_students', 'is_active',
     ]
-    list_editable = ['is_active', 'price', 'min_down']
+    list_editable = ['is_active', 'price', 'book_price', 'min_down']
     ordering      = ['option_number']
     fieldsets = [
         ('Basic Info', {
             'fields': ['option_number', 'tag', 'tag_color', 'tag_bg', 'name', 'description',
-                       'licensure', 'price', 'min_down', 'includes_shirt', 'is_active', 'order'],
+                       'licensure', 'price', 'book_price', 'min_down', 'includes_shirt', 'is_active', 'order'],
         }),
         ('Location', {
             'fields': ['location_name', 'location_address', 'location_city', 'location_state'],
@@ -29,7 +29,7 @@ class CourseAdmin(admin.ModelAdmin):
 
 @admin.register(CourseEnrollment)
 class CourseEnrollmentAdmin(admin.ModelAdmin):
-    list_display  = ['student', 'course', 'shirt_size', 'enrolled_at']
+    list_display  = ['student', 'course', 'shirt_size', 'book_included', 'enrolled_at']
     list_filter   = ['course']
     search_fields = ['student__email', 'student__first_name', 'student__last_name']
 

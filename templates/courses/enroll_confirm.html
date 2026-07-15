@@ -14,12 +14,30 @@
   <div style="font-size:13px;color:#6b7280;margin-bottom:16px;">{{ course.description }}</div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
-    <div class="rb"><div class="rb-label">Tuition</div><div class="rb-val" style="font-size:18px;font-weight:600;">${{ course.price|floatformat:0 }}</div></div>
+    <div class="rb"><div class="rb-label">Tuition</div><div class="rb-val" id="tuition-val" style="font-size:18px;font-weight:600;">${{ course.price|floatformat:0 }}</div></div>
     <div class="rb"><div class="rb-label">Minimum down payment</div><div class="rb-val" style="font-size:18px;font-weight:600;">${{ course.min_down|floatformat:0 }}</div></div>
   </div>
 
   <form method="post">
     {% csrf_token %}
+    {% if course.has_book_option %}
+    <div style="margin-bottom:16px;">
+      <label class="form-label">Textbook option</label>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div class="book-opt selected" data-book="0" data-price="{{ course.price|floatformat:0 }}" onclick="pickBook(this,'0')"
+          style="flex:1;min-width:160px;border:1.5px solid #0a2540;background:#0a2540;color:#fff;border-radius:8px;padding:10px 14px;cursor:pointer;">
+          <div style="font-size:12px;font-weight:600;">Without textbook</div>
+          <div style="font-size:14px;font-weight:700;">${{ course.price|floatformat:0 }}</div>
+        </div>
+        <div class="book-opt" data-book="1" data-price="{{ course.price_with_book|floatformat:0 }}" onclick="pickBook(this,'1')"
+          style="flex:1;min-width:160px;border:1.5px solid #dde1e8;background:#fff;color:#1a1a2e;border-radius:8px;padding:10px 14px;cursor:pointer;">
+          <div style="font-size:12px;font-weight:600;">With physical textbook</div>
+          <div style="font-size:14px;font-weight:700;">${{ course.price_with_book|floatformat:0 }}</div>
+        </div>
+      </div>
+      <input type="hidden" name="book_included" id="book-included-val" value="0">
+    </div>
+    {% endif %}
     {% if course.includes_shirt %}
     <div style="margin-bottom:16px;">
       <label class="form-label">Polo shirt size (men's sizing)</label>
@@ -49,6 +67,12 @@ function pickSize(el, val) {
   document.querySelectorAll('.size-opt').forEach(e => { e.style.borderColor='#dde1e8'; e.style.background='white'; e.style.color='#1a1a2e'; });
   el.style.borderColor='#0a2540'; el.style.background='#0a2540'; el.style.color='white';
   document.getElementById('shirt-size-val').value = val;
+}
+function pickBook(el, val) {
+  document.querySelectorAll('.book-opt').forEach(e => { e.style.borderColor='#dde1e8'; e.style.background='white'; e.style.color='#1a1a2e'; });
+  el.style.borderColor='#0a2540'; el.style.background='#0a2540'; el.style.color='white';
+  document.getElementById('book-included-val').value = val;
+  document.getElementById('tuition-val').textContent = '$' + el.dataset.price;
 }
 </script>
 {% endblock %}

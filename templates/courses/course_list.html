@@ -37,6 +37,9 @@
 
     <div class="course-price">${{ course.price|floatformat:0 }}</div>
     <div class="course-down">Min. down: ${{ course.min_down|floatformat:0 }}</div>
+    {% if course.has_book_option %}
+      <div style="font-size:11px;color:#6b7280;margin-top:2px;">+${{ course.book_price|floatformat:0 }} with physical textbook (${{ course.price_with_book|floatformat:0 }} total)</div>
+    {% endif %}
 
     {% if course.includes_shirt %}
       <div style="font-size:11px;color:var(--green);margin-top:4px;">✓ Polo shirt included</div>

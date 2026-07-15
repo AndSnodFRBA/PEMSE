@@ -139,7 +139,7 @@ def dashboard_view(request):
     payment_history = student.payment_history.all()
     from decimal import Decimal
     total_paid = sum(p.amount for p in payment_history)
-    total_owed = enrollment.course.price if enrollment else Decimal('0')
+    total_owed = enrollment.total_tuition if enrollment else Decimal('0')
     balance_due = max(Decimal('0'), total_owed - total_paid)
 
     # Clinical rotations summary (no scores shown to student)

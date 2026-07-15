@@ -21,9 +21,10 @@ def enroll_view(request, course_id):
     course = get_object_or_404(Course, pk=course_id, is_active=True)
     if request.method == 'POST':
         shirt_size = request.POST.get('shirt_size', '')
+        book_included = request.POST.get('book_included') == '1' if course.has_book_option else False
         enrollment, created = CourseEnrollment.objects.update_or_create(
             student=request.user,
-            defaults={'course': course, 'shirt_size': shirt_size}
+            defaults={'course': course, 'shirt_size': shirt_size, 'book_included': book_included}
         )
         action = 'selected' if created else 'updated to'
         messages.success(request, f'Course {action}: {course.name}')
