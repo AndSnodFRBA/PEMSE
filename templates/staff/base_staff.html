@@ -4,188 +4,140 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}PEMSE Staff Portal{% endblock %}</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   {% load static %}
+  <link rel="stylesheet" href="{% static 'css/portal.css' %}">
   <style>
-    body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; margin: 0; }
-    .staff-sidebar {
-      position: fixed; top: 0; left: 0; width: 220px; height: 100vh;
-      background: #1a2e4a; display: flex; flex-direction: column; z-index: 100;
-      overflow-y: auto;
-    }
-    .staff-brand {
-      padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,.1);
-    }
-    .staff-brand-name { color: #fff; font-weight: 600; font-size: 14px; line-height: 1.3; }
-    .staff-brand-sub  { color: rgba(255,255,255,.5); font-size: 11px; }
-    .staff-nav { padding: 12px 0; flex: 1; }
-    .staff-nav a {
-      display: flex; align-items: center; gap: 10px;
-      padding: 9px 18px; color: rgba(255,255,255,.7); text-decoration: none;
-      font-size: 13px; font-weight: 500; transition: all .15s;
-    }
-    .staff-nav a:hover, .staff-nav a.active { background: rgba(255,255,255,.08); color: #fff; }
-    .staff-nav a i { font-size: 15px; width: 18px; text-align: center; }
-    .staff-nav-label {
-      padding: 10px 18px 4px; color: rgba(255,255,255,.35);
-      font-size: 10px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase;
-    }
-    .staff-user {
-      padding: 14px 18px; border-top: 1px solid rgba(255,255,255,.1);
-      display: flex; align-items: center; gap: 10px;
-    }
-    .staff-avatar {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: #2B5EA7; color: #fff; display: flex; align-items: center;
-      justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0;
-    }
-    .staff-user-name  { color: #fff; font-size: 12px; font-weight: 600; line-height: 1.2; }
-    .staff-user-role  { color: rgba(255,255,255,.45); font-size: 10px; }
-    .staff-signout {
-      display: flex; align-items: center; gap: 6px; margin-left: auto;
-      color: rgba(255,255,255,.75); text-decoration: none; font-size: 12px; font-weight: 500;
-      padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,.2);
-    }
-    .staff-signout:hover { color: #fff; background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.35); }
-    .staff-signout i { font-size: 14px; }
-    .staff-main { margin-left: 220px; min-height: 100vh; padding: 28px 32px; }
+    /* ── Staff-specific page chrome (kept separate from shared sidebar/card system) ── */
     .staff-topbar {
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 24px;
     }
-    .staff-page-title { font-size: 20px; font-weight: 600; color: #1a2e4a; margin: 0; }
-    .card { border: 1px solid #dde4ef; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.04); }
+    .staff-page-title { font-size: 20px; font-weight: 600; color: var(--navy-deep); margin: 0; }
+    .card { border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.04); }
     .badge-pending   { background: #fff3cd; color: #92600a; }
     .badge-active    { background: #d1fae5; color: #065f46; }
     .badge-complete  { background: #dbeafe; color: #1e3a8a; }
     .badge-withdrawn { background: #fee2e2; color: #991b1b; }
     .badge-approved  { background: #d1fae5; color: #065f46; }
     .badge-rejected  { background: #fee2e2; color: #991b1b; }
-    .check-icon  { color: #059669; }
+    .check-icon  { color: var(--green); }
     .cross-icon  { color: #d1d5db; }
 
-    /* ── Mobile ── */
-    .staff-hamburger {
-      display: none; position: fixed; top: 12px; left: 12px; z-index: 200;
-      background: #1a2e4a; border: none; border-radius: 8px;
-      width: 42px; height: 42px; cursor: pointer;
-      flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-    }
-    .staff-hamburger span { display: block; width: 20px; height: 2px; background: #fff; border-radius: 1px; }
-    .staff-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.45); z-index: 99;
-    }
-    .staff-overlay.open { display: block; }
     @media (max-width: 900px) {
-      .staff-hamburger { display: flex; }
-      .staff-sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.25s ease;
-      }
-      .staff-sidebar.open { transform: translateX(0); }
-      .staff-main { margin-left: 0; padding: 16px; padding-top: 64px; }
       .staff-topbar { flex-wrap: wrap; gap: 8px; }
-      .card { border-radius: 8px; }
+      .card { border-radius: 10px; }
       table { font-size: 12px; }
       .table td, .table th { padding: 8px 6px; }
     }
   </style>
   {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="portal-body">
 
-<button class="staff-hamburger" id="staffHamburger" aria-label="Open navigation menu">
+<button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu">
   <span></span><span></span><span></span>
 </button>
-<div class="staff-overlay" id="staffOverlay"></div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-<aside class="staff-sidebar" id="staffSidebar">
-  <div class="staff-brand">
-    <div class="staff-brand-name">Panhandle EMS Education</div>
-    <div class="staff-brand-sub">Staff Portal</div>
+<aside class="sidebar" id="mainSidebar">
+  <div class="sidebar-brand">
+    <img src="{% static 'images/PEMSE.jpg' %}" alt="PEMSE Logo" class="brand-logo"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+    <div class="brand-logo-fallback" style="display:none;">
+      <i class="bi bi-shield-fill" style="color:white;font-size:18px;"></i>
+    </div>
+    <div>
+      <div class="brand-name">Panhandle EMS Education</div>
+      <div class="brand-sub">Staff Portal</div>
+    </div>
   </div>
 
-  <nav class="staff-nav">
-    <div class="staff-nav-label">Students</div>
+  <div class="sidebar-section-label">Students</div>
+  <nav class="sidebar-nav">
     <a href="{% url 'staff_dashboard' %}"
-       class="{% if request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}">
+       class="nav-item {% if request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}">
       <i class="bi bi-people-fill"></i> All Students
     </a>
     <a href="{% url 'staff_invite' %}"
-       class="{% if 'invite' in request.resolver_match.url_name %}active{% endif %}">
+       class="nav-item {% if 'invite' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-envelope-plus-fill"></i> Invite Student
     </a>
+  </nav>
 
-    <div class="staff-nav-label">Courses</div>
+  <div class="sidebar-section-label mt-3">Courses</div>
+  <nav class="sidebar-nav">
     <a href="{% url 'staff_course_list' %}"
-       class="{% if 'course' in request.resolver_match.url_name %}active{% endif %}">
+       class="nav-item {% if 'course' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-journal-text"></i> Courses
     </a>
+  </nav>
 
-    <div class="staff-nav-label">Evaluations</div>
+  <div class="sidebar-section-label mt-3">Evaluations</div>
+  <nav class="sidebar-nav">
     <a href="{% url 'staff_eval_list' %}"
-       class="{% if request.resolver_match.url_name == 'staff_eval_list' or request.resolver_match.url_name == 'staff_eval_detail' %}active{% endif %}"
-       style="position:relative;">
+       class="nav-item {% if request.resolver_match.url_name == 'staff_eval_list' or request.resolver_match.url_name == 'staff_eval_detail' %}active{% endif %}">
       <i class="bi bi-clipboard2-pulse-fill"></i> Preceptor Evals
-      {% if eval_pending_count %}
-        <span style="margin-left:auto;background:#f59e0b;color:#fff;border-radius:9px;padding:1px 7px;font-size:10px;font-weight:700;">
-          {{ eval_pending_count }}
-        </span>
-      {% endif %}
+      {% if eval_pending_count %}<span class="nav-badge warn">{{ eval_pending_count }}</span>{% endif %}
     </a>
     <a href="{% url 'staff_course_eval_overview' %}"
-       class="{% if 'course_eval' in request.resolver_match.url_name %}active{% endif %}"
-       style="position:relative;">
+       class="nav-item {% if 'course_eval' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-journal-check"></i> Course Evals
     </a>
+  </nav>
 
-    <div class="staff-nav-label">Compliance</div>
+  <div class="sidebar-section-label mt-3">Compliance</div>
+  <nav class="sidebar-nav">
     <a href="{% url 'staff_course_reports' %}"
-       class="{% if 'course_report' in request.resolver_match.url_name %}active{% endif %}">
+       class="nav-item {% if 'course_report' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-send-check-fill"></i> Dept. Reports
     </a>
     <a href="{% url 'staff_pass_rates' %}"
-       class="{% if request.resolver_match.url_name == 'staff_pass_rates' %}active{% endif %}">
+       class="nav-item {% if request.resolver_match.url_name == 'staff_pass_rates' %}active{% endif %}">
       <i class="bi bi-graph-up-arrow"></i> NREMT Pass Rates
     </a>
+  </nav>
 
-    <div class="staff-nav-label">Instructors</div>
+  <div class="sidebar-section-label mt-3">Instructors</div>
+  <nav class="sidebar-nav">
     <a href="{% url 'staff_instructor_list' %}"
-       class="{% if 'instructor' in request.resolver_match.url_name %}active{% endif %}">
+       class="nav-item {% if 'instructor' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-person-badge-fill"></i> Instructors
     </a>
+  </nav>
 
-    <div class="staff-nav-label">Content</div>
+  <div class="sidebar-section-label mt-3">Content</div>
+  <nav class="sidebar-nav">
     <a href="{% url 'staff_announcements' %}"
-       class="{% if 'announcement' in request.resolver_match.url_name %}active{% endif %}">
+       class="nav-item {% if 'announcement' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-megaphone-fill"></i> Announcements
     </a>
   </nav>
 
-  <div class="staff-user">
-    <div class="staff-avatar">{{ request.user.initials }}</div>
-    <div>
-      <div class="staff-user-name">{{ request.user.get_full_name }}</div>
-      <div class="staff-user-role">Office Staff</div>
+  <div class="sidebar-user">
+    <div class="user-avatar">{{ request.user.initials }}</div>
+    <div class="user-info">
+      <div class="user-name">{{ request.user.get_full_name }}</div>
+      <div class="user-email">Office Staff</div>
     </div>
-    <a href="{% url 'staff_logout' %}" class="staff-signout" title="Sign out">
-      <i class="bi bi-box-arrow-right"></i> Sign out
+    <a href="{% url 'staff_logout' %}" class="btn-signout" title="Sign out">
+      <i class="bi bi-box-arrow-right"></i>
     </a>
   </div>
 </aside>
 
-<main class="staff-main">
+<main class="portal-main">
   {% if messages %}
-    {% for msg in messages %}
-      <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">
-        {{ msg }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
-    {% endfor %}
+    <div class="messages-wrap">
+      {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show" role="alert">
+          {{ msg }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    </div>
   {% endif %}
 
   {% block content %}{% endblock %}
@@ -194,9 +146,9 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 (function () {
-  const btn     = document.getElementById('staffHamburger');
-  const overlay = document.getElementById('staffOverlay');
-  const sidebar = document.getElementById('staffSidebar');
+  const btn     = document.getElementById('hamburgerBtn');
+  const overlay = document.getElementById('sidebarOverlay');
+  const sidebar = document.getElementById('mainSidebar');
   if (!btn) return;
   function open()  { sidebar.classList.add('open');    overlay.classList.add('open'); }
   function close() { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
