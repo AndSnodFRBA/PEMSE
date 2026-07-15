@@ -9,6 +9,7 @@ from django.utils import timezone
 from courses.models import Course, CourseEnrollment
 from documents.models import StudentDocument
 from students.forms import StudentLoginForm
+from students.emails import send_document_review_notification, send_payment_receipt
 from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
     CourseReportRecord, EntranceRequirementRecord,
@@ -238,6 +239,7 @@ def add_payment(request, pk):
             record.student     = student
             record.recorded_by = request.user
             record.save()
+            send_payment_receipt(record)
             messages.success(request, f'Payment of ${record.amount} recorded.')
         else:
             messages.error(request, 'Please correct the errors below.')
@@ -265,6 +267,7 @@ def review_document(request, doc_id):
         doc.reviewed_by = request.user
         doc.reviewed_at = timezone.now()
         doc.save()
+        send_document_review_notification(doc)
         messages.success(request, f'{doc.doc_type.label} marked as {doc.status}.')
     return redirect('staff_student_detail', pk=doc.student_id)
 

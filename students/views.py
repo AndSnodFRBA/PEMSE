@@ -8,6 +8,7 @@ import uuid
 
 from .models import Student, PaymentRecord, Announcement, PaymentHistory
 from .forms import StudentRegistrationForm, StudentLoginForm, ProfileForm, PaymentForm
+from .emails import send_registration_confirmation
 from courses.models import CourseEnrollment
 from documents.models import StudentDocument, DocumentType
 from handbook.models import HandbookChapter
@@ -221,7 +222,7 @@ def registration_form_view(request):
                 student.reg_conf_number = conf
                 student.save(update_fields=['reg_submitted', 'reg_submitted_at', 'reg_conf_number'])
                 messages.success(request, f'Registration submitted! Confirmation: {conf}')
-                # TODO: send_registration_email(student)
+                send_registration_confirmation(student, enrollment, conf)
                 return redirect('dashboard')
 
         return redirect('registration_form')
