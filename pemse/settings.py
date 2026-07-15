@@ -27,6 +27,12 @@ CSRF_TRUSTED_ORIGINS = [
     if host not in ('localhost', '127.0.0.1')
 ] + ['http://localhost:8000', 'http://127.0.0.1:8000']
 
+# Railway's healthcheck hits the container over its private network using this
+# hostname, which isn't a public domain so it's never in ALLOWED_HOSTS above.
+RAILWAY_PRIVATE_DOMAIN = os.environ.get('RAILWAY_PRIVATE_DOMAIN')
+if RAILWAY_PRIVATE_DOMAIN:
+    ALLOWED_HOSTS.append(RAILWAY_PRIVATE_DOMAIN)
+
 if os.environ.get('RAILWAY_PROJECT_ID'):
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
