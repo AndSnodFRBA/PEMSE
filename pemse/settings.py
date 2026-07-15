@@ -12,29 +12,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ── SECURITY ──────────────────────────────────────────────────────────────────
 SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me-in-production')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = [
-    'pemse-production.up.railway.app',
-    'www.panhandleems.com',
-    'panhandleems.com',
-    'localhost',
-    '127.0.0.1',
-]
-
-RAILWAY_DOMAIN = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
-if os.environ.get('RAILWAY_PROJECT_ID'):
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://pemse-production.up.railway.app',
-    'https://*.up.railway.app',
-    'https://www.panhandleems.com',
-    'https://panhandleems.com',
-]
-if RAILWAY_DOMAIN and f'https://{RAILWAY_DOMAIN}' not in CSRF_TRUSTED_ORIGINS:
-    CSRF_TRUSTED_ORIGINS.append(f'https://{RAILWAY_DOMAIN}')
-extra = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
-if extra:
-    CSRF_TRUSTED_ORIGINS += [x.strip() for x in extra.split(',')]
+    f'https://{host}' for host in ALLOWED_HOSTS
+    if host not in ('localhost', '127.0.0.1')
+] + ['http://localhost:8000', 'http://127.0.0.1:8000']
+
+if os.environ.get('RAILWAY_PROJECT_ID'):
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # ── AUTHENTICATION ────────────────────────────────────────────────────────────
 AUTHENTICATION_BACKENDS = [
