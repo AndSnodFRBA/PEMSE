@@ -12,7 +12,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ── SECURITY ──────────────────────────────────────────────────────────────────
 SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me-in-production')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['*']  # Temporary: open while diagnosing Railway healthcheck — lock down after deploy confirms working
+ALLOWED_HOSTS = [
+    'pemse-production.up.railway.app',
+    'www.panhandleems.com',
+    'panhandleems.com',
+    'localhost',
+    '127.0.0.1',
+]
 
 RAILWAY_DOMAIN = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
 if os.environ.get('RAILWAY_PROJECT_ID'):
@@ -21,6 +27,8 @@ if os.environ.get('RAILWAY_PROJECT_ID'):
 CSRF_TRUSTED_ORIGINS = [
     'https://pemse-production.up.railway.app',
     'https://*.up.railway.app',
+    'https://www.panhandleems.com',
+    'https://panhandleems.com',
 ]
 if RAILWAY_DOMAIN and f'https://{RAILWAY_DOMAIN}' not in CSRF_TRUSTED_ORIGINS:
     CSRF_TRUSTED_ORIGINS.append(f'https://{RAILWAY_DOMAIN}')
