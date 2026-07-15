@@ -6,12 +6,20 @@ Railway (hosting) + AWS S3 (file storage) + PostgreSQL
 import os
 from pathlib import Path
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ── SECURITY ──────────────────────────────────────────────────────────────────
-SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me-in-production')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-local-dev-only-change-me'
+    else:
+        raise ImproperlyConfigured('SECRET_KEY environment variable must be set in production')
+
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 CSRF_TRUSTED_ORIGINS = [
@@ -21,6 +29,14 @@ CSRF_TRUSTED_ORIGINS = [
 
 if os.environ.get('RAILWAY_PROJECT_ID'):
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 # ── AUTHENTICATION ────────────────────────────────────────────────────────────
 AUTHENTICATION_BACKENDS = [
@@ -38,6 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Third-party
     'storages',
+    'anymail',
     'crispy_forms',
     'crispy_bootstrap5',
     'django_extensions',
@@ -131,10 +148,14 @@ else:
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 
-# ── EMAIL ─────────────────────────────────────────────────────────────────────
-EMAIL_BACKEND      = 'django.core.mail.backends.console.EmailBackend'
+# ── EMAIL — Resend via django-anymail ────────────────────────────────────────
+EMAIL_BACKEND      = 'anymail.backends.resend.EmailBackend'
 DEFAULT_FROM_EMAIL = 'PEMSE Student Portal <emseducation19@gmail.com>'
 ADMIN_EMAIL        = 'emseducation19@gmail.com'
+
+ANYMAIL = {
+    'RESEND_API_KEY': os.environ.get('RESEND_API_KEY', ''),
+}
 
 # ── MISC ──────────────────────────────────────────────────────────────────────
 LANGUAGE_CODE = 'en-us'
