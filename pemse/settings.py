@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Third-party
     'storages',
-    'anymail',
     'crispy_forms',
     'crispy_bootstrap5',
     'django_extensions',
@@ -148,14 +147,15 @@ else:
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 
-# ── EMAIL — Resend via django-anymail ────────────────────────────────────────
-EMAIL_BACKEND      = 'anymail.backends.resend.EmailBackend'
+# ── EMAIL — Gmail SMTP ────────────────────────────────────────────────────────
+EMAIL_BACKEND      = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST         = 'smtp.gmail.com'
+EMAIL_PORT         = 587
+EMAIL_USE_TLS      = True
+EMAIL_HOST_USER    = os.environ.get('EMAIL_HOST_USER', 'emseducation19@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = 'PEMSE Student Portal <emseducation19@gmail.com>'
 ADMIN_EMAIL        = 'emseducation19@gmail.com'
-
-ANYMAIL = {
-    'RESEND_API_KEY': os.environ.get('RESEND_API_KEY', ''),
-}
 
 # ── MISC ──────────────────────────────────────────────────────────────────────
 LANGUAGE_CODE = 'en-us'
