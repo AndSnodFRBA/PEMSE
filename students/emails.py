@@ -51,6 +51,21 @@ def send_registration_confirmation(student, enrollment, conf_number):
     _send('Registration confirmed', '\n'.join(lines), student.email)
 
 
+def send_invitation_email(invitation, invite_link):
+    lines = [
+        "You've been invited to register for a course with Panhandle EMS Education.",
+        '',
+        f'Create your account here: {invite_link}',
+        '',
+        f'This link expires {invitation.expires_at.strftime("%B %d, %Y")} and can only be used once.',
+        '',
+        'If you weren\'t expecting this invitation, you can ignore this email.',
+        '',
+        '— Panhandle EMS Education',
+    ]
+    _send("You're invited to register", '\n'.join(lines), invitation.email)
+
+
 def send_document_review_notification(doc):
     student = doc.student
     if doc.status == doc.Status.APPROVED:

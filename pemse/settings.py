@@ -6,9 +6,14 @@ Railway (hosting) + AWS S3 (file storage) + PostgreSQL
 import os
 from pathlib import Path
 import dj_database_url
+from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Railway injects real environment variables directly, so this is a no-op in
+# production; locally it's what makes .env actually reach os.environ.
+load_dotenv(BASE_DIR / '.env')
 
 # ── SECURITY ──────────────────────────────────────────────────────────────────
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'

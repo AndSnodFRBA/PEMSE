@@ -9,7 +9,7 @@ from django.utils import timezone
 from courses.models import Course, CourseEnrollment
 from documents.models import StudentDocument
 from students.forms import StudentLoginForm
-from students.emails import send_document_review_notification, send_payment_receipt
+from students.emails import send_document_review_notification, send_invitation_email, send_payment_receipt
 from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
     CourseReportRecord, EntranceRequirementRecord,
@@ -349,6 +349,8 @@ def invite_student(request):
         email       = form.cleaned_data['email']
         inv         = StudentInvitation.objects.create(email=email, created_by=request.user)
         invite_link = request.build_absolute_uri(f'/register/invite/{inv.token}/')
+        send_invitation_email(inv, invite_link)
+        messages.success(request, f'Invite sent to {email}.')
         form        = InvitationForm()
         invitations = StudentInvitation.objects.select_related('created_by').order_by('-created_at')[:20]
 

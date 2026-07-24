@@ -175,7 +175,7 @@ AWS_SECRET_ACCESS_KEY = ...
 AWS_STORAGE_BUCKET_NAME = pemse-documents
 AWS_S3_REGION_NAME  = us-east-1
 EMAIL_BACKEND       = django.core.mail.backends.smtp.EmailBackend
-EMAIL_HOST_USER     = ems.edu911@gmail.com
+EMAIL_HOST_USER     = emseducation19@gmail.com
 EMAIL_HOST_PASSWORD = <gmail-app-password>
 ```
 

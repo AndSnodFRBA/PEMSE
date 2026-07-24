@@ -14,7 +14,7 @@
       </div>
       <div class="card-body p-4">
         <p style="font-size:13px;color:#5a7a9a;margin-bottom:20px;">
-          Enter the student's email. A unique signup link will be generated — copy it and send it to the student however you like.
+          Enter the student's email. A unique signup link will be emailed to them directly — you can also copy it below to send another way.
         </p>
         <form method="post">
           {% csrf_token %}
@@ -33,7 +33,7 @@
         {% if invite_link %}
         <div class="mt-4 p-3" style="background:#f0fdf4;border:2px solid #86efac;border-radius:8px;">
           <div style="font-size:12px;font-weight:700;color:#15803d;margin-bottom:8px;">
-            <i class="bi bi-check-circle-fill me-1"></i> Invite link created — copy and send to student
+            <i class="bi bi-check-circle-fill me-1"></i> Invite emailed — link below as a backup
           </div>
           <div id="invite-link-box" style="word-break:break-all;font-size:12px;font-family:monospace;color:#166534;background:#fff;border:1px solid #86efac;border-radius:6px;padding:10px 12px;line-height:1.6;">{{ invite_link }}</div>
           <button onclick="navigator.clipboard.writeText(document.getElementById('invite-link-box').innerText);this.innerHTML='<i class=\'bi bi-check-lg me-1\'></i> Copied!';"
