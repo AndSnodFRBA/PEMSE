@@ -337,6 +337,23 @@ class InstructorCourseAssignmentForm(forms.ModelForm):
             'role':   forms.Select(attrs=_fs),
         }
 
+    def __init__(self, *args, instructor=None, **kwargs):
+        self.instructor = instructor
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned = super().clean()
+        course  = cleaned.get('course')
+        role    = cleaned.get('role')
+        if self.instructor and course and role:
+            if InstructorCourseAssignment.objects.filter(
+                instructor=self.instructor, course=course, role=role
+            ).exists():
+                raise forms.ValidationError(
+                    'This instructor is already assigned to that course in this role.'
+                )
+        return cleaned
+
 
 class InstructorObservationForm(forms.ModelForm):
     class Meta:

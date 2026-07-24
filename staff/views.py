@@ -1551,7 +1551,7 @@ def staff_instructor_detail(request, pk):
 def staff_instructor_assign_course(request, pk):
     from .forms import InstructorCourseAssignmentForm
     instructor = get_object_or_404(Student, pk=pk, role=Student.Role.INSTRUCTOR)
-    form = InstructorCourseAssignmentForm(request.POST or None)
+    form = InstructorCourseAssignmentForm(request.POST or None, instructor=instructor)
     if request.method == 'POST' and form.is_valid():
         assignment             = form.save(commit=False)
         assignment.instructor  = instructor
