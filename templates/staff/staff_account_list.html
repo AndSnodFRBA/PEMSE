@@ -1,0 +1,48 @@
+{% extends 'staff/base_staff.html' %}
+{% block title %}Staff Accounts — PEMSE Staff Portal{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">Staff Accounts</h1>
+  <a href="{% url 'staff_account_invite' %}" class="btn btn-sm btn-primary">
+    <i class="bi bi-envelope-plus-fill me-1"></i> Invite Staff
+  </a>
+</div>
+
+<div class="card">
+  {% if accounts %}
+    <div class="table-responsive">
+      <table class="table table-sm mb-0" style="font-size:13px;">
+        <thead style="background:#f8fafc;">
+          <tr>
+            <th class="px-3 py-2">Name</th>
+            <th class="py-2">Email</th>
+            <th class="py-2">Phone</th>
+            <th class="py-2">Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for account in accounts %}
+          <tr>
+            <td class="px-3 py-2">
+              <div class="fw-semibold">
+                {{ account.get_full_name }}
+                {% if account == request.user %}<span class="text-muted" style="font-size:11px;">(you)</span>{% endif %}
+              </div>
+            </td>
+            <td class="py-2">{{ account.email }}</td>
+            <td class="py-2">{{ account.phone|default:"—" }}</td>
+            <td class="py-2">{{ account.get_role_display }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="p-5 text-center text-muted">
+      <i class="bi bi-shield-fill" style="font-size:40px;color:#dde4ef;"></i>
+      <div class="mt-3">No staff accounts yet. <a href="{% url 'staff_account_invite' %}">Invite the first one.</a></div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -41,3 +41,40 @@ class StudentInvitation(models.Model):
     def __str__(self):
         status = 'used' if self.used else ('expired' if self.is_expired else 'pending')
         return f'Invite → {self.email} ({status})'
+
+
+class StaffInvitation(models.Model):
+    """A one-time email invitation that lets a new office staff member set up their own account."""
+
+    email      = models.EmailField()
+    token      = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='staff_invitations_sent',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used       = models.BooleanField(default=False)
+    used_at    = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(days=7)
+        super().save(*args, **kwargs)
+
+    @property
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    @property
+    def is_valid(self):
+        return not self.used and not self.is_expired
+
+    def __str__(self):
+        status = 'used' if self.used else ('expired' if self.is_expired else 'pending')
+        return f'Staff invite → {self.email} ({status})'

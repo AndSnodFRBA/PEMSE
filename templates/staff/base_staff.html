@@ -62,7 +62,7 @@
       <i class="bi bi-people-fill"></i> All Students
     </a>
     <a href="{% url 'staff_invite' %}"
-       class="nav-item {% if 'invite' in request.resolver_match.url_name %}active{% endif %}">
+       class="nav-item {% if request.resolver_match.url_name == 'staff_invite' %}active{% endif %}">
       <i class="bi bi-envelope-plus-fill"></i> Invite Student
     </a>
   </nav>
@@ -105,6 +105,14 @@
     <a href="{% url 'staff_instructor_list' %}"
        class="nav-item {% if 'instructor' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-person-badge-fill"></i> Instructors
+    </a>
+  </nav>
+
+  <div class="sidebar-section-label mt-3">Staff</div>
+  <nav class="sidebar-nav">
+    <a href="{% url 'staff_account_list' %}"
+       class="nav-item {% if 'staff_account' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-shield-fill"></i> Staff Accounts
     </a>
   </nav>
 

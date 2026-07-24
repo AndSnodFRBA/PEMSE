@@ -1,0 +1,106 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}Invite Staff — PEMSE Staff Portal{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">Invite Staff</h1>
+  <a href="{% url 'staff_account_list' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> Back
+  </a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="card mb-3">
+      <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
+        Send Invite
+      </div>
+      <div class="card-body p-4">
+        <p style="font-size:13px;color:#5a7a9a;margin-bottom:20px;">
+          Enter the new staff member's email. They'll get a link to set up their own name, phone, and password.
+        </p>
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" style="font-size:12px;font-weight:600;">Staff Email Address</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+              <div class="text-danger" style="font-size:12px;margin-top:4px;">{{ form.email.errors.0 }}</div>
+            {% endif %}
+          </div>
+          <button type="submit" class="btn btn-sm" style="background:#2B5EA7;color:#fff;border-radius:8px;padding:9px 20px;font-weight:600;">
+            <i class="bi bi-envelope-plus-fill me-1"></i> Send Invite
+          </button>
+        </form>
+
+        {% if invite_link %}
+        <div class="mt-4 p-3" style="background:#f0fdf4;border:2px solid #86efac;border-radius:8px;">
+          <div style="font-size:12px;font-weight:700;color:#15803d;margin-bottom:8px;">
+            <i class="bi bi-check-circle-fill me-1"></i> Invite emailed — link below as a backup
+          </div>
+          <div id="invite-link-box" style="word-break:break-all;font-size:12px;font-family:monospace;color:#166534;background:#fff;border:1px solid #86efac;border-radius:6px;padding:10px 12px;line-height:1.6;">{{ invite_link }}</div>
+          <button onclick="navigator.clipboard.writeText(document.getElementById('invite-link-box').innerText);this.innerHTML='<i class=\'bi bi-check-lg me-1\'></i> Copied!';"
+                  class="btn btn-sm mt-2" style="font-size:12px;background:#15803d;color:#fff;border-radius:6px;border:none;padding:6px 14px;">
+            <i class="bi bi-clipboard me-1"></i> Copy link
+          </button>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
+        Recent Invitations
+      </div>
+      <div class="card-body p-0">
+        {% if invitations %}
+        <table class="table table-sm mb-0" style="font-size:12px;">
+          <thead style="background:#f8fafc;">
+            <tr>
+              <th class="ps-3 py-2">Email</th>
+              <th class="py-2">Created</th>
+              <th class="py-2">Status</th>
+              <th class="py-2">Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for inv in invitations %}
+            <tr>
+              <td class="ps-3 py-2" style="font-weight:500;">{{ inv.email }}</td>
+              <td class="py-2" style="color:#6b7280;">{{ inv.created_at|date:"M j, Y" }}</td>
+              <td class="py-2">
+                {% if inv.used %}
+                  <span class="badge" style="background:#d1fae5;color:#065f46;font-size:10px;">Used</span>
+                {% elif inv.is_expired %}
+                  <span class="badge" style="background:#fee2e2;color:#991b1b;font-size:10px;">Expired</span>
+                {% else %}
+                  <span class="badge" style="background:#fef9c3;color:#92600a;font-size:10px;">Pending</span>
+                {% endif %}
+              </td>
+              <td class="py-2 pe-3">
+                {% if not inv.used and not inv.is_expired %}
+                  {% with link="/staff/accounts/invite/"|add:inv.token|stringformat:"s"|add:"/" %}
+                  <button onclick="navigator.clipboard.writeText(window.location.origin + '{{ link }}');this.innerHTML='Copied!';"
+                          class="btn btn-sm" style="font-size:11px;border:1px solid #93c5fd;color:#1e40af;border-radius:5px;padding:2px 8px;">
+                    <i class="bi bi-clipboard me-1"></i>Copy
+                  </button>
+                  {% endwith %}
+                {% else %}
+                  <span style="color:#d1d5db;font-size:11px;">—</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+          <div class="p-4" style="color:#9ca3af;font-size:13px;">No invitations yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

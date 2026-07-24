@@ -9,7 +9,10 @@ from django.utils import timezone
 from courses.models import Course, CourseEnrollment
 from documents.models import StudentDocument
 from students.forms import StudentLoginForm
-from students.emails import send_document_review_notification, send_invitation_email, send_payment_receipt
+from students.emails import (
+    send_document_review_notification, send_invitation_email,
+    send_payment_receipt, send_staff_invitation_email,
+)
 from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
     CourseReportRecord, EntranceRequirementRecord,
@@ -27,10 +30,11 @@ from .forms import (
     PaymentHistoryForm,
     PsychomotorSkillForm,
     StaffAnnouncementForm,
+    StaffInviteAcceptForm,
     StaffStudentEditForm,
 )
 from .mixins import staff_required
-from .models import StudentInvitation
+from .models import StaffInvitation, StudentInvitation
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
@@ -1626,3 +1630,72 @@ def staff_instructor_remediation(request, pk):
     return render(request, 'staff/instructor_remediation.html', {
         'form': form, 'instructor': instructor,
     })
+
+
+# ── Staff Account Management ────────────────────────────────────────────────
+
+@staff_required
+def staff_account_list(request):
+    accounts = Student.objects.filter(
+        role__in=[Student.Role.STAFF, Student.Role.ADMIN]
+    ).order_by('last_name', 'first_name')
+    return render(request, 'staff/staff_account_list.html', {'accounts': accounts})
+
+
+@staff_required
+def staff_account_invite(request):
+    form        = InvitationForm(request.POST or None)
+    invitations = StaffInvitation.objects.select_related('created_by').order_by('-created_at')[:20]
+
+    invite_link = None
+
+    if request.method == 'POST' and form.is_valid():
+        email       = form.cleaned_data['email']
+        inv         = StaffInvitation.objects.create(email=email, created_by=request.user)
+        invite_link = request.build_absolute_uri(f'/staff/accounts/invite/{inv.token}/')
+        send_staff_invitation_email(inv, invite_link)
+        messages.success(request, f'Invite sent to {email}.')
+        form        = InvitationForm()
+        invitations = StaffInvitation.objects.select_related('created_by').order_by('-created_at')[:20]
+
+    return render(request, 'staff/staff_account_invite.html', {
+        'form': form, 'invitations': invitations, 'invite_link': invite_link,
+    })
+
+
+def staff_invite_accept(request, token):
+    """Account setup view for an invited office staff member — no login required."""
+    try:
+        invitation = StaffInvitation.objects.get(token=token)
+    except StaffInvitation.DoesNotExist:
+        messages.error(request, 'This invitation link is invalid.')
+        return redirect('staff_login')
+
+    if not invitation.is_valid:
+        messages.error(request, 'This invitation link has expired or has already been used.')
+        return redirect('staff_login')
+
+    if request.user.is_authenticated:
+        return redirect('staff_dashboard')
+
+    if Student.objects.filter(email__iexact=invitation.email).exists():
+        messages.error(request, 'An account with this email already exists.')
+        return redirect('staff_login')
+
+    form = StaffInviteAcceptForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        staff           = form.save(commit=False)
+        staff.username  = invitation.email.lower()
+        staff.email     = invitation.email.lower()
+        staff.role      = Student.Role.STAFF
+        staff.set_password(form.cleaned_data['password1'])
+        staff.save()
+        invitation.used    = True
+        invitation.used_at = timezone.now()
+        invitation.save()
+        login(request, staff, backend='students.backends.EmailBackend')
+        messages.success(request, f'Welcome, {staff.first_name}! Your staff account is ready.')
+        return redirect('staff_dashboard')
+
+    return render(request, 'staff/staff_invite_accept.html', {'form': form, 'invite_email': invitation.email})

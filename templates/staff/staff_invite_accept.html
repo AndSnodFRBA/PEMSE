@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set Up Your Account — PEMSE Staff</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/portal.css' %}">
+</head>
+<body>
+  <div class="auth-wrap">
+    <div>
+      <div class="auth-logo">
+        <img src="{% static 'images/PEMSE.jpg' %}" alt="Panhandle EMS Education"
+             class="auth-logo-img"
+             onerror="this.style.display='none';">
+        <div class="auth-logo-name">Panhandle EMS Education</div>
+        <div class="auth-logo-sub">Staff Portal</div>
+      </div>
+
+      <div class="auth-card">
+        <h2 style="font-size:20px;font-weight:600;color:#2B5EA7;margin-bottom:4px;">Set up your account</h2>
+        <p style="font-size:13px;color:#5a7a9a;margin-bottom:22px;">You've been invited to join the PEMSE staff portal as {{ invite_email }}.</p>
+
+        {% if messages %}
+          {% for msg in messages %}
+            <div class="alert alert-danger mb-3" style="font-size:12px;">{{ msg }}</div>
+          {% endfor %}
+        {% endif %}
+
+        {% if form.errors %}
+          <div class="alert alert-danger mb-3" style="font-size:12px;">
+            {% for field in form %}{% for err in field.errors %}<div>{{ err }}</div>{% endfor %}{% endfor %}
+            {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+          </div>
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div>
+              <label class="form-label">First name</label>
+              <input type="text" name="first_name" class="form-control" placeholder="Jane" required value="{{ form.first_name.value|default:'' }}">
+            </div>
+            <div>
+              <label class="form-label">Last name</label>
+              <input type="text" name="last_name" class="form-control" placeholder="Smith" required value="{{ form.last_name.value|default:'' }}">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email address</label>
+            <input type="email" class="form-control" value="{{ invite_email }}" readonly style="background:#f3f6fb;color:#5a7a9a;">
+            <div style="font-size:11px;color:#5a7a9a;margin-top:4px;">This address was set by your invitation and cannot be changed.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Phone</label>
+            <input type="text" name="phone" class="form-control" placeholder="(308) 555-0100" value="{{ form.phone.value|default:'' }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input type="password" name="password1" class="form-control" placeholder="Min. 8 characters" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Confirm password</label>
+            <input type="password" name="password2" class="form-control" placeholder="Repeat password" required>
+          </div>
+          <button type="submit" class="btn-navy w-100" style="padding:12px;">Create account →</button>
+        </form>
+
+        <div style="text-align:center;margin-top:12px;font-size:12px;">
+          <a href="/" style="color:#9ca3af;text-decoration:none;">← Back to portal home</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

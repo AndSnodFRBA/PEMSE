@@ -59,4 +59,8 @@ urlpatterns = [
     path('instructors/<int:pk>/observe/',             views.staff_instructor_observe,      name='staff_instructor_observe'),
     path('instructors/<int:pk>/meeting/',             views.staff_instructor_meeting,      name='staff_instructor_meeting'),
     path('instructors/<int:pk>/remediation/',         views.staff_instructor_remediation,  name='staff_instructor_remediation'),
+    # Staff account management
+    path('accounts/',                                 views.staff_account_list,            name='staff_account_list'),
+    path('accounts/invite/',                          views.staff_account_invite,          name='staff_account_invite'),
+    path('accounts/invite/<uuid:token>/',             views.staff_invite_accept,           name='staff_invite_accept'),
 ]

@@ -66,6 +66,21 @@ def send_invitation_email(invitation, invite_link):
     _send("You're invited to register", '\n'.join(lines), invitation.email)
 
 
+def send_staff_invitation_email(invitation, invite_link):
+    lines = [
+        "You've been invited to set up an office staff account with Panhandle EMS Education.",
+        '',
+        f'Set up your account here: {invite_link}',
+        '',
+        f'This link expires {invitation.expires_at.strftime("%B %d, %Y")} and can only be used once.',
+        '',
+        'If you weren\'t expecting this invitation, you can ignore this email.',
+        '',
+        '— Panhandle EMS Education',
+    ]
+    _send("You're invited to join the staff portal", '\n'.join(lines), invitation.email)
+
+
 def send_document_review_notification(doc):
     student = doc.student
     if doc.status == doc.Status.APPROVED:
