@@ -25,6 +25,13 @@
               <div class="text-danger" style="font-size:12px;margin-top:4px;">{{ form.email.errors.0 }}</div>
             {% endif %}
           </div>
+          <div class="mb-3">
+            <label class="form-label" style="font-size:12px;font-weight:600;">Course to Assign</label>
+            {{ form.course }}
+            {% if form.course.errors %}
+              <div class="text-danger" style="font-size:12px;margin-top:4px;">{{ form.course.errors.0 }}</div>
+            {% endif %}
+          </div>
           <button type="submit" class="btn btn-sm" style="background:#2B5EA7;color:#fff;border-radius:8px;padding:9px 20px;font-weight:600;">
             <i class="bi bi-link-45deg me-1"></i> Generate Invite Link
           </button>
@@ -58,6 +65,7 @@
           <thead style="background:#f8fafc;">
             <tr>
               <th class="ps-3 py-2">Email</th>
+              <th class="py-2">Course</th>
               <th class="py-2">Created</th>
               <th class="py-2">Status</th>
               <th class="py-2">Link</th>
@@ -67,6 +75,7 @@
             {% for inv in invitations %}
             <tr>
               <td class="ps-3 py-2" style="font-weight:500;">{{ inv.email }}</td>
+              <td class="py-2" style="color:#6b7280;">{% if inv.course %}Opt. {{ inv.course.option_number }} — {{ inv.course.name }}{% else %}—{% endif %}</td>
               <td class="py-2" style="color:#6b7280;">{{ inv.created_at|date:"M j, Y" }}</td>
               <td class="py-2">
                 {% if inv.used %}

@@ -2,6 +2,7 @@ import io
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.core.files.storage import default_storage
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -10,14 +11,16 @@ from courses.models import Course, CourseEnrollment
 from documents.models import StudentDocument
 from students.forms import StudentLoginForm
 from students.emails import (
-    send_document_review_notification, send_invitation_email,
+    _send, send_document_review_notification, send_invitation_email,
     send_payment_receipt, send_staff_invitation_email,
 )
 from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
     CourseReportRecord, EntranceRequirementRecord,
-    PatientContactRecord, PaymentHistory, PsychomotorSkillRecord, Student,
+    PatientContactRecord, PaymentHistory, PsychomotorSkillRecord,
+    ReminderLog, Student, StudentNote,
 )
+from students.reminders import BalanceDueRule, RegistrationIncompleteRule
 from .forms import (
     CognitiveExamForm,
     CourseCompletionForm,
@@ -29,7 +32,10 @@ from .forms import (
     PatientContactForm,
     PaymentHistoryForm,
     PsychomotorSkillForm,
+    ReminderBulkSendForm,
     StaffAnnouncementForm,
+    StaffAssignCourseForm,
+    StudentNoteForm,
     StaffInviteAcceptForm,
     StaffStudentEditForm,
 )
@@ -153,6 +159,8 @@ def student_detail(request, pk):
     balance_due = max(Decimal('0'), total_owed - total_paid)
 
     add_payment_form = PaymentHistoryForm()
+    notes            = StudentNote.objects.filter(student=student).select_related('created_by')
+    note_form        = StudentNoteForm()
 
     # ── 172 NAC Compliance records ────────────────────────────────────────────
     course = enrollment.course if enrollment else None
@@ -195,6 +203,7 @@ def student_detail(request, pk):
     return render(request, 'staff/student_detail.html', {
         'student':            student,
         'enrollment':         enrollment,
+        'courses_all':        Course.objects.order_by('option_number'),
         'doc_forms':          doc_forms,
         'payment':            payment,
         'history':            history,
@@ -202,6 +211,8 @@ def student_detail(request, pk):
         'total_owed':         total_owed,
         'balance_due':        balance_due,
         'add_payment_form':   add_payment_form,
+        'notes':              notes,
+        'note_form':          note_form,
         # Course Evaluations
         'mid_eval':           mid_eval,
         'end_eval':           end_eval,
@@ -231,6 +242,25 @@ def student_edit(request, pk):
         messages.success(request, f'{student.get_full_name()} updated.')
         return redirect('staff_student_detail', pk=pk)
     return render(request, 'staff/student_edit.html', {'form': form, 'student': student})
+
+
+@staff_required
+def assign_course(request, pk):
+    student    = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
+    enrollment = CourseEnrollment.objects.filter(student=student).first()
+    if request.method == 'POST':
+        form = StaffAssignCourseForm(request.POST, instance=enrollment)
+        if form.is_valid():
+            new_course = form.cleaned_data['course']
+            enr = form.save(commit=False)
+            enr.student = student
+            if not new_course.has_book_option:
+                enr.book_included = False
+            enr.save()
+            messages.success(request, f'{student.get_full_name()} assigned to Option {new_course.option_number} — {new_course.name}.')
+        else:
+            messages.error(request, 'Please select a valid course.')
+    return redirect('staff_student_detail', pk=pk)
 
 
 @staff_required
@@ -345,18 +375,19 @@ def course_delete(request, pk):
 @staff_required
 def invite_student(request):
     form        = InvitationForm(request.POST or None)
-    invitations = StudentInvitation.objects.select_related('created_by').order_by('-created_at')[:20]
+    invitations = StudentInvitation.objects.select_related('created_by', 'course').order_by('-created_at')[:20]
 
     invite_link = None
 
     if request.method == 'POST' and form.is_valid():
         email       = form.cleaned_data['email']
-        inv         = StudentInvitation.objects.create(email=email, created_by=request.user)
+        course      = form.cleaned_data['course']
+        inv         = StudentInvitation.objects.create(email=email, course=course, created_by=request.user)
         invite_link = request.build_absolute_uri(f'/register/invite/{inv.token}/')
         send_invitation_email(inv, invite_link)
         messages.success(request, f'Invite sent to {email}.')
         form        = InvitationForm()
-        invitations = StudentInvitation.objects.select_related('created_by').order_by('-created_at')[:20]
+        invitations = StudentInvitation.objects.select_related('created_by', 'course').order_by('-created_at')[:20]
 
     return render(request, 'staff/invite.html', {'form': form, 'invitations': invitations, 'invite_link': invite_link})
 
@@ -596,6 +627,141 @@ def student_pdf(request, pk):
     return response
 
 
+@staff_required
+def invoice_pdf(request, pk):
+    from decimal import Decimal
+
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import (
+        Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle,
+    )
+
+    student    = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
+    enrollment = CourseEnrollment.objects.filter(student=student).first()
+    history    = student.payment_history.order_by('payment_date')
+
+    total_paid  = sum(p.amount for p in history)
+    total_owed  = enrollment.total_tuition if enrollment else Decimal('0')
+    balance_due = max(Decimal('0'), total_owed - total_paid)
+
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buf, pagesize=letter,
+        leftMargin=0.75*inch, rightMargin=0.75*inch,
+        topMargin=0.75*inch, bottomMargin=0.75*inch,
+    )
+
+    styles  = getSampleStyleSheet()
+    navy    = colors.HexColor('#2B5EA7')
+    lt_gray = colors.HexColor('#f3f6fb')
+
+    h1 = ParagraphStyle('h1', parent=styles['Heading1'], textColor=navy, fontSize=16, spaceAfter=4)
+    h2 = ParagraphStyle('h2', parent=styles['Heading2'], textColor=navy, fontSize=11, spaceBefore=12, spaceAfter=4)
+    body = styles['Normal']
+    body.fontSize = 9
+
+    def section(title):
+        return [Paragraph(title, h2), Spacer(1, 4)]
+
+    def kv_table(data):
+        t = Table(data, colWidths=[2*inch, 4.75*inch])
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (0, -1), lt_gray),
+            ('FONTNAME',   (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE',   (0, 0), (-1, -1), 9),
+            ('VALIGN',     (0, 0), (-1, -1), 'TOP'),
+            ('GRID',       (0, 0), (-1, -1), 0.5, colors.HexColor('#d1dae8')),
+            ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.white, lt_gray]),
+            ('TOPPADDING',  (0, 0), (-1, -1), 5),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+            ('LEFTPADDING',   (0, 0), (-1, -1), 8),
+        ]))
+        return t
+
+    story = [
+        Paragraph('Panhandle EMS Education', h1),
+        Paragraph('Invoice', ParagraphStyle('sub', parent=body, textColor=colors.HexColor('#5a7a9a'), fontSize=10)),
+        Spacer(1, 10),
+    ]
+
+    story += section('Bill To')
+    story.append(kv_table([
+        ['Name',         student.get_full_name()],
+        ['Email',        student.email],
+        ['Phone',        student.phone or '—'],
+        ['Address',      f'{student.address}, {student.city}, {student.state} {student.zip_code}'.strip(', ')],
+        ['Invoice Date', timezone.now().strftime('%B %d, %Y')],
+    ]))
+
+    story += section('Course & Tuition')
+    if enrollment:
+        c = enrollment.course
+        rows = [['Course', f'Option {c.option_number} — {c.name}']]
+        if c.has_book_option:
+            rows.append(['Textbook', 'Included' if enrollment.book_included else 'Not included'])
+        rows += [
+            ['Total Tuition', f'${enrollment.total_tuition:,.2f}'],
+            ['Minimum Down',  f'${c.min_down:,.2f}'],
+        ]
+        story.append(kv_table(rows))
+    else:
+        story.append(Paragraph('No course assigned.', body))
+
+    story += section('Payments Received')
+    if history.exists():
+        pay_data = [['Date', 'Method', 'Check #', 'Amount']]
+        for p in history:
+            pay_data.append([
+                p.payment_date.strftime('%m/%d/%Y') if p.payment_date else '—',
+                p.get_method_display(),
+                p.check_number or '—',
+                f'${p.amount:,.2f}',
+            ])
+        t = Table(pay_data, colWidths=[1.5*inch, 1.75*inch, 1.5*inch, 2*inch])
+        t.setStyle(TableStyle([
+            ('BACKGROUND',  (0, 0), (-1, 0), navy),
+            ('TEXTCOLOR',   (0, 0), (-1, 0), colors.white),
+            ('FONTNAME',    (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE',    (0, 0), (-1, -1), 9),
+            ('GRID',        (0, 0), (-1, -1), 0.5, colors.HexColor('#d1dae8')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, lt_gray]),
+            ('TOPPADDING',  (0, 0), (-1, -1), 5),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+            ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        story.append(t)
+    else:
+        story.append(Paragraph('No payments recorded.', body))
+
+    story += section('Balance Summary')
+    story.append(kv_table([
+        ['Total Tuition', f'${total_owed:,.2f}'],
+        ['Total Paid',    f'${total_paid:,.2f}'],
+        ['Balance Due',   f'${balance_due:,.2f}'],
+    ]))
+
+    story.append(Spacer(1, 16))
+    story.append(Paragraph(
+        'No refunds on PEMSE courses.',
+        ParagraphStyle('note', parent=body, textColor=colors.HexColor('#7a5c00'), fontSize=8),
+    ))
+    story.append(Paragraph(
+        f'Generated {timezone.now().strftime("%B %d, %Y %I:%M %p")} — PEMSE Student Portal',
+        ParagraphStyle('footer', parent=body, textColor=colors.HexColor('#999999'), fontSize=8),
+    ))
+
+    doc.build(story)
+    buf.seek(0)
+
+    safe_name = ''.join(c if c.isalnum() or c in '-_ ' else '' for c in student.get_full_name()).strip()
+    response  = HttpResponse(buf, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="PEMSE-{safe_name}-invoice.pdf"'
+    return response
+
+
 # ── 172 NAC Compliance — helpers ─────────────────────────────────────────────
 
 _DEFAULT_ENTRANCE_REQS = [
@@ -646,6 +812,33 @@ def delete_cognitive_exam(request, pk, exam_pk):
         exam.delete()
         messages.success(request, 'Exam record deleted.')
     return _detail_redirect(pk, 'exams')
+
+
+# ── Student Notes ─────────────────────────────────────────────────────────────
+
+@staff_required
+def add_student_note(request, pk):
+    student = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
+    if request.method == 'POST':
+        form = StudentNoteForm(request.POST)
+        if form.is_valid():
+            note             = form.save(commit=False)
+            note.student     = student
+            note.created_by  = request.user
+            note.save()
+            messages.success(request, 'Note added.')
+        else:
+            messages.error(request, 'Please correct the errors in the note form.')
+    return _detail_redirect(pk, 'notes')
+
+
+@staff_required
+def delete_student_note(request, pk, note_pk):
+    note = get_object_or_404(StudentNote, pk=note_pk, student_id=pk)
+    if request.method == 'POST':
+        note.delete()
+        messages.success(request, 'Note deleted.')
+    return _detail_redirect(pk, 'notes')
 
 
 # ── Psychomotor Skills ────────────────────────────────────────────────────────
@@ -1127,6 +1320,102 @@ def course_eval_overview(request):
         'ce_pending_end':  ce_pending_end,
         'course_summaries': course_summaries,
     })
+
+
+# ── Reminders ────────────────────────────────────────────────────────────────
+
+@staff_required
+def reminder_dashboard(request):
+    logs = ReminderLog.objects.select_related('student', 'sent_by', 'course').all()[:100]
+    return render(request, 'staff/reminder_dashboard.html', {'logs': logs})
+
+
+@staff_required
+def reminder_bulk_send(request):
+    today            = timezone.localdate()
+    form             = ReminderBulkSendForm(request.POST or None)
+    preview_mode     = False
+    sent_count       = None
+    matched_students = []
+    selected_course  = None
+    audience_label   = None
+    audience_value   = None
+    sent_subject     = None
+    sent_body        = None
+
+    AUDIENCE_RULES = {
+        'registration_incomplete': RegistrationIncompleteRule(),
+        'balance_due':             BalanceDueRule(),
+    }
+
+    if request.method == 'POST' and form.is_valid():
+        action     = request.POST.get('action', 'preview')
+        audience   = form.cleaned_data['audience']
+        course     = form.cleaned_data['course']
+        subject    = form.cleaned_data['subject']
+        body       = form.cleaned_data['body']
+        audience_label  = dict(ReminderBulkSendForm.AUDIENCE_CHOICES)[audience]
+        audience_value  = audience
+        selected_course = course
+        sent_subject    = subject
+        sent_body       = body
+
+        if audience in AUDIENCE_RULES:
+            students = [s for s, _ctx in AUDIENCE_RULES[audience].candidates(today)]
+        else:
+            students = list(Student.objects.filter(role=Student.Role.STUDENT).exclude(
+                enroll_status=Student.EnrollStatus.WITHDRAWN
+            ))
+        if course:
+            students = [s for s in students if getattr(s, 'enrollment', None) and s.enrollment.course_id == course.id]
+
+        if action == 'preview':
+            matched_students = students
+            preview_mode = True
+
+        elif action == 'confirm':
+            student_ids = set(request.POST.getlist('student_ids'))
+            sent_count = 0
+            for student in students:
+                if str(student.pk) not in student_ids:
+                    continue
+                _send(subject, body, student.email)
+                ReminderLog.objects.create(
+                    student=student, rule_key=f'manual_{audience}', channel=ReminderLog.Channel.MANUAL,
+                    course=course, sent_by=request.user, subject=subject, body=body,
+                )
+                sent_count += 1
+            messages.success(request, f'Reminder sent to {sent_count} student(s).')
+
+    return render(request, 'staff/reminder_send.html', {
+        'form':             form,
+        'preview_mode':     preview_mode,
+        'matched_students': matched_students,
+        'selected_course':  selected_course,
+        'audience_label':   audience_label,
+        'audience_value':   audience_value,
+        'sent_subject':     sent_subject,
+        'sent_body':        sent_body,
+        'sent_count':       sent_count,
+    })
+
+
+@staff_required
+def backup_list(request):
+    try:
+        _dirs, files = default_storage.listdir('backups')
+    except FileNotFoundError:
+        files = []
+    backups = []
+    for name in sorted(files, reverse=True)[:100]:
+        full_name = f'backups/{name}'
+        backups.append({
+            'name':     name,
+            'size':     default_storage.size(full_name),
+            'modified': default_storage.get_modified_time(full_name),
+            'url':      default_storage.url(full_name),
+        })
+    return render(request, 'staff/backup_list.html', {'backups': backups})
 
 
 @staff_required

@@ -88,6 +88,59 @@
 <!-- ── SECTION 2: Course Selection ── -->
 <div class="portal-card" id="course">
   <div class="portal-card-title">Course selection</div>
+
+  {% if enrollment %}
+  <div class="portal-card-sub">Your course is assigned by PEMSE staff.{% if enrollment.course.has_book_option or enrollment.course.includes_shirt %} You can still choose your textbook{% if enrollment.course.includes_shirt %} and shirt size{% endif %} below.{% endif %}</div>
+
+  <div style="padding:16px;background:var(--light);border-radius:12px;border:1px solid var(--border);">
+    <div class="course-tag" style="display:inline-block;background:{{ enrollment.course.tag_bg }};color:{{ enrollment.course.tag_color }};">
+      {% if enrollment.course.licensure %}{{ enrollment.course.get_licensure_display }}{% else %}{{ enrollment.course.tag }}{% endif %}
+    </div>
+    <div class="course-name" style="margin-top:8px;">Option {{ enrollment.course.option_number }} — {{ enrollment.course.name }}</div>
+    <div class="course-desc">{{ enrollment.course.description }}</div>
+
+    {% if enrollment.course.location_display or enrollment.course.start_date %}
+    <div style="font-size:11px;color:#5a7a9a;margin-top:6px;line-height:1.7;">
+      {% if enrollment.course.location_display %}<span><i class="bi bi-geo-alt"></i> {{ enrollment.course.location_display }}</span>{% endif %}
+      {% if enrollment.course.start_date %}{% if enrollment.course.location_display %} · {% endif %}<span><i class="bi bi-calendar"></i> Starts {{ enrollment.course.start_date|date:"M j, Y" }}</span>{% endif %}
+    </div>
+    {% endif %}
+    {% if enrollment.course.schedule_notes %}
+    <div style="font-size:11px;color:#6b7280;margin-top:2px;"><i class="bi bi-clock"></i> {{ enrollment.course.schedule_notes }}</div>
+    {% endif %}
+
+    <div class="course-price" style="margin-top:8px;">${{ enrollment.course.price|floatformat:0 }}</div>
+    <div class="course-down">Min. down: ${{ enrollment.course.min_down|floatformat:0 }}</div>
+
+    {% if enrollment.course.has_book_option or enrollment.course.includes_shirt %}
+    <form method="post" action="{% url 'enroll' enrollment.course.id %}" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+      {% csrf_token %}
+      {% if enrollment.course.has_book_option %}
+      <label style="font-size:11px;font-weight:600;color:#0a2540;display:block;margin-bottom:4px;">Textbook option *</label>
+      <select name="book_included" class="form-select form-select-sm" style="margin-bottom:12px;max-width:340px;">
+        <option value="0" {% if not enrollment.book_included %}selected{% endif %}>Without textbook (${{ enrollment.course.price|floatformat:0 }})</option>
+        <option value="1" {% if enrollment.book_included %}selected{% endif %}>With physical textbook (${{ enrollment.course.price_with_book|floatformat:0 }})</option>
+      </select>
+      {% endif %}
+      {% if enrollment.course.includes_shirt %}
+      <label style="font-size:11px;font-weight:600;color:#0a2540;display:block;margin-bottom:4px;">Polo shirt size *</label>
+      <select name="shirt_size" class="form-select form-select-sm" style="margin-bottom:4px;max-width:340px;">
+        <option value="" {% if not enrollment.shirt_size %}selected{% endif %}>Select size…</option>
+        <option value="S" {% if enrollment.shirt_size == 'S' %}selected{% endif %}>Small</option>
+        <option value="M" {% if enrollment.shirt_size == 'M' %}selected{% endif %}>Medium</option>
+        <option value="L" {% if enrollment.shirt_size == 'L' %}selected{% endif %}>Large</option>
+        <option value="XL" {% if enrollment.shirt_size == 'XL' %}selected{% endif %}>X-Large</option>
+        <option value="2XL" {% if enrollment.shirt_size == '2XL' %}selected{% endif %}>2X-Large (+$5)</option>
+        <option value="3XL" {% if enrollment.shirt_size == '3XL' %}selected{% endif %}>3X-Large (+$5)</option>
+      </select>
+      <div style="font-size:10px;color:#6b7280;margin-bottom:12px;">2XL and 3XL add $5 to tuition.</div>
+      {% endif %}
+      <button type="submit" class="btn-ghost">Save selection</button>
+    </form>
+    {% endif %}
+  </div>
+
+  {% else %}
   <div class="portal-card-sub">Choose one option below. Your selection is saved immediately.</div>
 
   {% if courses %}
@@ -160,12 +213,6 @@
     <div style="font-size:13px;color:var(--muted);margin-top:4px;">Please check back soon or <a href="mailto:ems.edu911@gmail.com">contact PEMSE directly</a>.</div>
   </div>
   {% endif %}
-
-  {% if enrollment %}
-  <div style="margin-top:14px;padding:12px 14px;background:#f0faf6;border:1px solid var(--green);border-radius:10px;font-size:13px;color:var(--green);">
-    ✓ Selected: <strong>Option {{ enrollment.course.option_number }} — {{ enrollment.course.name }}</strong>
-    {% if enrollment.shirt_size %}&nbsp;|&nbsp; Shirt size: <strong>{{ enrollment.shirt_size }}</strong>{% endif %}
-  </div>
   {% endif %}
 </div>
 

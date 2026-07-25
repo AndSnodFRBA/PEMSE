@@ -10,6 +10,13 @@ class StudentInvitation(models.Model):
     """A one-time email invitation that lets a student self-register."""
 
     email      = models.EmailField()
+    course     = models.ForeignKey(
+        'courses.Course',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='invitations',
+    )
     token      = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

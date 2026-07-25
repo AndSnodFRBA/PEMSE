@@ -4,7 +4,7 @@ from .models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
     CourseReportRecord, EntranceRequirementRecord,
     PatientContactRecord, PaymentHistory, PaymentRecord,
-    PsychomotorSkillRecord, Student,
+    PsychomotorSkillRecord, ReminderLog, Student, StudentNote,
 )
 
 
@@ -49,6 +49,23 @@ class PaymentHistoryAdmin(admin.ModelAdmin):
     search_fields = ['student__email', 'student__first_name', 'student__last_name', 'check_number', 'notes']
     ordering      = ['-payment_date']
     date_hierarchy = 'payment_date'
+
+
+@admin.register(ReminderLog)
+class ReminderLogAdmin(admin.ModelAdmin):
+    list_display  = ['student', 'rule_key', 'channel', 'sent_by', 'sent_at']
+    list_filter   = ['channel', 'rule_key']
+    search_fields = ['student__email', 'student__first_name', 'student__last_name']
+    date_hierarchy = 'sent_at'
+    raw_id_fields = ('student', 'sent_by')
+
+
+@admin.register(StudentNote)
+class StudentNoteAdmin(admin.ModelAdmin):
+    list_display  = ['student', 'note_type', 'created_by', 'created_at']
+    list_filter   = ['note_type']
+    search_fields = ['student__email', 'student__first_name', 'student__last_name', 'body']
+    raw_id_fields = ('student', 'created_by')
 
 
 @admin.register(Announcement)

@@ -8,7 +8,7 @@ import uuid
 
 from .models import Student, PaymentRecord, Announcement, PaymentHistory
 from .forms import StudentRegistrationForm, StudentLoginForm, ProfileForm, PaymentForm
-from .emails import send_registration_confirmation
+from .emails import send_instructor_registration_notifications, send_registration_confirmation
 from courses.models import CourseEnrollment
 from documents.models import StudentDocument, DocumentType
 from handbook.models import HandbookChapter
@@ -49,13 +49,7 @@ def login_view(request):
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
-    form = StudentRegistrationForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        student = form.save()
-        login(request, student, backend='students.backends.EmailBackend')
-        messages.success(request, f'Welcome, {student.first_name}! Complete your enrollment below.')
-        return redirect('dashboard')
-    return render(request, 'students/register.html', {'form': form})
+    return render(request, 'students/register_closed.html')
 
 
 def register_with_invite(request, token):
@@ -79,6 +73,8 @@ def register_with_invite(request, token):
 
     if request.method == 'POST' and form.is_valid():
         student = form.save()
+        if invitation.course:
+            CourseEnrollment.objects.get_or_create(student=student, defaults={'course': invitation.course})
         invitation.used    = True
         invitation.used_at = timezone.now()
         invitation.save()
@@ -86,7 +82,11 @@ def register_with_invite(request, token):
         messages.success(request, f'Welcome, {student.first_name}! Complete your enrollment below.')
         return redirect('dashboard')
 
-    return render(request, 'students/register.html', {'form': form, 'invite_email': invitation.email})
+    return render(request, 'students/register.html', {
+        'form': form,
+        'invite_email': invitation.email,
+        'invite_course': invitation.course,
+    })
 
 
 def logout_view(request):
@@ -223,6 +223,7 @@ def registration_form_view(request):
                 student.save(update_fields=['reg_submitted', 'reg_submitted_at', 'reg_conf_number'])
                 messages.success(request, f'Registration submitted! Confirmation: {conf}')
                 send_registration_confirmation(student, enrollment, conf)
+                send_instructor_registration_notifications(student, enrollment, conf)
                 return redirect('dashboard')
 
         return redirect('registration_form')

@@ -18,7 +18,11 @@ def course_list_view(request):
 
 @login_required
 def enroll_view(request, course_id):
-    course = get_object_or_404(Course, pk=course_id, is_active=True)
+    course   = get_object_or_404(Course, pk=course_id, is_active=True)
+    existing = CourseEnrollment.objects.filter(student=request.user).first()
+    if existing and existing.course_id != course.id:
+        messages.error(request, 'Your course is set by PEMSE staff. Contact the office if you need to change courses.')
+        return redirect('registration_form')
     if request.method == 'POST':
         shirt_size = request.POST.get('shirt_size', '')
         book_included = request.POST.get('book_included') == '1' if course.has_book_option else False

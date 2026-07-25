@@ -157,6 +157,59 @@ class PaymentHistory(models.Model):
         return f'{self.student} — ${self.amount} on {self.payment_date}'
 
 
+class ReminderLog(models.Model):
+    """One row per reminder email actually sent — powers cooldown checks and staff-visible history."""
+
+    class Channel(models.TextChoices):
+        AUTO   = 'auto',   'Automated'
+        MANUAL = 'manual', 'Staff bulk send'
+
+    student  = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='reminder_logs')
+    rule_key = models.CharField(max_length=50)
+    channel  = models.CharField(max_length=10, choices=Channel.choices, default=Channel.AUTO)
+    course   = models.ForeignKey(
+        'courses.Course', null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='reminder_logs',
+    )
+    sent_by  = models.ForeignKey(
+        Student, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='reminders_sent',
+    )
+    subject  = models.CharField(max_length=200)
+    body     = models.TextField(blank=True)
+    sent_at  = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-sent_at']
+        indexes = [models.Index(fields=['student', 'rule_key', 'sent_at'])]
+
+    def __str__(self):
+        return f'{self.student} — {self.rule_key} ({self.sent_at:%Y-%m-%d})'
+
+
+class StudentNote(models.Model):
+    """Free-form staff notes about a student — communications, general notes, etc."""
+
+    class NoteType(models.TextChoices):
+        COMMUNICATION = 'communication', 'Communication'
+        GENERAL       = 'general',       'General'
+        OTHER         = 'other',         'Other'
+
+    student    = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='notes')
+    note_type  = models.CharField(max_length=20, choices=NoteType.choices, default=NoteType.GENERAL)
+    body       = models.TextField()
+    created_by = models.ForeignKey(
+        Student, null=True, on_delete=models.SET_NULL, related_name='notes_authored'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.student} — {self.get_note_type_display()} ({self.created_at:%Y-%m-%d})'
+
+
 class Announcement(models.Model):
     """Admin-posted announcements shown on student dashboards."""
     title      = models.CharField(max_length=200)

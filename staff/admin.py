@@ -4,8 +4,8 @@ from .models import StaffInvitation, StudentInvitation
 
 @admin.register(StudentInvitation)
 class StudentInvitationAdmin(admin.ModelAdmin):
-    list_display  = ['email', 'created_by', 'created_at', 'expires_at', 'used', 'used_at']
-    list_filter   = ['used']
+    list_display  = ['email', 'course', 'created_by', 'created_at', 'expires_at', 'used', 'used_at']
+    list_filter   = ['used', 'course']
     readonly_fields = ['token', 'created_at', 'used_at']
 
 

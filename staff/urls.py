@@ -9,7 +9,11 @@ urlpatterns = [
     path('students/<int:pk>/',                 views.student_detail,        name='staff_student_detail'),
     path('students/<int:pk>/edit/',            views.student_edit,          name='staff_student_edit'),
     path('students/<int:pk>/pdf/',             views.student_pdf,           name='staff_student_pdf'),
+    path('students/<int:pk>/invoice/',         views.invoice_pdf,           name='staff_invoice_pdf'),
     path('students/<int:pk>/add-payment/',     views.add_payment,           name='staff_add_payment'),
+    path('students/<int:pk>/add-note/',        views.add_student_note,      name='staff_add_note'),
+    path('students/<int:pk>/notes/<int:note_pk>/delete/', views.delete_student_note, name='staff_delete_note'),
+    path('students/<int:pk>/assign-course/',   views.assign_course,         name='staff_assign_course'),
     path('documents/<int:doc_id>/review/',     views.review_document,       name='staff_review_document'),
     path('documents/<int:doc_id>/download/',   views.document_download,     name='staff_document_download'),
     path('invite/',                            views.invite_student,        name='staff_invite'),
@@ -43,6 +47,11 @@ urlpatterns = [
     path('course-reports/<int:course_pk>/pdf/',                     views.department_report_pdf,    name='staff_department_report_pdf'),
     # NREMT pass rates
     path('pass-rates/',                                             views.pass_rates,               name='staff_pass_rates'),
+    # Backups
+    path('backups/',                                                views.backup_list,             name='staff_backup_list'),
+    # Reminders
+    path('reminders/',                                              views.reminder_dashboard,       name='staff_reminder_dashboard'),
+    path('reminders/send/',                                         views.reminder_bulk_send,       name='staff_reminder_send'),
     # Course evaluations
     path('course-evaluations/',                                     views.course_eval_overview,     name='staff_course_eval_overview'),
     path('course-evaluations/send/',                                views.course_eval_send,         name='staff_course_eval_send'),

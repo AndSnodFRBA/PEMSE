@@ -17,6 +17,13 @@
       <h2 style="font-size:20px;font-weight:600;color:#2B5EA7;margin-bottom:4px;">Create your account</h2>
       <p style="font-size:13px;color:#5a7a9a;margin-bottom:22px;">Register to begin your PEMSE enrollment for 2025.</p>
 
+      {% if invite_course %}
+        <div class="mb-3 p-3" style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-size:12px;color:#166534;">
+          <i class="bi bi-check-circle me-1"></i> You've been invited to register for
+          <strong>Option {{ invite_course.option_number }} — {{ invite_course.name }}</strong>.
+        </div>
+      {% endif %}
+
       {% if form.errors %}
         <div class="alert alert-danger mb-3" style="font-size:12px;">
           {% for field in form %}{% for err in field.errors %}<div>{{ err }}</div>{% endfor %}{% endfor %}

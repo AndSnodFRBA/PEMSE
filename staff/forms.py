@@ -1,11 +1,12 @@
 from django import forms
 
-from courses.models import Course
+from courses.models import Course, CourseEnrollment
 from documents.models import StudentDocument
 from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
     CourseReportRecord, EntranceRequirementRecord,
     PatientContactRecord, PaymentHistory, PsychomotorSkillRecord, Student,
+    StudentNote,
 )
 from instructor.models import (
     InstructorCourseAssignment, InstructorObservation,
@@ -17,6 +18,11 @@ class InvitationForm(forms.Form):
     email = forms.EmailField(
         label='Student email address',
         widget=forms.EmailInput(attrs={'placeholder': 'student@email.com', 'class': 'form-control'}),
+    )
+    course = forms.ModelChoiceField(
+        queryset=Course.objects.filter(is_active=True).order_by('option_number'),
+        label='Course to assign',
+        widget=forms.Select(attrs={'class': 'form-select'}),
     )
 
     def clean_email(self):
@@ -103,6 +109,29 @@ class CourseForm(forms.ModelForm):
         }
 
 
+class StaffAssignCourseForm(forms.ModelForm):
+    class Meta:
+        model  = CourseEnrollment
+        fields = ['course']
+        widgets = {'course': forms.Select(attrs={'class': 'form-select form-select-sm'})}
+
+
+class ReminderBulkSendForm(forms.Form):
+    AUDIENCE_CHOICES = [
+        ('all_active',              'All active students'),
+        ('registration_incomplete', 'Registration incomplete'),
+        ('balance_due',             'Balance due'),
+    ]
+    course = forms.ModelChoiceField(
+        queryset=Course.objects.order_by('option_number'),
+        required=False, empty_label='All courses',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    audience = forms.ChoiceField(choices=AUDIENCE_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}))
+    subject  = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    body     = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 6}))
+
+
 class PaymentHistoryForm(forms.ModelForm):
     class Meta:
         model  = PaymentHistory
@@ -134,6 +163,16 @@ class CognitiveExamForm(forms.ModelForm):
             'passed':         forms.Select(choices=[(True, 'Pass'), (False, 'Fail')], attrs=_fs),
             'attempt_number': forms.NumberInput(attrs={**_fc, 'min': '1'}),
             'notes':          forms.Textarea(attrs={**_fc, 'rows': 2}),
+        }
+
+
+class StudentNoteForm(forms.ModelForm):
+    class Meta:
+        model  = StudentNote
+        fields = ['note_type', 'body']
+        widgets = {
+            'note_type': forms.Select(attrs=_fs),
+            'body':      forms.Textarea(attrs={**_fc, 'rows': 3, 'placeholder': 'Note details…'}),
         }
 
 
