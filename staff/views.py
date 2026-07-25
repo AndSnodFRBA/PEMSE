@@ -1,4 +1,5 @@
 import io
+from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -27,12 +28,15 @@ from .forms import (
     CourseForm,
     CourseReportForm,
     DocumentReviewForm,
+    EditInvitationEmailForm,
+    EditStudentInvitationForm,
     EntranceRequirementForm,
     InvitationForm,
     PatientContactForm,
     PaymentHistoryForm,
     PsychomotorSkillForm,
     ReminderBulkSendForm,
+    StaffAccountInviteForm,
     StaffAnnouncementForm,
     StaffAssignCourseForm,
     StudentNoteForm,
@@ -389,7 +393,45 @@ def invite_student(request):
         form        = InvitationForm()
         invitations = StudentInvitation.objects.select_related('created_by', 'course').order_by('-created_at')[:20]
 
-    return render(request, 'staff/invite.html', {'form': form, 'invitations': invitations, 'invite_link': invite_link})
+    courses_active = Course.objects.filter(is_active=True).order_by('option_number')
+    return render(request, 'staff/invite.html', {
+        'form': form, 'invitations': invitations, 'invite_link': invite_link,
+        'courses_active': courses_active,
+    })
+
+
+@staff_required
+def resend_student_invite(request, pk):
+    inv = get_object_or_404(StudentInvitation, pk=pk)
+    if request.method == 'POST':
+        if inv.used:
+            messages.error(request, 'This invitation has already been used.')
+        else:
+            inv.expires_at = timezone.now() + timedelta(days=7)
+            inv.save(update_fields=['expires_at'])
+            invite_link = request.build_absolute_uri(f'/register/invite/{inv.token}/')
+            send_invitation_email(inv, invite_link)
+            messages.success(request, f'Invite resent to {inv.email}.')
+    return redirect('staff_invite')
+
+
+@staff_required
+def edit_student_invite(request, pk):
+    inv = get_object_or_404(StudentInvitation, pk=pk)
+    if request.method == 'POST':
+        if inv.used:
+            messages.error(request, 'This invitation has already been used.')
+        else:
+            form = EditStudentInvitationForm(request.POST)
+            if form.is_valid():
+                inv.email  = form.cleaned_data['email']
+                inv.course = form.cleaned_data['course']
+                inv.save(update_fields=['email', 'course'])
+                messages.success(request, 'Invitation updated.')
+            else:
+                first_error = next(iter(form.errors.values()))[0] if form.errors else 'Please correct the errors and try again.'
+                messages.error(request, first_error)
+    return redirect('staff_invite')
 
 
 # ── Announcements ─────────────────────────────────────────────────────────────
@@ -1933,7 +1975,7 @@ def staff_account_list(request):
 
 @staff_required
 def staff_account_invite(request):
-    form        = InvitationForm(request.POST or None)
+    form        = StaffAccountInviteForm(request.POST or None)
     invitations = StaffInvitation.objects.select_related('created_by').order_by('-created_at')[:20]
 
     invite_link = None
@@ -1944,12 +1986,44 @@ def staff_account_invite(request):
         invite_link = request.build_absolute_uri(f'/staff/accounts/invite/{inv.token}/')
         send_staff_invitation_email(inv, invite_link)
         messages.success(request, f'Invite sent to {email}.')
-        form        = InvitationForm()
+        form        = StaffAccountInviteForm()
         invitations = StaffInvitation.objects.select_related('created_by').order_by('-created_at')[:20]
 
     return render(request, 'staff/staff_account_invite.html', {
         'form': form, 'invitations': invitations, 'invite_link': invite_link,
     })
+
+
+@staff_required
+def resend_staff_invite(request, pk):
+    inv = get_object_or_404(StaffInvitation, pk=pk)
+    if request.method == 'POST':
+        if inv.used:
+            messages.error(request, 'This invitation has already been used.')
+        else:
+            inv.expires_at = timezone.now() + timedelta(days=7)
+            inv.save(update_fields=['expires_at'])
+            invite_link = request.build_absolute_uri(f'/staff/accounts/invite/{inv.token}/')
+            send_staff_invitation_email(inv, invite_link)
+            messages.success(request, f'Invite resent to {inv.email}.')
+    return redirect('staff_account_invite')
+
+
+@staff_required
+def edit_staff_invite(request, pk):
+    inv = get_object_or_404(StaffInvitation, pk=pk)
+    if request.method == 'POST':
+        if inv.used:
+            messages.error(request, 'This invitation has already been used.')
+        else:
+            form = EditInvitationEmailForm(request.POST)
+            if form.is_valid():
+                inv.email = form.cleaned_data['email']
+                inv.save(update_fields=['email'])
+                messages.success(request, 'Invitation email updated.')
+            else:
+                messages.error(request, form.errors['email'][0] if form.errors.get('email') else 'Please enter a valid email.')
+    return redirect('staff_account_invite')
 
 
 def staff_invite_accept(request, token):

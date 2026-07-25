@@ -32,6 +32,45 @@ class InvitationForm(forms.Form):
         return email
 
 
+class StaffAccountInviteForm(forms.Form):
+    email = forms.EmailField(
+        label='Staff email address',
+        widget=forms.EmailInput(attrs={'placeholder': 'staff@email.com', 'class': 'form-control'}),
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].lower()
+        if Student.objects.filter(email=email).exists():
+            raise forms.ValidationError('An account with this email already exists.')
+        return email
+
+
+class EditInvitationEmailForm(forms.Form):
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control form-control-sm'}))
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].lower()
+        if Student.objects.filter(email=email).exists():
+            raise forms.ValidationError('An account with this email already exists.')
+        return email
+
+
+class EditStudentInvitationForm(forms.Form):
+    """Used to fix a pending student invitation's email and/or course assignment —
+    also how staff backfill a course onto invitations sent before course-pinning existed."""
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control form-control-sm'}))
+    course = forms.ModelChoiceField(
+        queryset=Course.objects.filter(is_active=True).order_by('option_number'),
+        widget=forms.Select(attrs={'class': 'form-select form-select-sm'}),
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].lower()
+        if Student.objects.filter(email=email).exists():
+            raise forms.ValidationError('An account with this email already exists.')
+        return email
+
+
 class DocumentReviewForm(forms.Form):
     STATUS_CHOICES = [
         ('approved', 'Approve'),

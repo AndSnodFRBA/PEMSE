@@ -63,7 +63,7 @@
               <th class="ps-3 py-2">Email</th>
               <th class="py-2">Created</th>
               <th class="py-2">Status</th>
-              <th class="py-2">Link</th>
+              <th class="py-2">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -81,18 +81,46 @@
                 {% endif %}
               </td>
               <td class="py-2 pe-3">
-                {% if not inv.used and not inv.is_expired %}
+                <div class="d-flex gap-1">
+                {% if not inv.used %}
+                  {% if not inv.is_expired %}
                   {% with link="/staff/accounts/invite/"|add:inv.token|stringformat:"s"|add:"/" %}
                   <button onclick="navigator.clipboard.writeText(window.location.origin + '{{ link }}');this.innerHTML='Copied!';"
                           class="btn btn-sm" style="font-size:11px;border:1px solid #93c5fd;color:#1e40af;border-radius:5px;padding:2px 8px;">
                     <i class="bi bi-clipboard me-1"></i>Copy
                   </button>
                   {% endwith %}
+                  {% endif %}
+                  <form method="post" action="{% url 'staff_account_invite_resend' inv.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm" style="font-size:11px;border:1px solid #93c5fd;color:#1e40af;border-radius:5px;padding:2px 8px;">
+                      <i class="bi bi-arrow-clockwise me-1"></i>Resend
+                    </button>
+                  </form>
+                  <button type="button" class="btn btn-sm" data-bs-toggle="collapse" data-bs-target="#edit-inv-{{ inv.pk }}"
+                          style="font-size:11px;border:1px solid #d1d5db;color:#374151;border-radius:5px;padding:2px 8px;">
+                    <i class="bi bi-pencil"></i>
+                  </button>
                 {% else %}
                   <span style="color:#d1d5db;font-size:11px;">—</span>
                 {% endif %}
+                </div>
               </td>
             </tr>
+            {% if not inv.used %}
+            <tr>
+              <td colspan="4" class="p-0" style="border-top:none;">
+                <div class="collapse" id="edit-inv-{{ inv.pk }}">
+                  <form method="post" action="{% url 'staff_account_invite_edit' inv.pk %}" class="d-flex gap-2 align-items-center p-2" style="background:#f8fafc;">
+                    {% csrf_token %}
+                    <label style="font-size:11px;color:#6b7280;">New email:</label>
+                    <input type="email" name="email" value="{{ inv.email }}" class="form-control form-control-sm" style="max-width:260px;" required>
+                    <button type="submit" class="btn btn-sm btn-primary" style="font-size:11px;">Save</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endif %}
             {% endfor %}
           </tbody>
         </table>

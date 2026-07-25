@@ -17,6 +17,8 @@ urlpatterns = [
     path('documents/<int:doc_id>/review/',     views.review_document,       name='staff_review_document'),
     path('documents/<int:doc_id>/download/',   views.document_download,     name='staff_document_download'),
     path('invite/',                            views.invite_student,        name='staff_invite'),
+    path('invite/<int:pk>/resend/',            views.resend_student_invite, name='staff_invite_resend'),
+    path('invite/<int:pk>/edit/',              views.edit_student_invite,   name='staff_invite_edit'),
     path('announcements/',                     views.announcement_list,     name='staff_announcements'),
     path('announcements/new/',                 views.announcement_create,   name='staff_announcement_create'),
     path('announcements/<int:pk>/edit/',       views.announcement_edit,     name='staff_announcement_edit'),
@@ -71,5 +73,7 @@ urlpatterns = [
     # Staff account management
     path('accounts/',                                 views.staff_account_list,            name='staff_account_list'),
     path('accounts/invite/',                          views.staff_account_invite,          name='staff_account_invite'),
+    path('accounts/invite/<int:pk>/resend/',          views.resend_staff_invite,           name='staff_account_invite_resend'),
+    path('accounts/invite/<int:pk>/edit/',            views.edit_staff_invite,             name='staff_account_invite_edit'),
     path('accounts/invite/<uuid:token>/',             views.staff_invite_accept,           name='staff_invite_accept'),
 ]
