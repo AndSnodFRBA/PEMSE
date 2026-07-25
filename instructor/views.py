@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from courses.models import Course, CourseEnrollment
+from staff.models import StudentInvitation
 from students.forms import StudentLoginForm
 from students.models import (
     CognitiveExamRecord, PatientContactRecord,
@@ -426,6 +427,10 @@ def instructor_course_detail(request, pk):
         course=course, instructor=instructor
     ).order_by('-session_date')[:10]
 
+    invitations = StudentInvitation.objects.filter(
+        course=course
+    ).select_related('created_by').order_by('-created_at')
+
     return render(request, 'instructor/course_detail.html', {
         'course':        course,
         'assignment':    assignment,
@@ -434,6 +439,7 @@ def instructor_course_detail(request, pk):
         'hours_total':   hours_total,
         'sessions':      sessions,
         'total_sessions': total_sessions,
+        'invitations':   invitations,
     })
 
 
