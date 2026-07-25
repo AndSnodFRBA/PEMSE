@@ -8,8 +8,9 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from courses.models import Course, CourseEnrollment
+from courses.models import Course, CourseAnnouncement, CourseEnrollment
 from documents.models import StudentDocument
+from instructor.models import AttendanceRecord, InstructorCourseAssignment, StudentAttendance
 from students.forms import StudentLoginForm
 from students.emails import (
     _send, send_document_review_notification, send_invitation_email,
@@ -335,6 +336,71 @@ def course_list(request):
         rows.append({'course': c, 'enrolled': enrolled, 'status': status})
 
     return render(request, 'staff/course_list.html', {'rows': rows})
+
+
+@staff_required
+def course_detail(request, pk):
+    from datetime import timedelta
+    course = get_object_or_404(Course, pk=pk)
+
+    today = timezone.now().date()
+    soon  = today + timedelta(days=7)
+    enrolled = course.enrollments.count()
+    if not course.is_active:
+        status = 'inactive'
+    elif course.registration_close_date and today > course.registration_close_date:
+        status = 'closed'
+    elif course.max_students and enrolled >= course.max_students:
+        status = 'full'
+    elif course.registration_close_date and course.registration_close_date <= soon:
+        status = 'closing'
+    else:
+        status = 'open'
+
+    enrollments = CourseEnrollment.objects.filter(course=course).select_related('student') \
+        .order_by('student__last_name', 'student__first_name')
+
+    all_sessions   = AttendanceRecord.objects.filter(course=course).order_by('-session_date')
+    total_sessions = all_sessions.count()
+
+    participant_rows = []
+    for enrollment in enrollments:
+        student     = enrollment.student
+        att_records = StudentAttendance.objects.filter(session__course=course, student=student)
+        present_count = att_records.filter(status='present').count()
+        absent_count  = att_records.filter(status='absent').count()
+        late_count    = att_records.filter(status='late').count()
+        excused_count = att_records.filter(status='excused').count()
+        pct = round(present_count / total_sessions * 100) if total_sessions else None
+        participant_rows.append({
+            'enrollment':     enrollment,
+            'student':        student,
+            'present':        present_count,
+            'absent':         absent_count,
+            'late':           late_count,
+            'excused':        excused_count,
+            'pct':            pct,
+            'low_attendance': pct is not None and pct < 80,
+        })
+
+    instructor_assignments = InstructorCourseAssignment.objects.filter(
+        course=course, is_active=True
+    ).select_related('instructor')
+
+    reminder_logs = ReminderLog.objects.filter(course=course).select_related('student').order_by('-sent_at')[:15]
+    announcements = CourseAnnouncement.objects.filter(course=course).order_by('-created_at')
+
+    return render(request, 'staff/course_detail.html', {
+        'course':                course,
+        'status':                status,
+        'enrolled':              enrolled,
+        'participant_rows':      participant_rows,
+        'sessions':              all_sessions[:15],
+        'total_sessions':        total_sessions,
+        'instructor_assignments': instructor_assignments,
+        'reminder_logs':         reminder_logs,
+        'announcements':         announcements,
+    })
 
 
 @staff_required

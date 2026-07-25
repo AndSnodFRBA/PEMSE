@@ -30,7 +30,9 @@
         <tr>
           <td class="ps-4 py-3" style="color:#6b7280;">{{ row.course.option_number }}</td>
           <td class="py-3">
-            <div style="font-weight:600;color:#1a2e4a;">{{ row.course.name }}</div>
+            <div style="font-weight:600;">
+              <a href="{% url 'staff_course_detail' row.course.pk %}" style="color:#1a2e4a;text-decoration:none;">{{ row.course.name }}</a>
+            </div>
             {% if row.course.licensure %}
             <span style="display:inline-block;font-size:10px;font-weight:600;padding:1px 7px;border-radius:4px;
               background:{{ row.course.tag_bg }};color:{{ row.course.tag_color }};margin-top:2px;">
@@ -67,6 +69,10 @@
           </td>
           <td class="py-3 pe-3">
             <div class="d-flex gap-2 justify-content-end">
+              <a href="{% url 'staff_course_detail' row.course.pk %}"
+                 class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:6px;">
+                <i class="bi bi-eye me-1"></i>View
+              </a>
               <a href="{% url 'staff_course_edit' row.course.pk %}"
                  class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:6px;">
                 <i class="bi bi-pencil me-1"></i>Edit
