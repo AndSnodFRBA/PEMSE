@@ -137,12 +137,20 @@ def staff_dashboard(request):
                 'status':       status,
             })
 
+    # Student invitation status counts
+    invite_completed_count = StudentInvitation.objects.filter(used=True).count()
+    invite_pending_count   = StudentInvitation.objects.filter(used=False, expires_at__gt=timezone.now()).count()
+    invite_expired_count   = StudentInvitation.objects.filter(used=False, expires_at__lte=timezone.now()).count()
+
     return render(request, 'staff/dashboard.html', {
         'rows': rows,
         'pass_rate_alerts': pass_rate_alerts,
         'ce_pending_mid': ce_pending_mid,
         'ce_pending_end': ce_pending_end,
         'meeting_compliance': meeting_compliance,
+        'invite_completed_count': invite_completed_count,
+        'invite_pending_count':   invite_pending_count,
+        'invite_expired_count':   invite_expired_count,
     })
 
 
