@@ -10,4 +10,5 @@ urlpatterns = [
     path('profile/',   views.profile_view,          name='profile'),
     path('register/form/', views.registration_form_view, name='registration_form'),
     path('register/invite/<uuid:token>/', views.register_with_invite, name='register_invite'),
+    path('calendar/',  views.calendar_view, name='calendar'),
 ]

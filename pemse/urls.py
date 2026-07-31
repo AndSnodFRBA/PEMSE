@@ -20,6 +20,7 @@ urlpatterns = [
     path('staff/',       include('staff.urls')),
     path('evaluations/', include('evaluations.urls')),
     path('instructor/',  include('instructor.urls')),
+    path('calendar/',    include('schedule.urls')),
 
     # Password reset — shared across student/staff/instructor accounts, all
     # backed by the same Student model.

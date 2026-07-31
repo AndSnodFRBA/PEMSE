@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
@@ -68,6 +70,12 @@ class Student(AbstractUser):
     instructor_years_experience = models.PositiveIntegerField(null=True, blank=True)
     instructor_primary          = models.BooleanField(default=False, help_text='Primary instructor for a course')
 
+    # ── Calendar subscription ─────────────────────────────────────────────────
+    calendar_token = models.UUIDField(
+        default=uuid.uuid4, unique=True, editable=False,
+        help_text='Secret token used in the ICS feed URL for phone calendar subscriptions',
+    )
+
     class Meta:
         verbose_name = 'Student'
         ordering = ['-date_joined']
@@ -90,6 +98,21 @@ class Student(AbstractUser):
     @property
     def is_instructor(self):
         return self.role == self.Role.INSTRUCTOR
+
+    @property
+    def calendar_courses(self):
+        """Courses this user's calendar page/ICS feed should include events for."""
+        from courses.models import Course, CourseEnrollment
+        if self.is_office_staff:
+            return Course.objects.all()
+        if self.is_instructor:
+            from instructor.models import InstructorCourseAssignment
+            course_ids = InstructorCourseAssignment.objects.filter(
+                instructor=self, is_active=True
+            ).values_list('course_id', flat=True)
+            return Course.objects.filter(pk__in=course_ids)
+        course_ids = CourseEnrollment.objects.filter(student=self).values_list('course_id', flat=True)
+        return Course.objects.filter(pk__in=course_ids)
 
     @property
     def enrollment_complete(self):

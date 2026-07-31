@@ -39,4 +39,10 @@ urlpatterns = [
     # Meetings
     path('meetings/',                       views.instructor_meetings,             name='instructor_meetings'),
     path('meetings/<int:pk>/acknowledge/', views.instructor_meeting_acknowledge,  name='instructor_meeting_acknowledge'),
+
+    # Calendar
+    path('calendar/',                    views.instructor_calendar,        name='instructor_calendar'),
+    path('calendar/add/',                views.instructor_calendar_add,    name='instructor_calendar_add'),
+    path('calendar/<int:pk>/edit/',      views.instructor_calendar_edit,   name='instructor_calendar_edit'),
+    path('calendar/<int:pk>/delete/',    views.instructor_calendar_delete, name='instructor_calendar_delete'),
 ]

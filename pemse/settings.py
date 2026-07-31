@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     'staff',
     'evaluations',
     'instructor',
+    'schedule',
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Calendar — PEMSE{% endblock %}
+
+{% block extra_css %}
+<style>
+  .evt-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+  .evt-due_date { background:#fef3c7; color:#92600a; }
+  .evt-exam     { background:#fee2e2; color:#991b1b; }
+  .evt-quiz     { background:#ede9fe; color:#4c1d95; }
+  .evt-topic    { background:#dbeafe; color:#1e3a8a; }
+  .evt-session  { background:#d1fae5; color:#065f46; }
+  .evt-other    { background:#e5e7eb; color:#374151; }
+  .subscribe-box { background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:18px 20px; }
+  .subscribe-url { font-size:12px; background:#fff; border:1px solid var(--border); border-radius:8px;
+                    padding:8px 10px; word-break:break-all; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="page-hero-badge">Class Calendar</div>
+  <h1>Due Dates &amp; Exams</h1>
+  <p>Everything your instructor has scheduled — assignments, exams, quizzes, and class topics.</p>
+</div>
+
+<div class="subscribe-box mb-4">
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+    <div>
+      <div class="fw-semibold" style="color:#1a2e4a;font-size:14px;">
+        <i class="bi bi-phone me-1"></i> Add this to your phone's calendar
+      </div>
+      <div class="text-muted" style="font-size:12px;max-width:520px;">
+        Subscribe once and new due dates, exams, and quizzes will show up automatically — no need to check back here.
+        On iPhone: Settings → Calendar → Accounts → Add Account → Other → Add Subscribed Calendar.
+        On Android: open the link below in Google Calendar.
+      </div>
+    </div>
+    <button class="btn btn-sm btn-outline-secondary" type="button"
+            onclick="navigator.clipboard.writeText(document.getElementById('subUrl').textContent)">
+      <i class="bi bi-clipboard me-1"></i> Copy Link
+    </button>
+  </div>
+  <div class="subscribe-url mt-2" id="subUrl">{{ request.scheme }}://{{ request.get_host }}{% url 'calendar_feed' feed_token %}</div>
+  <div class="d-flex align-items-center gap-3 mt-2">
+    <a href="webcal://{{ request.get_host }}{% url 'calendar_feed' feed_token %}" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-calendar-plus me-1"></i> Subscribe (webcal)
+    </a>
+    <form method="post" action="{% url 'calendar_feed_regenerate' %}" onsubmit="return confirm('This will invalidate your current subscription link on all devices. Continue?')">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-link text-danger p-0" style="font-size:12px;">Reset link</button>
+    </form>
+  </div>
+</div>
+
+{% if not has_course %}
+  <div class="portal-card text-center text-muted">
+    You aren't enrolled in a course yet, so there's nothing on your calendar.
+  </div>
+{% else %}
+
+<div class="portal-card">
+  <div class="portal-card-title">Upcoming</div>
+  {% if upcoming_events %}
+    <div class="table-responsive">
+      <table class="table table-sm mb-0" style="font-size:13px;">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Title</th>
+            <th>Location</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for event in upcoming_events %}
+          <tr>
+            <td>
+              {{ event.date|date:"D, M j" }}
+              {% if not event.all_day and event.start_time %}<div class="text-muted" style="font-size:11px;">{{ event.start_time|time:"g:i A" }}</div>{% endif %}
+            </td>
+            <td><span class="evt-badge evt-{{ event.event_type }}">{{ event.get_event_type_display }}</span></td>
+            <td>
+              {{ event.title }}
+              {% if event.description %}<div class="text-muted" style="font-size:12px;">{{ event.description }}</div>{% endif %}
+            </td>
+            <td class="text-muted">{{ event.location|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted mb-0" style="font-size:13px;">Nothing scheduled yet — check back soon.</p>
+  {% endif %}
+</div>
+
+{% if past_events %}
+<div class="portal-card">
+  <div class="portal-card-title">Past</div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0" style="font-size:13px;">
+      <tbody>
+        {% for event in past_events %}
+        <tr>
+          <td class="text-muted">{{ event.date|date:"M j, Y" }}</td>
+          <td><span class="evt-badge evt-{{ event.event_type }}" style="opacity:.6;">{{ event.get_event_type_display }}</span></td>
+          <td class="text-muted">{{ event.title }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}

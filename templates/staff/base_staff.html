@@ -73,6 +73,10 @@
        class="nav-item {% if 'course' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-journal-text"></i> Courses
     </a>
+    <a href="{% url 'staff_calendar' %}"
+       class="nav-item {% if 'calendar' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-calendar3"></i> Calendar
+    </a>
   </nav>
 
   <div class="sidebar-section-label mt-3">Evaluations</div>

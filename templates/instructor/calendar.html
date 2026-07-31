@@ -1,0 +1,122 @@
+{% extends 'instructor/base_instructor.html' %}
+{% block title %}Calendar — PEMSE Instructor Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+  .evt-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+  .evt-due_date { background:#fef3c7; color:#92600a; }
+  .evt-exam     { background:#fee2e2; color:#991b1b; }
+  .evt-quiz     { background:#ede9fe; color:#4c1d95; }
+  .evt-topic    { background:#dbeafe; color:#1e3a8a; }
+  .evt-session  { background:#d1fae5; color:#065f46; }
+  .evt-other    { background:#e5e7eb; color:#374151; }
+  .subscribe-box { background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:16px 18px; }
+  .subscribe-url { font-size:12px; background:#fff; border:1px solid var(--border); border-radius:8px;
+                    padding:8px 10px; word-break:break-all; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="inst-topbar">
+  <h1 class="inst-page-title">Course Calendar</h1>
+  <a href="{% url 'instructor_calendar_add' %}" class="btn btn-sm btn-primary">
+    <i class="bi bi-plus-circle me-1"></i> Add Event
+  </a>
+</div>
+
+<div class="subscribe-box mb-4">
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+    <div>
+      <div class="fw-semibold" style="color:#1a2e4a;font-size:14px;">
+        <i class="bi bi-phone me-1"></i> Subscribe on your phone
+      </div>
+      <div class="text-muted" style="font-size:12px;max-width:520px;">
+        Add this link to your phone's calendar app (Apple/Google Calendar → "Add subscription calendar")
+        to automatically see every event for your assigned courses, kept in sync as new events are added.
+      </div>
+    </div>
+    <button class="btn btn-sm btn-outline-secondary" type="button"
+            onclick="navigator.clipboard.writeText(document.getElementById('subUrl').textContent)">
+      <i class="bi bi-clipboard me-1"></i> Copy Link
+    </button>
+  </div>
+  <div class="subscribe-url mt-2" id="subUrl">{{ request.scheme }}://{{ request.get_host }}{% url 'calendar_feed' feed_token %}</div>
+  <div class="d-flex align-items-center gap-3 mt-2">
+    <a href="webcal://{{ request.get_host }}{% url 'calendar_feed' feed_token %}" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-calendar-plus me-1"></i> Subscribe (webcal)
+    </a>
+    <form method="post" action="{% url 'calendar_feed_regenerate' %}" onsubmit="return confirm('This will invalidate your current subscription link on all devices. Continue?')">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-link text-danger p-0" style="font-size:12px;">Reset link</button>
+    </form>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="p-3 border-bottom fw-semibold" style="color:#1a2e4a;font-size:14px;">Upcoming</div>
+  {% if upcoming_events %}
+    <div class="table-responsive">
+      <table class="table table-sm mb-0" style="font-size:13px;">
+        <thead style="background:#f8fafc;">
+          <tr>
+            <th class="px-3 py-2">Date</th>
+            <th class="py-2">Course</th>
+            <th class="py-2">Type</th>
+            <th class="py-2">Title</th>
+            <th class="py-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for event in upcoming_events %}
+          <tr>
+            <td class="px-3 py-2">
+              {{ event.date|date:"M j, Y" }}
+              {% if not event.all_day and event.start_time %}<div class="text-muted" style="font-size:11px;">{{ event.start_time|time:"g:i A" }}</div>{% endif %}
+            </td>
+            <td class="py-2">{{ event.course.tag }}</td>
+            <td class="py-2"><span class="evt-badge evt-{{ event.event_type }}">{{ event.get_event_type_display }}</span></td>
+            <td class="py-2">{{ event.title }}</td>
+            <td class="py-2 text-end pe-3">
+              <a href="{% url 'instructor_calendar_edit' event.pk %}" class="text-primary me-2" style="font-size:12px;">Edit</a>
+              <form method="post" action="{% url 'instructor_calendar_delete' event.pk %}" style="display:inline;"
+                    onsubmit="return confirm('Delete this event?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-link p-0 text-danger" style="font-size:12px;">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="p-4 text-center text-muted">
+      <i class="bi bi-calendar3" style="font-size:32px;color:#dde4ef;"></i>
+      <div class="mt-2">No upcoming events. <a href="{% url 'instructor_calendar_add' %}">Add one.</a></div>
+    </div>
+  {% endif %}
+</div>
+
+{% if past_events %}
+<div class="card">
+  <div class="p-3 border-bottom fw-semibold" style="color:#1a2e4a;font-size:14px;">Past</div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0" style="font-size:13px;">
+      <tbody>
+        {% for event in past_events %}
+        <tr>
+          <td class="px-3 py-2 text-muted">{{ event.date|date:"M j, Y" }}</td>
+          <td class="py-2 text-muted">{{ event.course.tag }}</td>
+          <td class="py-2"><span class="evt-badge evt-{{ event.event_type }}" style="opacity:.6;">{{ event.get_event_type_display }}</span></td>
+          <td class="py-2 text-muted">{{ event.title }}</td>
+          <td class="py-2 text-end pe-3">
+            <a href="{% url 'instructor_calendar_edit' event.pk %}" class="text-primary" style="font-size:12px;">Edit</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

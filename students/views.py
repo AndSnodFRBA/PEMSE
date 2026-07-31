@@ -180,6 +180,24 @@ def profile_view(request):
 
 
 @login_required
+def calendar_view(request):
+    from schedule.models import CalendarEvent
+
+    student = request.user
+    events = CalendarEvent.objects.filter(
+        course__in=student.calendar_courses
+    ).select_related('course').order_by('date', 'start_time')
+
+    today = timezone.now().date()
+    return render(request, 'students/calendar.html', {
+        'upcoming_events': [e for e in events if e.date >= today],
+        'past_events':     [e for e in events if e.date < today],
+        'feed_token':      student.calendar_token,
+        'has_course':      student.calendar_courses.exists(),
+    })
+
+
+@login_required
 def registration_form_view(request):
     """Multi-step registration form with payment contract."""
     from courses.models import Course

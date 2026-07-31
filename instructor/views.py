@@ -9,6 +9,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from courses.models import Course, CourseEnrollment
+from schedule.forms import CalendarEventForm
+from schedule.models import CalendarEvent
 from staff.models import StudentInvitation
 from students.forms import StudentLoginForm
 from students.models import (
@@ -581,3 +583,62 @@ def instructor_meeting_acknowledge(request, pk):
         meeting.save()
         messages.success(request, 'Meeting record acknowledged and signed.')
     return redirect('instructor_meetings')
+
+
+# ── Calendar ──────────────────────────────────────────────────────────────────
+
+def _instructor_courses_qs(instructor):
+    course_ids = InstructorCourseAssignment.objects.filter(
+        instructor=instructor, is_active=True
+    ).values_list('course_id', flat=True)
+    return Course.objects.filter(pk__in=course_ids)
+
+
+@instructor_required
+def instructor_calendar(request):
+    instructor = request.user
+    events = CalendarEvent.objects.filter(
+        course__in=_instructor_courses_qs(instructor)
+    ).select_related('course').order_by('date', 'start_time')
+
+    today = timezone.now().date()
+    return render(request, 'instructor/calendar.html', {
+        'upcoming_events': [e for e in events if e.date >= today],
+        'past_events':     [e for e in events if e.date < today],
+        'feed_token':      instructor.calendar_token,
+    })
+
+
+@instructor_required
+def instructor_calendar_add(request):
+    instructor = request.user
+    form = CalendarEventForm(_instructor_courses_qs(instructor), request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        event            = form.save(commit=False)
+        event.created_by = instructor
+        event.save()
+        messages.success(request, f'Added "{event.title}" to the calendar.')
+        return redirect('instructor_calendar')
+    return render(request, 'instructor/calendar_form.html', {'form': form})
+
+
+@instructor_required
+def instructor_calendar_edit(request, pk):
+    instructor = request.user
+    event = get_object_or_404(CalendarEvent, pk=pk, course__in=_instructor_courses_qs(instructor))
+    form = CalendarEventForm(_instructor_courses_qs(instructor), request.POST or None, instance=event)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Calendar event updated.')
+        return redirect('instructor_calendar')
+    return render(request, 'instructor/calendar_form.html', {'form': form, 'event': event})
+
+
+@instructor_required
+def instructor_calendar_delete(request, pk):
+    instructor = request.user
+    event = get_object_or_404(CalendarEvent, pk=pk, course__in=_instructor_courses_qs(instructor))
+    if request.method == 'POST':
+        event.delete()
+        messages.success(request, 'Calendar event deleted.')
+    return redirect('instructor_calendar')

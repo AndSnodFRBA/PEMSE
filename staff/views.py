@@ -11,6 +11,8 @@ from django.utils import timezone
 from courses.models import Course, CourseAnnouncement, CourseEnrollment
 from documents.models import StudentDocument
 from instructor.models import AttendanceRecord, InstructorCourseAssignment, StudentAttendance
+from schedule.forms import CalendarEventForm
+from schedule.models import CalendarEvent
 from students.forms import StudentLoginForm
 from students.emails import (
     _send, send_document_review_notification, send_invitation_email,
@@ -2136,3 +2138,56 @@ def staff_invite_accept(request, token):
         return redirect('staff_dashboard')
 
     return render(request, 'staff/staff_invite_accept.html', {'form': form, 'invite_email': invitation.email})
+
+
+# ── Calendar ──────────────────────────────────────────────────────────────────
+
+@staff_required
+def staff_calendar(request):
+    events = CalendarEvent.objects.select_related('course').order_by('date', 'start_time')
+
+    course_id = request.GET.get('course')
+    if course_id:
+        events = events.filter(course_id=course_id)
+
+    today = timezone.now().date()
+    events = list(events)
+    return render(request, 'staff/calendar.html', {
+        'upcoming_events': [e for e in events if e.date >= today],
+        'past_events':     [e for e in events if e.date < today],
+        'courses':         Course.objects.order_by('option_number'),
+        'selected_course': int(course_id) if course_id else None,
+        'feed_token':      request.user.calendar_token,
+    })
+
+
+@staff_required
+def staff_calendar_add(request):
+    form = CalendarEventForm(Course.objects.order_by('option_number'), request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        event            = form.save(commit=False)
+        event.created_by = request.user
+        event.save()
+        messages.success(request, f'Added "{event.title}" to the calendar.')
+        return redirect('staff_calendar')
+    return render(request, 'staff/calendar_form.html', {'form': form})
+
+
+@staff_required
+def staff_calendar_edit(request, pk):
+    event = get_object_or_404(CalendarEvent, pk=pk)
+    form = CalendarEventForm(Course.objects.order_by('option_number'), request.POST or None, instance=event)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Calendar event updated.')
+        return redirect('staff_calendar')
+    return render(request, 'staff/calendar_form.html', {'form': form, 'event': event})
+
+
+@staff_required
+def staff_calendar_delete(request, pk):
+    event = get_object_or_404(CalendarEvent, pk=pk)
+    if request.method == 'POST':
+        event.delete()
+        messages.success(request, 'Calendar event deleted.')
+    return redirect('staff_calendar')
