@@ -80,7 +80,7 @@
           <tr>
             <td class="px-3 py-2">
               {{ event.date|date:"M j, Y" }}
-              {% if not event.all_day and event.start_time %}<div class="text-muted" style="font-size:11px;">{{ event.start_time|time:"g:i A" }}</div>{% endif %}
+              {% if not event.all_day and event.start_time %}<div class="text-muted" style="font-size:11px;">{{ event.start_time|time:"H:i" }}</div>{% endif %}
             </td>
             <td class="py-2">{{ event.course.tag }}</td>
             <td class="py-2"><span class="evt-badge evt-{{ event.event_type }}">{{ event.get_event_type_display }}</span></td>

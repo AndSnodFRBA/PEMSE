@@ -76,7 +76,7 @@
           <tr>
             <td>
               {{ event.date|date:"D, M j" }}
-              {% if not event.all_day and event.start_time %}<div class="text-muted" style="font-size:11px;">{{ event.start_time|time:"g:i A" }}</div>{% endif %}
+              {% if not event.all_day and event.start_time %}<div class="text-muted" style="font-size:11px;">{{ event.start_time|time:"H:i" }}</div>{% endif %}
             </td>
             <td><span class="evt-badge evt-{{ event.event_type }}">{{ event.get_event_type_display }}</span></td>
             <td>

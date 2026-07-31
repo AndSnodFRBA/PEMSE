@@ -18,9 +18,18 @@ def calendar_feed(request, token):
     except (Student.DoesNotExist, ValueError):
         raise Http404('Unknown calendar feed.')
 
-    course_ids = user.calendar_courses.values_list('pk', flat=True)
+    courses = user.calendar_courses
+    course_ids = courses.values_list('pk', flat=True)
     events = CalendarEvent.objects.filter(course_id__in=course_ids).select_related('course')
-    ics_text = build_calendar(events, calendar_name=f'PEMSE — {user.get_full_name()}')
+
+    course_names = list(courses.values_list('name', flat=True))
+    if not course_names:
+        label = 'No Course'
+    elif len(course_names) <= 3:
+        label = ', '.join(course_names)
+    else:
+        label = f'{len(course_names)} Courses'
+    ics_text = build_calendar(events, calendar_name=f'PEMSE — {label}')
 
     response = HttpResponse(ics_text, content_type='text/calendar; charset=utf-8')
     response['Content-Disposition'] = 'inline; filename="pemse-calendar.ics"'
