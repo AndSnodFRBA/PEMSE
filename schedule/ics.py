@@ -55,6 +55,17 @@ def _event_to_vevent(event, dtstamp):
     if event.location:
         lines.append(_fold(f'LOCATION:{_escape(event.location)}'))
     lines.append(f'CATEGORIES:{_escape(event.get_event_type_display())}')
+
+    # 72-hour and 24-hour reminders. Honored by Apple/Outlook subscribed
+    # calendars; Google Calendar ignores VALARMs on "Add by URL" subscriptions
+    # (its own long-standing limitation) — see calendar page for a heads-up.
+    for trigger in ('-P3D', '-P1D'):
+        lines.append('BEGIN:VALARM')
+        lines.append('ACTION:DISPLAY')
+        lines.append(_fold(f'DESCRIPTION:{_escape(summary)}'))
+        lines.append(f'TRIGGER:{trigger}')
+        lines.append('END:VALARM')
+
     lines.append('END:VEVENT')
     return lines
 
