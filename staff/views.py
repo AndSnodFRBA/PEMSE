@@ -777,6 +777,7 @@ def invoice_pdf(request, pk):
 
     student    = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
     enrollment = CourseEnrollment.objects.filter(student=student).first()
+    payment    = getattr(student, 'payment', None)
     history    = student.payment_history.order_by('payment_date')
 
     total_paid  = sum(p.amount for p in history)
@@ -845,6 +846,22 @@ def invoice_pdf(request, pk):
         story.append(kv_table(rows))
     else:
         story.append(Paragraph('No course assigned.', body))
+
+    if payment and payment.method:
+        story += section('Billing Information')
+        rows = [
+            ['Payment Method', payment.get_method_display()],
+            ['Payment Option', payment.get_pay_option_display() or '—'],
+        ]
+        if payment.method == 'dept':
+            rows += [
+                ['Department',         payment.dept_name or '—'],
+                ['Department Address', payment.dept_address or '—'],
+                ['Department Contact', payment.dept_contact or '—'],
+                ['Department Email',   payment.dept_email or '—'],
+                ['Department Phone',   payment.dept_phone or '—'],
+            ]
+        story.append(kv_table(rows))
 
     story += section('Payments Received')
     if history.exists():
