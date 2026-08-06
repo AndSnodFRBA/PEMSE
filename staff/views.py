@@ -21,7 +21,7 @@ from students.emails import (
 from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
     CourseReportRecord, EntranceRequirementRecord,
-    PatientContactRecord, PaymentHistory, PsychomotorSkillRecord,
+    PatientContactRecord, PaymentHistory, PaymentRecord, PsychomotorSkillRecord,
     ReminderLog, Student, StudentNote,
 )
 from students.reminders import BalanceDueRule, RegistrationIncompleteRule
@@ -42,6 +42,7 @@ from .forms import (
     StaffAccountInviteForm,
     StaffAnnouncementForm,
     StaffAssignCourseForm,
+    StaffPaymentRecordForm,
     StudentNoteForm,
     StaffInviteAcceptForm,
     StaffStudentEditForm,
@@ -164,7 +165,8 @@ def student_detail(request, pk):
     student    = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
     enrollment = CourseEnrollment.objects.filter(student=student).first()
     docs       = StudentDocument.objects.filter(student=student).select_related('doc_type').order_by('doc_type__order')
-    payment    = getattr(student, 'payment', None)
+    payment, _ = PaymentRecord.objects.get_or_create(student=student)
+    payment_form = StaffPaymentRecordForm(instance=payment)
     history    = student.payment_history.select_related('recorded_by').all()
 
     doc_forms = [(doc, DocumentReviewForm(initial={'status': doc.status, 'notes': doc.notes})) for doc in docs]
@@ -226,6 +228,7 @@ def student_detail(request, pk):
         'total_owed':         total_owed,
         'balance_due':        balance_due,
         'add_payment_form':   add_payment_form,
+        'payment_form':       payment_form,
         'notes':              notes,
         'note_form':          note_form,
         # Course Evaluations
@@ -291,6 +294,20 @@ def add_payment(request, pk):
             record.save()
             send_payment_receipt(record)
             messages.success(request, f'Payment of ${record.amount} recorded.')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    return redirect('staff_student_detail', pk=pk)
+
+
+@staff_required
+def edit_payment_info(request, pk):
+    student = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
+    payment, _ = PaymentRecord.objects.get_or_create(student=student)
+    if request.method == 'POST':
+        form = StaffPaymentRecordForm(request.POST, instance=payment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Payment info updated for {student.get_full_name()}.')
         else:
             messages.error(request, 'Please correct the errors below.')
     return redirect('staff_student_detail', pk=pk)

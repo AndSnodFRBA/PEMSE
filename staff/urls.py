@@ -11,6 +11,7 @@ urlpatterns = [
     path('students/<int:pk>/pdf/',             views.student_pdf,           name='staff_student_pdf'),
     path('students/<int:pk>/invoice/',         views.invoice_pdf,           name='staff_invoice_pdf'),
     path('students/<int:pk>/add-payment/',     views.add_payment,           name='staff_add_payment'),
+    path('students/<int:pk>/payment-info/',    views.edit_payment_info,     name='staff_edit_payment_info'),
     path('students/<int:pk>/add-note/',        views.add_student_note,      name='staff_add_note'),
     path('students/<int:pk>/notes/<int:note_pk>/delete/', views.delete_student_note, name='staff_delete_note'),
     path('students/<int:pk>/assign-course/',   views.assign_course,         name='staff_assign_course'),

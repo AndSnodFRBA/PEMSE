@@ -5,8 +5,8 @@ from documents.models import StudentDocument
 from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
     CourseReportRecord, EntranceRequirementRecord,
-    PatientContactRecord, PaymentHistory, PsychomotorSkillRecord, Student,
-    StudentNote,
+    PatientContactRecord, PaymentHistory, PaymentRecord, PsychomotorSkillRecord,
+    Student, StudentNote,
 )
 from instructor.models import (
     InstructorCourseAssignment, InstructorObservation,
@@ -184,6 +184,27 @@ class PaymentHistoryForm(forms.ModelForm):
             'method':       forms.Select(attrs={'class': 'form-select'}),
             'check_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Check #'}),
             'notes':        forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Optional notes…'}),
+        }
+
+
+class StaffPaymentRecordForm(forms.ModelForm):
+    """Lets staff set/change how a student is paying, including department billing details."""
+    class Meta:
+        model  = PaymentRecord
+        fields = [
+            'method', 'pay_option', 'check_number',
+            'dept_name', 'dept_address', 'dept_contact',
+            'dept_email', 'dept_phone',
+        ]
+        widgets = {
+            'method':       forms.Select(attrs={'class': 'form-select form-select-sm'}),
+            'pay_option':   forms.Select(attrs={'class': 'form-select form-select-sm'}),
+            'check_number': forms.TextInput(attrs={'class': 'form-control form-control-sm', 'placeholder': 'Check #'}),
+            'dept_name':    forms.TextInput(attrs={'class': 'form-control form-control-sm', 'placeholder': 'Fire Dept / Agency'}),
+            'dept_address': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': 2, 'placeholder': 'Street, City, State, ZIP'}),
+            'dept_contact': forms.TextInput(attrs={'class': 'form-control form-control-sm', 'placeholder': 'Name'}),
+            'dept_email':   forms.EmailInput(attrs={'class': 'form-control form-control-sm', 'placeholder': 'billing@dept.gov'}),
+            'dept_phone':   forms.TextInput(attrs={'class': 'form-control form-control-sm', 'placeholder': '(308) 000-0000'}),
         }
 
 
