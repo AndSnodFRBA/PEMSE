@@ -151,8 +151,11 @@ class CourseForm(forms.ModelForm):
 class StaffAssignCourseForm(forms.ModelForm):
     class Meta:
         model  = CourseEnrollment
-        fields = ['course']
-        widgets = {'course': forms.Select(attrs={'class': 'form-select form-select-sm'})}
+        fields = ['course', 'book_included']
+        widgets = {
+            'course':        forms.Select(attrs={'class': 'form-select form-select-sm'}),
+            'book_included': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
 
 
 class ReminderBulkSendForm(forms.Form):

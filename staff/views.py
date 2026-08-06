@@ -272,7 +272,8 @@ def assign_course(request, pk):
             if not new_course.has_book_option:
                 enr.book_included = False
             enr.save()
-            messages.success(request, f'{student.get_full_name()} assigned to Option {new_course.option_number} — {new_course.name}.')
+            book_note = ' with textbook' if enr.book_included else ''
+            messages.success(request, f'{student.get_full_name()} assigned to Option {new_course.option_number} — {new_course.name}{book_note}.')
         else:
             messages.error(request, 'Please select a valid course.')
     return redirect('staff_student_detail', pk=pk)

@@ -59,15 +59,20 @@
       </div>
       <div class="collapse" id="assign-course-form">
         <div class="card-body" style="border-bottom:1px solid #dde4ef;background:#f8fafc;">
-          <form method="post" action="{% url 'staff_assign_course' student.pk %}" class="d-flex gap-2 align-items-start flex-wrap">
+          <form method="post" action="{% url 'staff_assign_course' student.pk %}" class="d-flex gap-2 align-items-center flex-wrap">
             {% csrf_token %}
             <select name="course" class="form-select form-select-sm" style="max-width:320px;">
               {% for c in courses_all %}
                 <option value="{{ c.id }}" {% if enrollment.course_id == c.id %}selected{% endif %}>Option {{ c.option_number }} — {{ c.name }}</option>
               {% endfor %}
             </select>
+            <div class="form-check" style="font-size:12px;">
+              <input type="checkbox" name="book_included" value="1" class="form-check-input" id="book-included-check" {% if enrollment.book_included %}checked{% endif %}>
+              <label class="form-check-label" for="book-included-check">Include textbook</label>
+            </div>
             <button type="submit" class="btn btn-sm" style="background:#2B5EA7;color:#fff;border-radius:6px;font-size:12px;">Save</button>
           </form>
+          <div style="font-size:11px;color:#6b7280;margin-top:4px;">Textbook only applies if the selected course has a textbook option — it's ignored otherwise.</div>
         </div>
       </div>
       <div class="card-body p-0">
