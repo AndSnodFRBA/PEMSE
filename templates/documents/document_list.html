@@ -54,4 +54,30 @@
     📎 Files are stored securely on AWS S3. Only you and PEMSE staff can access your documents. Signed URLs expire after 5 minutes for security.
   </div>
 </div>
+
+{% if resources %}
+<div class="portal-card" style="margin-top:20px;">
+  <div class="portal-card-title">Resources</div>
+  <div class="portal-card-sub">Handbook, class materials, and forms shared by your instructors.</div>
+
+  {% for doc in resources %}
+  <div class="doc-item uploaded">
+    <div class="doc-icon" style="background:#d8f5ec;">
+      <i class="bi bi-file-earmark-fill" style="color:#0a6b47;"></i>
+    </div>
+    <div class="doc-body">
+      <div class="doc-name">{{ doc.title }}</div>
+      {% if doc.description %}<div class="doc-hint">{{ doc.description }}</div>{% endif %}
+      <div class="doc-status" style="color:#6b7280;">
+        {{ doc.uploaded_at|date:"M j, Y" }} · {{ doc.uploaded_by.get_full_name }}
+        {% if doc.course %} · {{ doc.course.tag }}{% endif %}
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-shrink:0;">
+      <a href="{{ doc.file.url }}" target="_blank" class="btn-ghost" style="padding:7px 14px;font-size:12px;">Download</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 {% endblock %}

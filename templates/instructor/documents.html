@@ -1,0 +1,59 @@
+{% extends 'instructor/base_instructor.html' %}
+{% block title %}Documents — PEMSE Instructor Portal{% endblock %}
+
+{% block content %}
+<div class="inst-topbar">
+  <h1 class="inst-page-title">Documents</h1>
+  <a href="{% url 'instructor_document_add' %}" class="btn btn-sm btn-primary">
+    <i class="bi bi-plus-circle me-1"></i> Upload Document
+  </a>
+</div>
+
+<div class="card">
+  {% if docs %}
+    <div class="table-responsive">
+      <table class="table table-sm mb-0" style="font-size:13px;">
+        <thead style="background:#f8fafc;">
+          <tr>
+            <th class="px-3 py-2">Title</th>
+            <th class="py-2">Visible To</th>
+            <th class="py-2">Uploaded</th>
+            <th class="py-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for doc in docs %}
+          <tr>
+            <td class="px-3 py-2">
+              <a href="{{ doc.file.url }}" target="_blank" class="fw-semibold text-decoration-none">{{ doc.title }}</a>
+              {% if doc.description %}<div class="text-muted" style="font-size:12px;">{{ doc.description }}</div>{% endif %}
+            </td>
+            <td class="py-2">
+              {% if doc.course %}
+                <span class="badge" style="background:#dbeafe;color:#1e3a8a;border-radius:8px;">{{ doc.course.tag }}</span>
+              {% else %}
+                <span class="text-muted">All students</span>
+              {% endif %}
+            </td>
+            <td class="py-2">{{ doc.uploaded_at|date:"M j, Y" }}</td>
+            <td class="py-2 text-end pe-3">
+              <form method="post" action="{% url 'instructor_document_delete' doc.pk %}"
+                    style="display:inline;"
+                    onsubmit="return confirm('Remove this document? Students will no longer be able to see it.')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-link p-0 text-danger" style="font-size:12px;">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="p-4 text-center text-muted">
+      <i class="bi bi-folder2-open" style="font-size:32px;color:#dde4ef;"></i>
+      <div class="mt-2">No documents uploaded yet. <a href="{% url 'instructor_document_add' %}">Upload your first document.</a></div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

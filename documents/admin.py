@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils import timezone
 from django.utils.html import format_html
-from .models import DocumentType, StudentDocument
+from .models import DocumentType, InstructorDocument, StudentDocument
 
 
 @admin.register(DocumentType)
@@ -35,3 +35,21 @@ class StudentDocumentAdmin(admin.ModelAdmin):
     def reject_docs(self, request, queryset):
         queryset.update(status='rejected', reviewed_by=request.user, reviewed_at=timezone.now())
     reject_docs.short_description = 'Mark selected as Rejected'
+
+
+@admin.register(InstructorDocument)
+class InstructorDocumentAdmin(admin.ModelAdmin):
+    list_display  = ['title', 'course', 'uploaded_by', 'uploaded_at', 'download_link']
+    list_filter   = ['course']
+    search_fields = ['title', 'description', 'uploaded_by__email', 'uploaded_by__first_name', 'uploaded_by__last_name']
+    readonly_fields = ['uploaded_at', 'download_link']
+
+    @admin.display(description='Download')
+    def download_link(self, obj):
+        if obj.file:
+            try:
+                url = obj.file.url
+                return format_html('<a href="{}" target="_blank">Download</a>', url)
+            except Exception:
+                return '—'
+        return '—'

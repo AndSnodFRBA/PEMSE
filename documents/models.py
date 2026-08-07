@@ -10,6 +10,11 @@ def student_document_path(instance, filename):
     return f'student-documents/{instance.student.id}/{instance.doc_type.slug}/{safe_name}'
 
 
+def instructor_document_path(instance, filename):
+    """Upload to: instructor-documents/<uploader_id>/<filename>"""
+    return f'instructor-documents/{instance.uploaded_by_id}/{filename}'
+
+
 class DocumentType(models.Model):
     """Defines the types of documents students must upload."""
     slug        = models.SlugField(unique=True)
@@ -67,3 +72,29 @@ class StudentDocument(models.Model):
     @property
     def status_color(self):
         return {'pending': '#d4a017', 'approved': '#0a7a4b', 'rejected': '#c8102e'}.get(self.status, '#888')
+
+
+class InstructorDocument(models.Model):
+    """A file uploaded by staff/an instructor for students to view — handbook, class materials, forms."""
+    title       = models.CharField(max_length=200)
+    description = models.CharField(max_length=300, blank=True)
+    file        = models.FileField(upload_to=instructor_document_path)
+    course      = models.ForeignKey(
+        'courses.Course', null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='instructor_documents',
+        help_text='Leave blank to show to all students, regardless of course.',
+    )
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='documents_uploaded'
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def filename(self):
+        return os.path.basename(self.file.name) if self.file else ''

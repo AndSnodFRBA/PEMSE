@@ -1,9 +1,10 @@
 import os
+from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponseForbidden
-from .models import DocumentType, StudentDocument
+from .models import DocumentType, InstructorDocument, StudentDocument
 from .forms import DocumentUploadForm
 
 
@@ -12,7 +13,15 @@ def document_list_view(request):
     doc_types = DocumentType.objects.all()
     uploads = {d.doc_type_id: d for d in StudentDocument.objects.filter(student=request.user).select_related('doc_type')}
     items = [{'type': dt, 'upload': uploads.get(dt.id)} for dt in doc_types]
-    return render(request, 'documents/document_list.html', {'items': items})
+
+    from courses.models import CourseEnrollment
+    enrollment = CourseEnrollment.objects.filter(student=request.user).first()
+    course = enrollment.course if enrollment else None
+    resources = InstructorDocument.objects.filter(
+        Q(course__isnull=True) | Q(course=course)
+    ).select_related('course', 'uploaded_by')
+
+    return render(request, 'documents/document_list.html', {'items': items, 'resources': resources})
 
 
 @login_required

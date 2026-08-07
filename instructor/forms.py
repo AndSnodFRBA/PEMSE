@@ -1,6 +1,7 @@
 from django import forms
 from django.utils import timezone
 
+from documents.models import InstructorDocument
 from students.models import Student
 from .models import (
     AttendanceRecord,
@@ -136,3 +137,26 @@ class InstructorProfileForm(forms.ModelForm):
             'instructor_employer_address': forms.TextInput(attrs=_fc),
             'instructor_years_experience': forms.NumberInput(attrs={**_fc, 'min': '0'}),
         }
+
+
+class InstructorDocumentForm(forms.ModelForm):
+    class Meta:
+        model  = InstructorDocument
+        fields = ['title', 'description', 'course', 'file']
+        widgets = {
+            'title':       forms.TextInput(attrs={**_fc, 'placeholder': 'e.g. Student Handbook'}),
+            'description': forms.TextInput(attrs={**_fc, 'placeholder': 'Optional short note'}),
+            'course':      forms.Select(attrs=_fs),
+            'file':        forms.ClearableFileInput(attrs=_fc),
+        }
+
+    def __init__(self, instructor, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from .models import InstructorCourseAssignment
+        assigned_course_ids = InstructorCourseAssignment.objects.filter(
+            instructor=instructor, is_active=True
+        ).values_list('course_id', flat=True)
+        from courses.models import Course
+        self.fields['course'].queryset = Course.objects.filter(pk__in=assigned_course_ids)
+        self.fields['course'].required = False
+        self.fields['course'].empty_label = 'All students (not course-specific)'

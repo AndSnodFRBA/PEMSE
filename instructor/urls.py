@@ -26,6 +26,11 @@ urlpatterns = [
     path('courses/',          views.instructor_courses,       name='instructor_courses'),
     path('courses/<int:pk>/', views.instructor_course_detail, name='instructor_course_detail'),
 
+    # Documents
+    path('documents/',               views.instructor_documents,        name='instructor_documents'),
+    path('documents/add/',           views.instructor_document_add,     name='instructor_document_add'),
+    path('documents/<int:pk>/delete/', views.instructor_document_delete, name='instructor_document_delete'),
+
     # Students
     path('students/<int:pk>/', views.instructor_student_detail, name='instructor_student_detail'),
 

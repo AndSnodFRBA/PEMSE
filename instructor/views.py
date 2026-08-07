@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from courses.models import Course, CourseEnrollment
+from documents.models import InstructorDocument
 from schedule.forms import CalendarEventForm
 from schedule.models import CalendarEvent
 from staff.models import StudentInvitation
@@ -20,6 +21,7 @@ from students.models import (
 from .forms import (
     AttendanceSessionForm,
     HourLogForm,
+    InstructorDocumentForm,
     InstructorProfileForm,
     StudentAttendanceForm,
 )
@@ -443,6 +445,36 @@ def instructor_course_detail(request, pk):
         'total_sessions': total_sessions,
         'invitations':   invitations,
     })
+
+
+# ── Documents ─────────────────────────────────────────────────────────────────
+
+@instructor_required
+def instructor_documents(request):
+    docs = InstructorDocument.objects.filter(uploaded_by=request.user).select_related('course')
+    return render(request, 'instructor/documents.html', {'docs': docs})
+
+
+@instructor_required
+def instructor_document_add(request):
+    form = InstructorDocumentForm(request.user, request.POST or None, request.FILES or None)
+    if request.method == 'POST' and form.is_valid():
+        doc = form.save(commit=False)
+        doc.uploaded_by = request.user
+        doc.save()
+        messages.success(request, f'"{doc.title}" uploaded — visible to students now.')
+        return redirect('instructor_documents')
+    return render(request, 'instructor/document_add.html', {'form': form})
+
+
+@instructor_required
+def instructor_document_delete(request, pk):
+    doc = get_object_or_404(InstructorDocument, pk=pk, uploaded_by=request.user)
+    if request.method == 'POST':
+        doc.file.delete(save=False)
+        doc.delete()
+        messages.success(request, 'Document removed.')
+    return redirect('instructor_documents')
 
 
 # ── Student Detail (read-only for instructor) ─────────────────────────────────

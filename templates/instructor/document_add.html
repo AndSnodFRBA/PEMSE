@@ -1,0 +1,55 @@
+{% extends 'instructor/base_instructor.html' %}
+{% block title %}Upload Document — PEMSE Instructor Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-section { background:#fff; border-radius:10px; border:1px solid #dde4ef; padding:24px; margin-bottom:20px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="inst-topbar">
+  <h1 class="inst-page-title">Upload Document</h1>
+  <a href="{% url 'instructor_documents' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> Back
+  </a>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="row g-3">
+    <div class="col-12 col-md-8">
+      <div class="form-section">
+        <div class="mb-3">
+          <label class="form-label fw-semibold" style="font-size:13px;">Title</label>
+          {{ form.title }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold" style="font-size:13px;">Description <span class="text-muted fw-normal">(optional)</span></label>
+          {{ form.description }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold" style="font-size:13px;">Course</label>
+          {{ form.course }}
+          <div class="form-text" style="font-size:12px;">Leave as "All students" for things like the handbook — pick a course to limit it to students in that course.</div>
+        </div>
+        <div class="mb-0">
+          <label class="form-label fw-semibold" style="font-size:13px;">File</label>
+          {{ form.file }}
+          <div class="form-text" style="font-size:12px;">PDF, Word, or image files work best.</div>
+        </div>
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger mt-3 py-2" style="font-size:13px;">{{ form.non_field_errors }}</div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="d-grid">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-upload me-1"></i> Upload
+        </button>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
