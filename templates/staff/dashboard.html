@@ -19,9 +19,10 @@
           <th class="py-3" style="color:#1a2e4a;font-weight:600;">Course</th>
           <th class="py-3" style="color:#1a2e4a;font-weight:600;">Status</th>
           <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="Registration submitted">Reg</th>
-          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="Handbook signed">Book</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="Handbook signed">Handbook</th>
           <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="Contract signed">Contract</th>
           <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="3+ required docs approved">Docs</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="Registered with physical textbook">Textbook</th>
           <th class="py-3" style="color:#1a2e4a;font-weight:600;">Joined</th>
           <th class="py-3"></th>
         </tr>
@@ -60,6 +61,17 @@
           <td class="py-3 text-center">
             {% if row.docs_ok %}<i class="bi bi-check-circle-fill check-icon"></i>
             {% else %}<span style="color:#9ca3af;font-size:11px;">{{ row.docs_count }}/3</span>{% endif %}
+          </td>
+          <td class="py-3 text-center">
+            {% if row.enrollment and row.enrollment.course.has_book_option %}
+              {% if row.enrollment.book_included %}
+                <i class="bi bi-check-circle-fill check-icon" title="With textbook"></i>
+              {% else %}
+                <i class="bi bi-circle cross-icon" title="Without textbook"></i>
+              {% endif %}
+            {% else %}
+              <span style="color:#9ca3af;">—</span>
+            {% endif %}
           </td>
           <td class="py-3" style="color:#6b7280;font-size:12px;">{{ row.student.date_joined|date:"M j, Y" }}</td>
           <td class="py-3 pe-3">
