@@ -80,7 +80,7 @@ def staff_logout_view(request):
 
 @staff_required
 def staff_dashboard(request):
-    students = Student.objects.filter(role=Student.Role.STUDENT).order_by('-date_joined')
+    students = Student.objects.filter(role=Student.Role.STUDENT).select_related('payment').order_by('-date_joined')
 
     # Attach quick-status data to each student
     rows = []
@@ -92,6 +92,7 @@ def staff_dashboard(request):
             'enrollment': enrollment,
             'docs_count': req_docs.count(),
             'docs_ok':    req_docs.filter(status='approved').count() >= 3,
+            'payment':    getattr(s, 'payment', None),
         })
 
     # NREMT pass-rate alerts: courses with any rate below 75%

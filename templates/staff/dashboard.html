@@ -23,6 +23,7 @@
           <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="Contract signed">Contract</th>
           <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="3+ required docs approved">Docs</th>
           <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="Registered with physical textbook">Textbook</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="Department paying">Dept</th>
           <th class="py-3" style="color:#1a2e4a;font-weight:600;">Joined</th>
           <th class="py-3"></th>
         </tr>
@@ -71,6 +72,13 @@
               {% endif %}
             {% else %}
               <span style="color:#9ca3af;">—</span>
+            {% endif %}
+          </td>
+          <td class="py-3 text-center">
+            {% if row.payment and row.payment.method == 'dept' %}
+              <i class="bi bi-check-circle-fill check-icon" title="{{ row.payment.dept_name|default:'Department paying' }}"></i>
+            {% else %}
+              <i class="bi bi-circle cross-icon"></i>
             {% endif %}
           </td>
           <td class="py-3" style="color:#6b7280;font-size:12px;">{{ row.student.date_joined|date:"M j, Y" }}</td>
