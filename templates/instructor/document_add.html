@@ -1,5 +1,5 @@
 {% extends 'instructor/base_instructor.html' %}
-{% block title %}Upload Document — PEMSE Instructor Portal{% endblock %}
+{% block title %}{% if doc %}Edit Document{% else %}Upload Document{% endif %} — PEMSE Instructor Portal{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -9,7 +9,7 @@
 
 {% block content %}
 <div class="inst-topbar">
-  <h1 class="inst-page-title">Upload Document</h1>
+  <h1 class="inst-page-title">{% if doc %}Edit Document{% else %}Upload Document{% endif %}</h1>
   <a href="{% url 'instructor_documents' %}" class="btn btn-sm btn-outline-secondary">
     <i class="bi bi-arrow-left me-1"></i> Back
   </a>
@@ -35,8 +35,15 @@
         </div>
         <div class="mb-0">
           <label class="form-label fw-semibold" style="font-size:13px;">File</label>
+          {% if doc %}
+            <div class="mb-2" style="font-size:12px;">
+              Current file: <a href="{{ doc.file.url }}" target="_blank">{{ doc.filename }}</a>
+            </div>
+          {% endif %}
           {{ form.file }}
-          <div class="form-text" style="font-size:12px;">PDF, Word, or image files work best.</div>
+          <div class="form-text" style="font-size:12px;">
+            PDF, Word, or image files work best.{% if doc %} Leave blank to keep the current file.{% endif %}
+          </div>
         </div>
         {% if form.non_field_errors %}
           <div class="alert alert-danger mt-3 py-2" style="font-size:13px;">{{ form.non_field_errors }}</div>
@@ -46,7 +53,7 @@
     <div class="col-12 col-md-4">
       <div class="d-grid">
         <button type="submit" class="btn btn-primary">
-          <i class="bi bi-upload me-1"></i> Upload
+          <i class="bi {% if doc %}bi-save{% else %}bi-upload{% endif %} me-1"></i> {% if doc %}Save Changes{% else %}Upload{% endif %}
         </button>
       </div>
     </div>

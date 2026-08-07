@@ -37,6 +37,7 @@
             </td>
             <td class="py-2">{{ doc.uploaded_at|date:"M j, Y" }}</td>
             <td class="py-2 text-end pe-3">
+              <a href="{% url 'instructor_document_edit' doc.pk %}" class="text-primary me-2" style="font-size:12px;">Edit</a>
               <form method="post" action="{% url 'instructor_document_delete' doc.pk %}"
                     style="display:inline;"
                     onsubmit="return confirm('Remove this document? Students will no longer be able to see it.')">

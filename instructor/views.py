@@ -468,6 +468,17 @@ def instructor_document_add(request):
 
 
 @instructor_required
+def instructor_document_edit(request, pk):
+    doc  = get_object_or_404(InstructorDocument, pk=pk, uploaded_by=request.user)
+    form = InstructorDocumentForm(request.user, request.POST or None, request.FILES or None, instance=doc)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, f'"{doc.title}" updated.')
+        return redirect('instructor_documents')
+    return render(request, 'instructor/document_add.html', {'form': form, 'doc': doc})
+
+
+@instructor_required
 def instructor_document_delete(request, pk):
     doc = get_object_or_404(InstructorDocument, pk=pk, uploaded_by=request.user)
     if request.method == 'POST':

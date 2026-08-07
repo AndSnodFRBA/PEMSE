@@ -29,6 +29,7 @@ urlpatterns = [
     # Documents
     path('documents/',               views.instructor_documents,        name='instructor_documents'),
     path('documents/add/',           views.instructor_document_add,     name='instructor_document_add'),
+    path('documents/<int:pk>/edit/', views.instructor_document_edit,    name='instructor_document_edit'),
     path('documents/<int:pk>/delete/', views.instructor_document_delete, name='instructor_document_delete'),
 
     # Students
