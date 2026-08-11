@@ -12,6 +12,15 @@
     <span class="badge badge-{{ student.enroll_status }}" style="font-size:11px;padding:4px 10px;border-radius:6px;">
       {{ student.get_enroll_status_display }}
     </span>
+    {% if attendance %}
+      {% if attendance.level == 'red' %}
+        <span title="Below 80% attendance — 172 NAC Chapter 13 allows dismissal above 20% absence" style="background:#fee2e2;color:#991b1b;border-radius:12px;font-size:11px;font-weight:700;padding:3px 10px;"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ attendance.pct }}% attendance</span>
+      {% elif attendance.level == 'yellow' %}
+        <span title="Attendance {{ attendance.pct }}%" style="background:#fef3c7;color:#92600a;border-radius:12px;font-size:11px;font-weight:700;padding:3px 10px;">{{ attendance.pct }}% attendance</span>
+      {% else %}
+        <span title="Attendance {{ attendance.pct }}%" style="background:#dcfce7;color:#166534;border-radius:12px;font-size:11px;font-weight:700;padding:3px 10px;">{{ attendance.pct }}% attendance</span>
+      {% endif %}
+    {% endif %}
   </div>
   <div class="d-flex gap-2">
     <a href="{% url 'staff_student_edit' student.pk %}" class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:7px;">

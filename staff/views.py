@@ -78,6 +78,30 @@ def staff_logout_view(request):
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
+def _attendance_summary(student, course):
+    """Attendance percentage for a student in their course, with a 172 NAC warning level.
+
+    Green >90%, yellow 80-90%, red <80% — 172 NAC Chapter 13 allows dismissal
+    of students who miss more than 20% of class sessions.
+    """
+    if not course:
+        return None
+    total_sessions = AttendanceRecord.objects.filter(course=course).count()
+    if not total_sessions:
+        return None
+    present_count = StudentAttendance.objects.filter(
+        session__course=course, student=student, status='present',
+    ).count()
+    pct = round(present_count / total_sessions * 100)
+    if pct < 80:
+        level = 'red'
+    elif pct < 90:
+        level = 'yellow'
+    else:
+        level = 'green'
+    return {'pct': pct, 'level': level}
+
+
 @staff_required
 def staff_dashboard(request):
     students = Student.objects.filter(role=Student.Role.STUDENT).select_related('payment').order_by('-date_joined')
@@ -93,6 +117,7 @@ def staff_dashboard(request):
             'docs_count': req_docs.count(),
             'docs_ok':    req_docs.filter(status='approved').count() >= 3,
             'payment':    getattr(s, 'payment', None),
+            'attendance': _attendance_summary(s, enrollment.course if enrollment else None),
         })
 
     # NREMT pass-rate alerts: courses with any rate below 75%
@@ -207,6 +232,7 @@ def student_detail(request, pk):
     }
 
     is_aemt = course and course.licensure in ('AEMT', 'PARA') if course else False
+    attendance = _attendance_summary(student, course)
 
     # Course evaluations for this student
     from evaluations.models import CourseEvaluation
@@ -244,6 +270,7 @@ def student_detail(request, pk):
         'completion_rec':     completion_rec,
         'pc_totals':          pc_totals,
         'is_aemt':            is_aemt,
+        'attendance':         attendance,
         'exam_form':          CognitiveExamForm(),
         'skill_form':         PsychomotorSkillForm(),
         'contact_form':       PatientContactForm(),

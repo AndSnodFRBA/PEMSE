@@ -32,7 +32,18 @@
         {% for row in rows %}
         <tr>
           <td class="ps-4 py-3">
-            <div style="font-weight:600;color:#1a2e4a;">{{ row.student.get_full_name }}</div>
+            <div style="font-weight:600;color:#1a2e4a;">
+              {{ row.student.get_full_name }}
+              {% if row.attendance %}
+                {% if row.attendance.level == 'red' %}
+                  <span title="Attendance {{ row.attendance.pct }}% — below 80%" style="background:#fee2e2;color:#991b1b;border-radius:12px;font-size:10px;font-weight:700;padding:1px 7px;margin-left:4px;"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ row.attendance.pct }}%</span>
+                {% elif row.attendance.level == 'yellow' %}
+                  <span title="Attendance {{ row.attendance.pct }}%" style="background:#fef3c7;color:#92600a;border-radius:12px;font-size:10px;font-weight:700;padding:1px 7px;margin-left:4px;">{{ row.attendance.pct }}%</span>
+                {% else %}
+                  <span title="Attendance {{ row.attendance.pct }}%" style="background:#dcfce7;color:#166534;border-radius:12px;font-size:10px;font-weight:700;padding:1px 7px;margin-left:4px;">{{ row.attendance.pct }}%</span>
+                {% endif %}
+              {% endif %}
+            </div>
             <div style="color:#5a7a9a;font-size:11px;">{{ row.student.email }}</div>
           </td>
           <td class="py-3" style="color:#374151;">
