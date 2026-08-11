@@ -331,18 +331,22 @@
     <input type="hidden" name="action" value="sign_contract">
     <input type="hidden" name="sig_name" id="sig-hidden">
     <div style="font-size:13px;font-weight:600;color:#0a2540;margin-bottom:10px;">Your signature *</div>
-    <div style="margin-bottom:16px;">
-      <div style="position:relative;border:1.5px solid #dde1e8;border-radius:10px;overflow:hidden;background:#fafbfc;">
-        <canvas id="sig-canvas" width="700" height="160"
-          style="display:block;width:100%;height:160px;cursor:crosshair;touch-action:none;"></canvas>
+    <div class="sig-container">
+      <p class="sig-mobile-hint d-block d-md-none">
+        <i class="bi bi-hand-index"></i> Sign with your finger or stylus below
+      </p>
+      <div style="position:relative;">
+        <canvas id="sig-canvas" class="sig-canvas"></canvas>
         <div style="position:absolute;bottom:36px;left:24px;right:24px;border-bottom:1.5px solid #c5c8d0;pointer-events:none;"></div>
         <div style="position:absolute;bottom:14px;left:28px;font-size:11px;color:#aab;pointer-events:none;">
           ✕ Sign above this line
         </div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
-        <span style="font-size:11px;color:#6b7280;">Use mouse or finger to draw your signature</span>
-        <button type="button" onclick="clearSigPad()" style="font-size:12px;color:#6b7280;background:#fff;border:1px solid #dde1e8;border-radius:6px;padding:4px 12px;cursor:pointer;">Clear</button>
+      <div class="sig-actions">
+        <button type="button" onclick="clearSigPad()" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-arrow-counterclockwise"></i> Clear
+        </button>
+        <span class="sig-status" id="sig-status">Draw your signature above</span>
       </div>
     </div>
     <div style="font-size:12px;color:#6b7280;margin-bottom:14px;">By signing, I agree to the payment contract terms above.</div>
@@ -412,18 +416,29 @@
     el.style.cursor = 'pointer'; el.style.background = el.classList.contains('selected') ? '#f2f6fb' : 'white';
   });
 
-  // ── Signature pad ────────────────────────────────────────────────────────
+  // ── Signature pad — mobile-optimized ────────────────────────────────────
   (function () {
     const canvas = document.getElementById('sig-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    const statusEl = document.getElementById('sig-status');
     let isDrawing = false;
     let hasDrawn = false;
+    let lastX = 0, lastY = 0;
 
-    ctx.strokeStyle = '#1a2540';
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    function resizeCanvas() {
+      const wasDrawn = hasDrawn;
+      canvas.width = canvas.parentElement.offsetWidth - 2;
+      canvas.height = window.innerWidth < 768 ? 160 : 120;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      if (wasDrawn) {
+        // Content is lost on resize (canvas backing store reset) — reflect that.
+        hasDrawn = false;
+        document.getElementById('sig-hidden').value = '';
+        if (statusEl) { statusEl.textContent = 'Draw your signature above'; statusEl.style.color = ''; }
+      }
+    }
 
     function getXY(e) {
       const r = canvas.getBoundingClientRect();
@@ -433,34 +448,44 @@
       return { x: (src.clientX - r.left) * sx, y: (src.clientY - r.top) * sy };
     }
 
-    canvas.addEventListener('mousedown', function (e) {
+    function startDraw(e) {
+      e.preventDefault();
       isDrawing = true;
       const p = getXY(e);
-      ctx.beginPath(); ctx.moveTo(p.x, p.y);
-    });
-    canvas.addEventListener('mousemove', function (e) {
+      lastX = p.x; lastY = p.y;
+      ctx.strokeStyle = '#1a2540';
+      ctx.lineWidth = window.innerWidth < 768 ? 3 : 2.5;
+    }
+    function draw(e) {
       if (!isDrawing) return;
+      e.preventDefault();
       const p = getXY(e);
-      ctx.lineTo(p.x, p.y); ctx.stroke(); hasDrawn = true;
-    });
-    canvas.addEventListener('mouseup',    function () { isDrawing = false; });
-    canvas.addEventListener('mouseleave', function () { isDrawing = false; });
+      ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(p.x, p.y); ctx.stroke();
+      lastX = p.x; lastY = p.y;
+      hasDrawn = true;
+      document.getElementById('sig-hidden').value = canvas.toDataURL('image/png');
+      if (statusEl) { statusEl.textContent = 'Signature captured ✓'; statusEl.style.color = 'var(--accent)'; }
+    }
+    function stopDraw(e) { if (isDrawing) { e.preventDefault(); isDrawing = false; } }
 
-    canvas.addEventListener('touchstart', function (e) {
-      e.preventDefault(); isDrawing = true;
-      const p = getXY(e); ctx.beginPath(); ctx.moveTo(p.x, p.y);
-    }, { passive: false });
-    canvas.addEventListener('touchmove', function (e) {
-      e.preventDefault(); if (!isDrawing) return;
-      const p = getXY(e); ctx.lineTo(p.x, p.y); ctx.stroke(); hasDrawn = true;
-    }, { passive: false });
-    canvas.addEventListener('touchend', function () { isDrawing = false; });
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('mouseleave', stopDraw);
+
+    canvas.addEventListener('touchstart', startDraw, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    canvas.addEventListener('touchend', stopDraw, { passive: false });
 
     window.clearSigPad = function () {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       hasDrawn = false;
       document.getElementById('sig-hidden').value = '';
+      if (statusEl) { statusEl.textContent = 'Draw your signature above'; statusEl.style.color = ''; }
     };
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
 
     document.getElementById('contract-form').addEventListener('submit', function (e) {
       if (!hasDrawn) {

@@ -413,3 +413,40 @@ textarea.form-control { resize: vertical; }
   /* Portal card spacing */
   .portal-card { padding: 18px 16px; }
 }
+
+/* SIGNATURE PAD */
+.sig-container {
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fafafa;
+    margin-bottom: 12px;
+}
+.sig-canvas {
+    display: block;
+    width: 100%;
+    cursor: crosshair;
+    touch-action: none;
+    background: white;
+}
+.sig-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: #f5f5f5;
+    border-top: 1px solid var(--border);
+}
+.sig-mobile-hint {
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+    padding: 6px;
+    margin: 0;
+    background: #fff8e1;
+    border-bottom: 1px solid #ffe082;
+}
+.sig-status {
+    font-size: 13px;
+    color: #666;
+}
