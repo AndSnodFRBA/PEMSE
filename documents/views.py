@@ -28,7 +28,8 @@ def document_list_view(request):
 def upload_document_view(request, doc_type_slug):
     doc_type = get_object_or_404(DocumentType, slug=doc_type_slug)
     existing = StudentDocument.objects.filter(student=request.user, doc_type=doc_type).first()
-    form = DocumentUploadForm(request.POST or None, request.FILES or None)
+    initial = {'expiration_date': existing.expiration_date} if existing else None
+    form = DocumentUploadForm(request.POST or None, request.FILES or None, doc_type=doc_type, initial=initial)
 
     if request.method == 'POST' and form.is_valid():
         file = request.FILES['file']
@@ -37,17 +38,20 @@ def upload_document_view(request, doc_type_slug):
             messages.error(request, 'Only PDF, JPG, and PNG files are accepted.')
             return redirect('upload_document', doc_type_slug=doc_type_slug)
 
+        expiration_date = form.cleaned_data.get('expiration_date')
+
         if existing:
             # Replace existing file
             existing.file.delete(save=False)
             existing.file = file
             existing.status = StudentDocument.Status.PENDING
-            existing.save(update_fields=['file', 'status', 'uploaded_at'])
+            existing.expiration_date = expiration_date
+            existing.save(update_fields=['file', 'status', 'expiration_date', 'uploaded_at'])
             existing.uploaded_at = None  # triggers auto_now_add reset via signal if needed
             existing.save()
         else:
             StudentDocument.objects.create(
-                student=request.user, doc_type=doc_type, file=file
+                student=request.user, doc_type=doc_type, file=file, expiration_date=expiration_date,
             )
 
         messages.success(request, f'{doc_type.label} uploaded successfully.')

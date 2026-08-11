@@ -22,6 +22,13 @@
       <input type="file" name="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
       <div style="font-size:11px;color:#6b7280;margin-top:5px;">Accepted: PDF, JPG, PNG — max 10 MB</div>
     </div>
+    {% if form.expiration_date %}
+    <div style="margin-bottom:20px;">
+      <label class="form-label">{{ form.expiration_date.label }}</label>
+      {{ form.expiration_date }}
+      <div style="font-size:11px;color:#6b7280;margin-top:5px;">{{ form.expiration_date.help_text }}</div>
+    </div>
+    {% endif %}
     <div style="display:flex;gap:10px;">
       <button type="submit" class="btn-navy">Upload →</button>
       <a href="{% url 'documents' %}" class="btn-ghost">Cancel</a>

@@ -196,6 +196,7 @@ def student_detail(request, pk):
     history    = student.payment_history.select_related('recorded_by').all()
 
     doc_forms = [(doc, DocumentReviewForm(initial={'status': doc.status, 'notes': doc.notes})) for doc in docs]
+    expiring_docs = [d for d in docs if d.doc_type.required and d.expiration_warning]
 
     total_paid  = sum(p.amount for p in history)
     total_owed  = enrollment.total_tuition if enrollment else Decimal('0')
@@ -249,6 +250,7 @@ def student_detail(request, pk):
         'enrollment':         enrollment,
         'courses_all':        Course.objects.order_by('option_number'),
         'doc_forms':          doc_forms,
+        'expiring_docs':      expiring_docs,
         'payment':            payment,
         'history':            history,
         'total_paid':         total_paid,

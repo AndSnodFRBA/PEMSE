@@ -34,6 +34,11 @@
         {% if item.upload.notes and item.upload.status == 'rejected' %}
           <div style="font-size:11px;color:var(--red);margin-top:3px;">Note: {{ item.upload.notes }}</div>
         {% endif %}
+        {% if item.upload.expiration_warning == 'expired' %}
+          <div style="font-size:11px;color:var(--red);font-weight:600;margin-top:3px;">⚠ Expired {{ item.upload.expiration_date|date:"M j, Y" }} — please upload a current copy</div>
+        {% elif item.upload.expiration_warning == 'expiring_soon' %}
+          <div style="font-size:11px;color:var(--red);font-weight:600;margin-top:3px;">⚠ Expires {{ item.upload.expiration_date|date:"M j, Y" }}</div>
+        {% endif %}
       {% endif %}
     </div>
     <div style="display:flex;gap:8px;flex-shrink:0;">

@@ -51,6 +51,7 @@ class StudentDocument(models.Model):
     file     = models.FileField(upload_to=student_document_path)
     status   = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     notes    = models.TextField(blank=True, help_text='Admin notes (rejection reason, etc.)')
+    expiration_date = models.DateField(null=True, blank=True, help_text='Expiration date for CPR cards and licenses')
     uploaded_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
     reviewed_by = models.ForeignKey(
@@ -72,6 +73,19 @@ class StudentDocument(models.Model):
     @property
     def status_color(self):
         return {'pending': '#d4a017', 'approved': '#0a7a4b', 'rejected': '#c8102e'}.get(self.status, '#888')
+
+    @property
+    def expiration_warning(self):
+        """'expired' or 'expiring_soon' (within 90 days) if this document has an expiration_date, else None."""
+        if not self.expiration_date:
+            return None
+        from django.utils import timezone
+        days = (self.expiration_date - timezone.now().date()).days
+        if days < 0:
+            return 'expired'
+        if days <= 90:
+            return 'expiring_soon'
+        return None
 
 
 class InstructorDocument(models.Model):
