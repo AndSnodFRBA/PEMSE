@@ -236,6 +236,7 @@ def staff_dashboard(request):
     incomplete_enrollment_count = sum(1 for s in all_students if not s.enrollment_complete)
     outstanding_balance_count   = sum(1 for s in all_students if compute_balance(s)[3] > 0)
     pending_docs_count = StudentDocument.objects.filter(status='pending').count()
+    nremt_stats = _nremt_overall_stats()
 
     capacity_warnings = [
         c for c in Course.objects.filter(is_active=True).order_by('option_number')
@@ -327,6 +328,7 @@ def staff_dashboard(request):
         'outstanding_balance_count':   outstanding_balance_count,
         'pending_docs_count':          pending_docs_count,
         'capacity_warnings':           capacity_warnings,
+        'nremt_stats':                 nremt_stats,
         'pass_rate_alerts': pass_rate_alerts,
         'ce_pending_mid': ce_pending_mid,
         'ce_pending_end': ce_pending_end,
@@ -1538,51 +1540,98 @@ def mark_report_submitted(request, report_id):
 
 # ── NREMT Pass Rates ──────────────────────────────────────────────────────────
 
+def _nremt_overall_stats():
+    """2-year aggregate NREMT cognitive pass rate — 172 NAC 13-004(E), 75% minimum."""
+    from datetime import date, timedelta
+
+    two_years_ago = date.today() - timedelta(days=730)
+    records = CourseCompletionRecord.objects.filter(
+        completion_date__gte=two_years_ago, withdrew=False,
+    )
+    total_passed = records.filter(nremt_cognitive_result='pass').count()
+    total_failed = records.filter(nremt_cognitive_result='fail').count()
+    total_tested = total_passed + total_failed
+    overall_rate = round(total_passed / total_tested * 100, 1) if total_tested else None
+    pending_count = CourseCompletionRecord.objects.filter(nremt_cognitive_result='pending').count()
+    return {
+        'overall_rate':  overall_rate,
+        'compliant':     overall_rate is not None and overall_rate >= 75,
+        'total_passed':  total_passed,
+        'total_tested':  total_tested,
+        'pending_count': pending_count,
+        'two_years_ago': two_years_ago,
+    }
+
+
 @staff_required
 def pass_rates(request):
-    """Per-course NREMT first-attempt pass rate tracker (75% minimum threshold)."""
-    courses = Course.objects.order_by('order', 'option_number')
+    """NREMT cognitive-exam pass rate tracker — 75% minimum aggregate over 2 years (172 NAC 13-004(E))."""
+    from datetime import date, timedelta
 
-    course_data = []
-    for course in courses:
-        records = CourseCompletionRecord.objects.filter(course=course)
-        if not records.exists():
-            continue
+    two_years_ago = date.today() - timedelta(days=730)
 
-        total = records.count()
+    # Group completed (non-withdrawn) records by course + completion year
+    records = CourseCompletionRecord.objects.filter(
+        completion_date__gte=two_years_ago,
+        withdrew=False,
+    ).select_related('course', 'student')
 
-        # Cognitive: exclude not-taken / blank; count pass
-        cog_taken = records.exclude(
-            nremt_cognitive_result__in=['not_taken', '']
-        ).count()
-        cog_pass = records.filter(nremt_cognitive_result='pass').count()
-        cog_rate = round(cog_pass / cog_taken * 100, 1) if cog_taken else None
+    course_stats = {}
+    for record in records:
+        key = (record.course.id, record.completion_date.year)
+        if key not in course_stats:
+            course_stats[key] = {
+                'course': record.course,
+                'year': record.completion_date.year,
+                'total_completed': 0,
+                'nremt_passed': 0,
+                'nremt_failed': 0,
+                'nremt_pending': 0,
+            }
+        course_stats[key]['total_completed'] += 1
+        if record.nremt_cognitive_result == 'pass':
+            course_stats[key]['nremt_passed'] += 1
+        elif record.nremt_cognitive_result == 'fail':
+            course_stats[key]['nremt_failed'] += 1
+        else:
+            course_stats[key]['nremt_pending'] += 1
 
-        # Psychomotor
-        psy_taken = records.exclude(
-            nremt_psychomotor_result__in=['not_taken', '']
-        ).count()
-        psy_pass = records.filter(nremt_psychomotor_result='pass').count()
-        psy_rate = round(psy_pass / psy_taken * 100, 1) if psy_taken else None
+    stats_list = []
+    for stat in course_stats.values():
+        tested = stat['nremt_passed'] + stat['nremt_failed']
+        stat['pass_rate'] = round(stat['nremt_passed'] / tested * 100, 1) if tested else None
+        stat['meets_requirement'] = stat['pass_rate'] is not None and stat['pass_rate'] >= 75
+        stats_list.append(stat)
 
-        below_75 = (
-            (cog_rate is not None and cog_rate < 75) or
-            (psy_rate is not None and psy_rate < 75)
-        )
+    overall = _nremt_overall_stats()
 
-        course_data.append({
-            'course':    course,
-            'total':     total,
-            'cog_taken': cog_taken,
-            'cog_pass':  cog_pass,
-            'cog_rate':  cog_rate,
-            'psy_taken': psy_taken,
-            'psy_pass':  psy_pass,
-            'psy_rate':  psy_rate,
-            'below_75':  below_75,
-        })
+    pending_records = CourseCompletionRecord.objects.filter(
+        nremt_cognitive_result='pending',
+    ).select_related('student', 'course').order_by('-completion_date')
 
-    return render(request, 'staff/pass_rates.html', {'course_data': course_data})
+    return render(request, 'staff/pass_rates.html', {
+        'stats_list': sorted(stats_list, key=lambda x: (x['year'], x['course'].option_number)),
+        'overall_rate': overall['overall_rate'],
+        'compliant': overall['compliant'],
+        'total_passed': overall['total_passed'],
+        'total_tested': overall['total_tested'],
+        'requirement': 75,
+        'two_years_ago': overall['two_years_ago'],
+        'pending_records': pending_records,
+    })
+
+
+@staff_required
+def pass_rates_quick_update(request, record_id):
+    record = get_object_or_404(CourseCompletionRecord, pk=record_id)
+    if request.method == 'POST':
+        result = request.POST.get('result')
+        if result in ('pass', 'fail'):
+            record.nremt_cognitive_result = result
+            record.nremt_cognitive_date = timezone.now().date()
+            record.save(update_fields=['nremt_cognitive_result', 'nremt_cognitive_date'])
+            messages.success(request, f"{record.student.get_full_name()}'s NREMT result recorded as {result}.")
+    return redirect('staff_pass_rates')
 
 
 # ── Course Evaluations (staff) ────────────────────────────────────────────────

@@ -7,67 +7,64 @@
   <span style="font-size:12px;color:#6b7280;">75% minimum threshold required per Nebraska DHHS</span>
 </div>
 
-{% if course_data %}
-<div class="card">
+<!-- Compliance banner -->
+<div class="mb-4 p-4 rounded text-center"
+     style="background:{% if compliant %}#d1fae5{% elif overall_rate is not None %}#fee2e2{% else %}#f3f4f6{% endif %};
+            border:2px solid {% if compliant %}#059669{% elif overall_rate is not None %}#dc2626{% else %}#d1d5db{% endif %};">
+  {% if overall_rate is not None %}
+    <div style="font-size:22px;font-weight:800;color:{% if compliant %}#065f46{% else %}#991b1b{% endif %};">
+      {% if compliant %}<i class="bi bi-check-circle-fill me-2"></i>COMPLIANT — {{ overall_rate }}% aggregate pass rate
+      {% else %}<i class="bi bi-exclamation-triangle-fill me-2"></i>ACTION REQUIRED — {{ overall_rate }}% is below the 75% minimum{% endif %}
+    </div>
+    <div style="font-size:12px;color:#6b7280;margin-top:4px;">{{ total_passed }} of {{ total_tested }} NREMT cognitive attempts passed since {{ two_years_ago|date:"M j, Y" }}</div>
+  {% else %}
+    <div style="font-size:18px;font-weight:700;color:#6b7280;">No NREMT results recorded yet in the last 2 years.</div>
+  {% endif %}
+</div>
+
+{% if stats_list %}
+<div class="card mb-3">
   <div class="card-body p-0">
     <table class="table table-hover mb-0" style="font-size:13px;">
       <thead style="background:#f8fafc;border-bottom:2px solid #dde4ef;">
         <tr>
           <th class="ps-4 py-3" style="color:#1a2e4a;font-weight:600;">Course</th>
-          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">Records</th>
-          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">Cognitive Taken</th>
-          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">Cognitive Pass Rate</th>
-          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">Psychomotor Taken</th>
-          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">Psychomotor Pass Rate</th>
-          <th class="py-3"></th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">Year</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">Completed</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">NREMT Passed</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">NREMT Failed</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">Pending</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">Pass Rate</th>
+          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;">Status</th>
         </tr>
       </thead>
       <tbody>
-        {% for row in course_data %}
-        <tr {% if row.below_75 %}style="background:#fff5f5;"{% endif %}>
+        {% for stat in stats_list %}
+        <tr {% if stat.pass_rate is not None and not stat.meets_requirement %}style="background:#fff5f5;"{% endif %}>
           <td class="ps-4 py-3">
-            <div style="font-weight:600;color:#1a2e4a;">{{ row.course.name }}</div>
-            <div style="font-size:11px;color:#6b7280;">Opt. {{ row.course.option_number }} — {{ row.course.licensure }}</div>
+            <div style="font-weight:600;color:#1a2e4a;">{{ stat.course.name }}</div>
+            <div style="font-size:11px;color:#6b7280;">Opt. {{ stat.course.option_number }} — {{ stat.course.get_licensure_display|default:stat.course.tag }}</div>
           </td>
-          <td class="py-3 text-center" style="color:#374151;">{{ row.total }}</td>
-
-          <td class="py-3 text-center" style="color:#374151;">
-            {% if row.cog_taken %}{{ row.cog_pass }}/{{ row.cog_taken }}{% else %}<span style="color:#9ca3af;">—</span>{% endif %}
-          </td>
+          <td class="py-3 text-center" style="color:#374151;">{{ stat.year }}</td>
+          <td class="py-3 text-center" style="color:#374151;">{{ stat.total_completed }}</td>
+          <td class="py-3 text-center" style="color:#059669;font-weight:600;">{{ stat.nremt_passed }}</td>
+          <td class="py-3 text-center" style="color:#dc2626;font-weight:600;">{{ stat.nremt_failed }}</td>
+          <td class="py-3 text-center" style="color:#6b7280;">{{ stat.nremt_pending }}</td>
           <td class="py-3 text-center">
-            {% if row.cog_rate is not None %}
-              <span style="font-weight:700;color:{% if row.cog_rate >= 75 %}#059669{% else %}#dc2626{% endif %};">
-                {{ row.cog_rate }}%
-              </span>
-              {% if row.cog_rate < 75 %}
-                <span style="margin-left:4px;background:#fee2e2;color:#991b1b;border-radius:6px;padding:1px 6px;font-size:10px;font-weight:600;">Below 75%</span>
-              {% endif %}
+            {% if stat.pass_rate is not None %}
+              <span style="font-weight:700;color:{% if stat.meets_requirement %}#059669{% else %}#dc2626{% endif %};">{{ stat.pass_rate }}%</span>
             {% else %}
-              <span style="color:#9ca3af;">No data</span>
+              <span style="color:#9ca3af;">—</span>
             {% endif %}
           </td>
-
-          <td class="py-3 text-center" style="color:#374151;">
-            {% if row.psy_taken %}{{ row.psy_pass }}/{{ row.psy_taken }}{% else %}<span style="color:#9ca3af;">—</span>{% endif %}
-          </td>
           <td class="py-3 text-center">
-            {% if row.psy_rate is not None %}
-              <span style="font-weight:700;color:{% if row.psy_rate >= 75 %}#059669{% else %}#dc2626{% endif %};">
-                {{ row.psy_rate }}%
-              </span>
-              {% if row.psy_rate < 75 %}
-                <span style="margin-left:4px;background:#fee2e2;color:#991b1b;border-radius:6px;padding:1px 6px;font-size:10px;font-weight:600;">Below 75%</span>
-              {% endif %}
+            {% if stat.pass_rate is None %}
+              <span style="background:#f3f4f6;color:#6b7280;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;">PENDING</span>
+            {% elif stat.meets_requirement %}
+              <span style="background:#d1fae5;color:#065f46;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;">MEETS 75%</span>
             {% else %}
-              <span style="color:#9ca3af;">No data</span>
+              <span style="background:#fee2e2;color:#991b1b;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;">BELOW 75%</span>
             {% endif %}
-          </td>
-
-          <td class="py-3 pe-3">
-            <a href="{% url 'staff_course_report_detail' row.course.pk %}"
-               class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:6px;">
-              Report →
-            </a>
           </td>
         </tr>
         {% endfor %}
@@ -75,22 +72,64 @@
     </table>
   </div>
 </div>
+{% endif %}
 
-<div class="mt-3 p-3 rounded" style="background:#f0f4f8;border:1px solid #dde4ef;font-size:12px;color:#6b7280;">
+<div class="mb-4 p-3 rounded" style="background:#f0f4f8;border:1px solid #dde4ef;font-size:12px;color:#6b7280;">
   <i class="bi bi-info-circle me-1"></i>
-  Pass rates are calculated from NREMT outcome fields on each student's Completion Record.
-  Enter results on the student detail page under the <strong>Completion</strong> tab.
-  A minimum 75% first-attempt pass rate is required by Nebraska DHHS (172 NAC Chapter 13).
+  Per 172 NAC 13-004(E), PEMSE must maintain a 75% aggregate pass rate over two consecutive years.
 </div>
 
-{% else %}
+<!-- Quick entry: pending NREMT results -->
 <div class="card">
-  <div class="card-body text-center py-5" style="color:#9ca3af;">
-    <i class="bi bi-graph-up-arrow" style="font-size:32px;"></i>
-    <div class="mt-2" style="font-size:14px;">
-      No NREMT data yet. Add completion records to students to track pass rates.
+  <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
+    Pending NREMT Results
+    <span style="font-weight:400;color:#6b7280;font-size:11px;margin-left:6px;">{{ pending_records|length }} awaiting entry</span>
+  </div>
+  <div class="card-body p-0">
+    {% if pending_records %}
+    <table class="table table-hover mb-0" style="font-size:13px;">
+      <thead style="background:#f8fafc;">
+        <tr>
+          <th class="ps-4 py-2" style="color:#6b7280;font-weight:600;">Student</th>
+          <th class="py-2" style="color:#6b7280;font-weight:600;">Course</th>
+          <th class="py-2" style="color:#6b7280;font-weight:600;">Completion Date</th>
+          <th class="py-2 pe-3 text-end" style="color:#6b7280;font-weight:600;">Record Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in pending_records %}
+        <tr>
+          <td class="ps-4 py-2">
+            <a href="{% url 'staff_student_detail' record.student.pk %}" style="color:#1a2e4a;font-weight:600;text-decoration:none;">
+              {{ record.student.get_full_name }}
+            </a>
+          </td>
+          <td class="py-2" style="color:#374151;">Opt. {{ record.course.option_number }} — {{ record.course.name }}</td>
+          <td class="py-2" style="color:#6b7280;">{{ record.completion_date|date:"M j, Y"|default:"—" }}</td>
+          <td class="py-2 pe-3 text-end">
+            <div class="d-flex gap-2 justify-content-end">
+              <form method="post" action="{% url 'staff_pass_rates_quick_update' record.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="result" value="pass">
+                <button type="submit" class="btn btn-sm btn-outline-success" style="font-size:11px;border-radius:6px;">Pass</button>
+              </form>
+              <form method="post" action="{% url 'staff_pass_rates_quick_update' record.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="result" value="fail">
+                <button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:11px;border-radius:6px;">Fail</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-4" style="color:#9ca3af;">
+      <i class="bi bi-check2-circle" style="font-size:28px;"></i>
+      <div class="mt-2" style="font-size:13px;">No pending NREMT results.</div>
     </div>
+    {% endif %}
   </div>
 </div>
-{% endif %}
 {% endblock %}

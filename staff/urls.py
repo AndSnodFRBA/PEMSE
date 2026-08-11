@@ -59,6 +59,7 @@ urlpatterns = [
     path('course-reports/<int:report_id>/mark-submitted/',          views.mark_report_submitted,     name='staff_mark_report_submitted'),
     # NREMT pass rates
     path('pass-rates/',                                             views.pass_rates,               name='staff_pass_rates'),
+    path('pass-rates/quick-update/<int:record_id>/',                views.pass_rates_quick_update,   name='staff_pass_rates_quick_update'),
     # Backups
     path('backups/',                                                views.backup_list,             name='staff_backup_list'),
     # Reminders

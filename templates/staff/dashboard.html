@@ -72,6 +72,23 @@
       </div>
     </a>
   </div>
+  <div class="col-6 col-md-3">
+    <a href="{% url 'staff_pass_rates' %}" class="text-decoration-none">
+      <div class="card p-3">
+        <div style="font-size:22px;font-weight:700;color:{% if nremt_stats.overall_rate is None %}#9ca3af{% elif nremt_stats.compliant %}#065f46{% else %}#991b1b{% endif %};">
+          {% if nremt_stats.overall_rate is not None %}
+            {{ nremt_stats.overall_rate }}%
+            {% if nremt_stats.compliant %}<i class="bi bi-check-circle-fill" style="font-size:14px;"></i>{% else %}<i class="bi bi-exclamation-triangle-fill" style="font-size:14px;"></i>{% endif %}
+          {% else %}—{% endif %}
+        </div>
+        <div style="font-size:12px;color:#6b7280;">
+          NREMT pass rate
+          {% if nremt_stats.pending_count %} &nbsp;·&nbsp; {{ nremt_stats.pending_count }} pending{% endif %}
+          <i class="bi bi-arrow-right"></i>
+        </div>
+      </div>
+    </a>
+  </div>
 </div>
 
 <!-- Active / Archived tabs -->
