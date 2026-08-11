@@ -120,6 +120,12 @@ class AttendanceRecord(models.Model):
         on_delete=models.CASCADE,
         related_name='attendance_taken',
     )
+    calendar_event = models.ForeignKey(
+        'schedule.CalendarEvent',
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='attendance_records',
+    )
     session_date  = models.DateField()
     session_type  = models.CharField(max_length=30, choices=SESSION_TYPES)
     session_topic = models.CharField(max_length=300, blank=True)

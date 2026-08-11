@@ -74,17 +74,18 @@ class AttendanceSessionForm(forms.ModelForm):
     class Meta:
         model  = AttendanceRecord
         fields = [
-            'course', 'session_date', 'session_type', 'session_topic',
+            'course', 'calendar_event', 'session_date', 'session_type', 'session_topic',
             'session_start', 'session_end', 'notes',
         ]
         widgets = {
-            'course':        forms.Select(attrs=_fs),
-            'session_date':  forms.DateInput(attrs=_date),
-            'session_type':  forms.Select(attrs=_fs),
-            'session_topic': forms.TextInput(attrs={**_fc, 'placeholder': 'e.g. Airway Management'}),
-            'session_start': forms.TimeInput(attrs=_time),
-            'session_end':   forms.TimeInput(attrs=_time),
-            'notes':         forms.Textarea(attrs={**_fc, 'rows': 2}),
+            'course':         forms.Select(attrs=_fs),
+            'calendar_event': forms.Select(attrs=_fs),
+            'session_date':   forms.DateInput(attrs=_date),
+            'session_type':   forms.Select(attrs=_fs),
+            'session_topic':  forms.TextInput(attrs={**_fc, 'placeholder': 'e.g. Airway Management'}),
+            'session_start':  forms.TimeInput(attrs=_time),
+            'session_end':    forms.TimeInput(attrs=_time),
+            'notes':          forms.Textarea(attrs={**_fc, 'rows': 2}),
         }
 
     def __init__(self, instructor, *args, **kwargs):
@@ -95,6 +96,15 @@ class AttendanceSessionForm(forms.ModelForm):
         ).values_list('course_id', flat=True)
         from courses.models import Course
         self.fields['course'].queryset = Course.objects.filter(pk__in=assigned_course_ids)
+
+        from schedule.models import CalendarEvent
+        self.fields['calendar_event'].queryset = CalendarEvent.objects.filter(
+            course_id__in=assigned_course_ids,
+            event_type=CalendarEvent.EventType.SESSION,
+            date__gte=timezone.now().date(),
+        ).order_by('date')
+        self.fields['calendar_event'].required = False
+        self.fields['calendar_event'].label = 'Link to scheduled class (optional)'
 
 
 class StudentAttendanceForm(forms.ModelForm):
