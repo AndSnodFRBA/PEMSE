@@ -234,6 +234,7 @@ def staff_dashboard(request):
     all_students = Student.objects.filter(role=Student.Role.STUDENT)
     incomplete_enrollment_count = sum(1 for s in all_students if not s.enrollment_complete)
     outstanding_balance_count   = sum(1 for s in all_students if compute_balance(s)[3] > 0)
+    pending_docs_count = StudentDocument.objects.filter(status='pending').count()
 
     # Results count for the current tab (respects all active filters)
     if show_archived:
@@ -318,6 +319,7 @@ def staff_dashboard(request):
         'total_active_students': total_active_students,
         'incomplete_enrollment_count': incomplete_enrollment_count,
         'outstanding_balance_count':   outstanding_balance_count,
+        'pending_docs_count':          pending_docs_count,
         'pass_rate_alerts': pass_rate_alerts,
         'ce_pending_mid': ce_pending_mid,
         'ce_pending_end': ce_pending_end,
@@ -344,6 +346,7 @@ def student_detail(request, pk):
 
     doc_forms = [(doc, DocumentReviewForm(initial={'status': doc.status, 'notes': doc.notes})) for doc in docs]
     expiring_docs = [d for d in docs if d.doc_type.required and d.expiration_warning]
+    pending_docs_exist = docs.filter(status='pending').exists()
 
     total_paid  = sum(p.amount for p in history)
     total_owed  = enrollment.total_tuition if enrollment else Decimal('0')
@@ -397,6 +400,7 @@ def student_detail(request, pk):
         'enrollment':         enrollment,
         'courses_all':        Course.objects.order_by('option_number'),
         'doc_forms':          doc_forms,
+        'pending_docs_exist': pending_docs_exist,
         'expiring_docs':      expiring_docs,
         'payment':            payment,
         'history':            history,
@@ -514,6 +518,31 @@ def review_document(request, doc_id):
         send_document_review_notification(doc)
         messages.success(request, f'{doc.doc_type.label} marked as {doc.status}.')
     return redirect('staff_student_detail', pk=doc.student_id)
+
+
+@staff_required
+def bulk_approve_documents(request):
+    if request.method != 'POST':
+        return redirect('staff_dashboard')
+    doc_ids = request.POST.getlist('doc_ids')
+    updated = StudentDocument.objects.filter(
+        pk__in=doc_ids,
+        status=StudentDocument.Status.PENDING,
+    ).update(
+        status=StudentDocument.Status.APPROVED,
+        reviewed_at=timezone.now(),
+        reviewed_by=request.user,
+    )
+    messages.success(request, f'{updated} document(s) approved successfully.')
+    return redirect(request.POST.get('next') or 'staff_dashboard')
+
+
+@staff_required
+def document_review_queue(request):
+    pending_docs = StudentDocument.objects.filter(
+        status=StudentDocument.Status.PENDING,
+    ).select_related('student', 'doc_type').order_by('uploaded_at')
+    return render(request, 'staff/document_queue.html', {'pending_docs': pending_docs})
 
 
 # ── Course management ─────────────────────────────────────────────────────────

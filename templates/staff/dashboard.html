@@ -53,6 +53,14 @@
       <div style="font-size:12px;color:#6b7280;">Outstanding balance</div>
     </div>
   </div>
+  <div class="col-6 col-md-3">
+    <a href="{% url 'staff_document_queue' %}" class="text-decoration-none">
+      <div class="card p-3">
+        <div style="font-size:22px;font-weight:700;color:#1557a0;">{{ pending_docs_count }}</div>
+        <div style="font-size:12px;color:#6b7280;">Documents pending review <i class="bi bi-arrow-right"></i></div>
+      </div>
+    </a>
+  </div>
 </div>
 
 <!-- Active / Archived tabs -->
