@@ -1,7 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import HttpResponse, HttpResponseForbidden
 from django.utils import timezone
 from django.db.models import Q
 import uuid
@@ -374,3 +375,21 @@ def registration_form_view(request):
         'payment':    payment,
         'courses':    courses,
     })
+
+
+@login_required
+def registration_pdf_view(request, student_id=None):
+    if student_id:
+        # Staff accessing any student's PDF
+        if not request.user.is_office_staff:
+            return HttpResponseForbidden()
+        student = get_object_or_404(Student, pk=student_id)
+    else:
+        # Student accessing their own PDF
+        student = request.user
+    from .pdf import generate_registration_pdf
+    pdf_bytes = generate_registration_pdf(student)
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    safe_name = student.get_full_name().replace(' ', '_')
+    response['Content-Disposition'] = f'inline; filename="PEMSE_Registration_{safe_name}.pdf"'
+    return response

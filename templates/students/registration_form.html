@@ -24,6 +24,11 @@
       <div class="rb"><div class="rb-label">Contract signed</div><div class="rb-val">{% if user.contract_signed %}✓ {{ user.contract_signed_at|date:"M j, Y" }}{% else %}Not yet{% endif %}</div></div>
       <div class="rb"><div class="rb-label">Handbook signed</div><div class="rb-val">{% if user.handbook_signed %}✓ {{ user.handbook_signed_at|date:"M j, Y" }}{% else %}<a href="{% url 'handbook' %}">Sign now →</a>{% endif %}</div></div>
     </div>
+    <div style="margin-top:20px;">
+      <a href="{% url 'registration_pdf' %}" class="btn-navy" target="_blank">
+        <i class="bi bi-file-earmark-pdf me-1"></i> Download Registration PDF
+      </a>
+    </div>
   </div>
 </div>
 

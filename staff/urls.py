@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from evaluations import views as eval_views
+from students.views import registration_pdf_view
 
 urlpatterns = [
     path('',                                   views.staff_dashboard,       name='staff_dashboard'),
@@ -8,7 +9,7 @@ urlpatterns = [
     path('logout/',                            views.staff_logout_view,     name='staff_logout'),
     path('students/<int:pk>/',                 views.student_detail,        name='staff_student_detail'),
     path('students/<int:pk>/edit/',            views.student_edit,          name='staff_student_edit'),
-    path('students/<int:pk>/pdf/',             views.student_pdf,           name='staff_student_pdf'),
+    path('students/<int:student_id>/pdf/',     registration_pdf_view,       name='staff_student_pdf'),
     path('students/<int:pk>/invoice/',         views.invoice_pdf,           name='staff_invoice_pdf'),
     path('students/<int:pk>/add-payment/',     views.add_payment,           name='staff_add_payment'),
     path('students/<int:pk>/payment-info/',    views.edit_payment_info,     name='staff_edit_payment_info'),
