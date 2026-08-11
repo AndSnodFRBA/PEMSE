@@ -448,6 +448,35 @@ def instructor_attendance_detail(request, pk):
 
 
 @instructor_required
+def attendance_pdf(request, session_id):
+    session = get_object_or_404(AttendanceRecord, pk=session_id, instructor=request.user)
+    from instructor.attendance_pdf import generate_attendance_pdf
+    pdf_bytes = generate_attendance_pdf(session)
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="Attendance_{session.session_date}.pdf"'
+    return response
+
+
+@instructor_required
+def attendance_csv(request, session_id):
+    import csv
+    session = get_object_or_404(AttendanceRecord, pk=session_id, instructor=request.user)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="Attendance_{session.session_date}.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['Student', 'Email', 'Status', 'Arrival Time', 'Notes'])
+    for sa in session.student_attendance.select_related('student').order_by('student__last_name'):
+        writer.writerow([
+            sa.student.get_full_name(),
+            sa.student.email,
+            sa.get_status_display(),
+            sa.arrival_time or '',
+            sa.notes,
+        ])
+    return response
+
+
+@instructor_required
 def instructor_attendance_edit(request, pk):
     instructor = request.user
     session = get_object_or_404(AttendanceRecord, pk=pk, instructor=instructor)

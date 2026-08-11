@@ -392,6 +392,20 @@ def student_detail(request, pk):
     is_aemt = course and course.licensure in ('AEMT', 'PARA') if course else False
     attendance = _attendance_summary(student, course)
 
+    attendance_sessions = []
+    if course:
+        recent_sessions = AttendanceRecord.objects.filter(course=course).order_by('-session_date')[:15]
+        student_statuses = {
+            sa.session_id: sa for sa in
+            StudentAttendance.objects.filter(student=student, session__course=course)
+        }
+        for sess in recent_sessions:
+            sa = student_statuses.get(sess.id)
+            attendance_sessions.append({
+                'session': sess,
+                'status_display': sa.get_status_display() if sa else 'Not recorded',
+            })
+
     # Course evaluations for this student
     from evaluations.models import CourseEvaluation
     course_evals = CourseEvaluation.objects.filter(student=student).select_related('course')
@@ -431,6 +445,7 @@ def student_detail(request, pk):
         'pc_totals':          pc_totals,
         'is_aemt':            is_aemt,
         'attendance':         attendance,
+        'attendance_sessions': attendance_sessions,
         'exam_form':          CognitiveExamForm(),
         'skill_form':         PsychomotorSkillForm(),
         'contact_form':       PatientContactForm(),
@@ -495,6 +510,16 @@ def payment_receipt_pdf(request, payment_id):
     pdf_bytes = generate_payment_receipt(payment)
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="Receipt_{payment.pk}.pdf"'
+    return response
+
+
+@staff_required
+def staff_attendance_pdf(request, session_id):
+    session = get_object_or_404(AttendanceRecord, pk=session_id)
+    from instructor.attendance_pdf import generate_attendance_pdf
+    pdf_bytes = generate_attendance_pdf(session)
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="Attendance_{session.session_date}.pdf"'
     return response
 
 

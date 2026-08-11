@@ -21,6 +21,8 @@ urlpatterns = [
     path('attendance/add/',           views.instructor_attendance_add,    name='instructor_attendance_add'),
     path('attendance/<int:pk>/',      views.instructor_attendance_detail, name='instructor_attendance_detail'),
     path('attendance/<int:pk>/edit/', views.instructor_attendance_edit,   name='instructor_attendance_edit'),
+    path('attendance/<int:session_id>/pdf/', views.attendance_pdf,        name='instructor_attendance_pdf'),
+    path('attendance/<int:session_id>/csv/', views.attendance_csv,        name='instructor_attendance_csv'),
 
     # Courses
     path('courses/',          views.instructor_courses,       name='instructor_courses'),
