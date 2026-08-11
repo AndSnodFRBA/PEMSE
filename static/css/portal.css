@@ -180,6 +180,14 @@ textarea.form-control { resize: vertical; }
 .progress-track { background: #d8eaf8; border-radius: 100px; height: 8px; overflow: hidden; }
 .progress-fill { height: 100%; border-radius: 100px; background: var(--navy); }
 
+/* NEXT STEP CARD */
+@keyframes next-step-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255,255,255,0.55); }
+  70%  { box-shadow: 0 0 0 8px rgba(255,255,255,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+}
+.next-step-btn { animation: next-step-pulse 2s infinite; }
+
 /* STATUS BADGES */
 .badge-status { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 100px; }
 .badge-status.status-green  { background: #e3f7ee; color: var(--green); }

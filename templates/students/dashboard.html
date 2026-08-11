@@ -2,6 +2,22 @@
 {% block title %}Dashboard — PEMSE{% endblock %}
 
 {% block content %}
+{% if next_action %}
+<!-- Next step -->
+<div style="background:var(--navy);color:#fff;border-radius:14px;padding:20px 24px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <i class="bi {{ next_action.icon }}" style="font-size:32px;opacity:0.9;"></i>
+    <div>
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.75;">Next step:</div>
+      <div style="font-size:17px;font-weight:600;">{{ next_action.label }}</div>
+    </div>
+  </div>
+  <a href="{{ next_action.url }}" class="next-step-btn" style="background:#fff;color:var(--navy);font-weight:600;font-size:13px;padding:10px 20px;border-radius:9px;text-decoration:none;white-space:nowrap;">
+    Do this now →
+  </a>
+</div>
+{% endif %}
+
 <!-- Hero -->
 <div class="page-hero">
   <div class="page-hero-badge">Welcome back</div>

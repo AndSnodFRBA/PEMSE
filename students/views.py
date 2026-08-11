@@ -143,6 +143,17 @@ def dashboard_view(request):
     ]
     done_count = sum(1 for t in tasks if t['done'])
 
+    if not student.reg_submitted:
+        next_action = {'label': 'Complete your registration form', 'url': '/register/form/', 'icon': 'bi-file-earmark-text'}
+    elif not student.handbook_signed:
+        next_action = {'label': 'Sign the student handbook', 'url': '/handbook/', 'icon': 'bi-book-fill'}
+    elif docs.filter(doc_type__required=True).count() < 3:
+        next_action = {'label': 'Upload your required documents', 'url': '/documents/', 'icon': 'bi-upload'}
+    elif not student.contract_signed:
+        next_action = {'label': 'Sign your payment contract', 'url': '/register/form/#payment', 'icon': 'bi-pen-fill'}
+    else:
+        next_action = None
+
     payment_history = student.payment_history.all()
     from decimal import Decimal
     total_paid = sum(p.amount for p in payment_history)
@@ -168,6 +179,7 @@ def dashboard_view(request):
         'announcements':          announcements,
         'tasks':                  tasks,
         'done_count':             done_count,
+        'next_action':            next_action,
         'total_tasks':            len(tasks),
         'payment_history':        payment_history,
         'total_paid':             total_paid,
