@@ -127,10 +127,13 @@ class Student(AbstractUser):
 
     @property
     def enrollment_complete(self):
-        from documents.models import StudentDocument
+        from documents.models import StudentDocument, DocumentType
+        required_count = DocumentType.objects.filter(required=True).count()
         docs_ok = StudentDocument.objects.filter(
-            student=self, doc_type__required=True
-        ).count() >= 3  # DL, CPR, Immunizations
+            student=self,
+            doc_type__required=True,
+            status='approved',
+        ).count() >= required_count
         return (self.reg_submitted and self.handbook_signed
                 and self.contract_signed and docs_ok)
 

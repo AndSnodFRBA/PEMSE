@@ -450,3 +450,12 @@ textarea.form-control { resize: vertical; }
     font-size: 13px;
     color: #666;
 }
+
+/* PRINT STYLESHEET */
+@media print {
+    .sidebar, .mobile-topbar, .hamburger-btn, .btn, nav, .notif-bell { display: none !important; }
+    .portal-main { margin: 0; padding: 0; }
+    body { font-size: 12pt; color: black; }
+    a { color: black; text-decoration: none; }
+    .card { border: 1px solid #ccc; page-break-inside: avoid; }
+}

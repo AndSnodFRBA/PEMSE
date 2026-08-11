@@ -17,6 +17,7 @@ load_dotenv(BASE_DIR / '.env')
 
 # ── SECURITY ──────────────────────────────────────────────────────────────────
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+BETA_MODE = os.environ.get('BETA_MODE', 'True') == 'True'
 
 # ── ERROR TRACKING — Sentry ──────────────────────────────────────────────────
 SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
@@ -122,6 +123,7 @@ TEMPLATES = [{
             'django.contrib.messages.context_processors.messages',
             'evaluations.context_processors.eval_counts',
             'students.context_processors.notifications',
+            'pemse.context_processors.site_settings',
         ],
     },
 }]
