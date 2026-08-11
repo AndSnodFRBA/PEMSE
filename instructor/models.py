@@ -313,6 +313,17 @@ class RemediationPlan(models.Model):
     class Meta:
         ordering = ['-created_date']
 
+    def save(self, *args, **kwargs):
+        if not self.retain_until:
+            # created_date is auto_now_add, so on first save it isn't populated
+            # until inside super().save() — use today's date for new instances.
+            base_date = self.created_date if self.pk else timezone.now().date()
+            try:
+                self.retain_until = base_date.replace(year=base_date.year + 5)
+            except ValueError:
+                self.retain_until = base_date.replace(month=2, day=28, year=base_date.year + 5)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f'Remediation — {self.instructor.get_full_name()} — {self.created_date}'
 

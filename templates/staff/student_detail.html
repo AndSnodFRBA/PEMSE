@@ -978,6 +978,13 @@
           </a>
           {% endif %}
         </div>
+        {% if completion_rec.retain_until %}
+        <div class="mb-3" style="font-size:12px;padding:8px 12px;border-radius:8px;
+             {% if completion_rec.records_flagged_for_review %}background:#fef3c7;color:#92600a;{% else %}background:#f3f4f6;color:#4b5563;{% endif %}">
+          {% if completion_rec.records_flagged_for_review %}<i class="bi bi-exclamation-triangle-fill me-1"></i>{% endif %}
+          Records must be retained until {{ completion_rec.retain_until|date:"m/d/Y" }} per 172 NAC Chapter 13.
+        </div>
+        {% endif %}
         <form method="post" action="{% url 'staff_save_completion' student.pk %}">
           {% csrf_token %}
           <div class="row g-3">

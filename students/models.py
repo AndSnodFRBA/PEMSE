@@ -420,9 +420,27 @@ class CourseCompletionRecord(models.Model):
     nremt_psychomotor_date   = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # Retention per 172 NAC 13-004(F)(iii)
+    retain_until = models.DateField(
+        null=True, blank=True,
+        help_text='Records must be retained minimum 5 years per 172 NAC Chapter 13. Auto-set on completion.'
+    )
+    records_flagged_for_review = models.BooleanField(
+        default=False,
+        help_text='Flag when retention period is ending and records should be reviewed before deletion'
+    )
 
     class Meta:
         unique_together = [['student', 'course']]
+
+    def save(self, *args, **kwargs):
+        if self.completion_date and not self.retain_until:
+            try:
+                self.retain_until = self.completion_date.replace(year=self.completion_date.year + 5)
+            except ValueError:
+                # Feb 29 on a source year whose +5 target isn't a leap year
+                self.retain_until = self.completion_date.replace(month=2, day=28, year=self.completion_date.year + 5)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         status = 'Completed' if self.completion_date else ('Withdrew' if self.withdrew else 'In progress')

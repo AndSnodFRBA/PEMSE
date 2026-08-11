@@ -310,6 +310,11 @@ def staff_dashboard(request):
     invite_pending_count   = StudentInvitation.objects.filter(used=False, expires_at__gt=timezone.now()).count()
     invite_expired_count   = StudentInvitation.objects.filter(used=False, expires_at__lte=timezone.now()).count()
 
+    # Records retention review warnings (172 NAC 13-004(F)(iii))
+    retention_flagged = CourseCompletionRecord.objects.filter(
+        records_flagged_for_review=True
+    ).select_related('student', 'course')
+
     # Department report deadline warnings (172 NAC 13-004(D))
     report_records = CourseReportRecord.objects.filter(
         report_submitted_to_department=False
@@ -344,6 +349,7 @@ def staff_dashboard(request):
         'ce_pending_end': ce_pending_end,
         'meeting_compliance': meeting_compliance,
         'license_warnings': license_warnings,
+        'retention_flagged': retention_flagged,
         'invite_completed_count': invite_completed_count,
         'invite_pending_count':   invite_pending_count,
         'invite_expired_count':   invite_expired_count,
