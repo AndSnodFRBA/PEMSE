@@ -292,7 +292,7 @@ def _build_progress_summary(student, enrollment):
 @login_required
 def profile_view(request):
     student = request.user
-    form = ProfileForm(request.POST or None, instance=student)
+    form = ProfileForm(request.POST or None, request.FILES or None, instance=student)
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, 'Profile updated successfully.')

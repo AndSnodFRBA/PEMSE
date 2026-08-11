@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}My Profile — PEMSE{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profile-photo-current {
+    width: 80px; height: 80px; border-radius: 50%; object-fit: cover;
+    border: 2px solid var(--border);
+  }
+  .profile-photo-fallback {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: var(--navy); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 600;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="page-hero-badge">My Profile</div>
+  <h1>Profile &amp; Contact Info</h1>
+  <p>Keep your contact details current so PEMSE staff can reach you.</p>
+</div>
+
+<div class="portal-card">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="d-flex align-items-center gap-3 mb-4">
+      {% if user.profile_photo %}
+        <img src="{{ user.profile_photo.url }}" alt="Profile photo" class="profile-photo-current">
+      {% else %}
+        <div class="profile-photo-fallback">{{ user.initials }}</div>
+      {% endif %}
+      <div>
+        <label class="form-label">Profile photo</label>
+        {{ form.profile_photo }}
+        {% if form.profile_photo.errors %}
+          <div class="text-danger" style="font-size:12px;margin-top:4px;">{{ form.profile_photo.errors|join:", " }}</div>
+        {% endif %}
+        <div class="text-muted" style="font-size:12px;margin-top:4px;">
+          Adding a photo helps your instructor learn your name. JPG, PNG, or GIF — max 5MB.
+        </div>
+      </div>
+    </div>
+
+    <div class="form-grid-2">
+      <div>
+        <label class="form-label">First name</label>
+        {{ form.first_name }}
+      </div>
+      <div>
+        <label class="form-label">Last name</label>
+        {{ form.last_name }}
+      </div>
+      <div>
+        <label class="form-label">Cell phone</label>
+        {{ form.phone }}
+      </div>
+      <div>
+        <label class="form-label">OK to text?</label>
+        {{ form.ok_to_text }}
+      </div>
+      <div style="grid-column:1/-1;">
+        <label class="form-label">Address</label>
+        {{ form.address }}
+      </div>
+      <div>
+        <label class="form-label">City</label>
+        {{ form.city }}
+      </div>
+      <div>
+        <label class="form-label">State</label>
+        {{ form.state }}
+      </div>
+      <div>
+        <label class="form-label">ZIP</label>
+        {{ form.zip_code }}
+      </div>
+      <div>
+        <label class="form-label">Date of birth</label>
+        {{ form.date_of_birth }}
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <button type="submit" class="btn-navy">Save changes</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

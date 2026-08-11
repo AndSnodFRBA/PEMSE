@@ -14,7 +14,14 @@
   .status-btns input[type=radio]:checked + label.btn-excused { background: #dbeafe; color: #1e3a8a; border-color: #2563eb; }
   .status-btns label { border: 1px solid #dde4ef; background: #fff; color: #6b7280; cursor: pointer; }
   .status-btns label:hover { border-color: #1a2e4a; color: #1a2e4a; }
+  .status-btns .btn { padding: 10px 18px; }
   .arrival-field { display: none; }
+  .roster-avatar-photo { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .roster-avatar-fallback {
+    width: 60px; height: 60px; border-radius: 50%; flex-shrink: 0;
+    background: #1a2e4a; color: #fff; font-size: 18px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+  }
 </style>
 {% endblock %}
 
@@ -42,8 +49,15 @@
     {% for att in attendances %}
     <div class="student-row" data-att="{{ att.pk }}">
       <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <div class="fw-semibold" style="font-size:14px;min-width:160px;">
-          {{ att.student.get_full_name }}
+        <div class="d-flex align-items-center gap-2" style="min-width:160px;">
+          {% if att.student.profile_photo %}
+            <img src="{{ att.student.profile_photo.url }}" alt="" class="roster-avatar-photo">
+          {% else %}
+            <div class="roster-avatar-fallback">{{ att.student.initials }}</div>
+          {% endif %}
+          <div class="fw-semibold" style="font-size:14px;">
+            {{ att.student.get_full_name }}
+          </div>
         </div>
         <div class="status-btns d-flex gap-1 flex-wrap">
           {% for val, lbl in att.Status.choices %}

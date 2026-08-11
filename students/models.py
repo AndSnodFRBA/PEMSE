@@ -1,8 +1,14 @@
+import os
 import uuid
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
+
+
+def profile_photo_path(instance, filename):
+    ext = os.path.splitext(filename)[1].lower()
+    return f'profile-photos/{instance.pk}/photo{ext}'
 
 
 class Student(AbstractUser):
@@ -26,6 +32,11 @@ class Student(AbstractUser):
     state       = models.CharField(max_length=2, blank=True)
     zip_code    = models.CharField(max_length=10, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
+    profile_photo = models.ImageField(
+        upload_to=profile_photo_path,
+        null=True, blank=True,
+        help_text='Optional profile photo. Helps instructors learn student names.'
+    )
 
     # ── Enrollment status ─────────────────────────────────────────────────────
     class EnrollStatus(models.TextChoices):

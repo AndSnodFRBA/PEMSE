@@ -46,11 +46,28 @@ class ProfileForm(forms.ModelForm):
         fields = [
             'first_name', 'last_name', 'phone', 'ok_to_text',
             'address', 'city', 'state', 'zip_code', 'date_of_birth',
+            'profile_photo',
         ]
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
             'ok_to_text': forms.Select(choices=[(True, 'Yes'), (False, 'No')]),
+            'profile_photo': forms.ClearableFileInput(attrs={'accept': 'image/jpeg,image/png,image/gif'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            if name != 'profile_photo':
+                field.widget.attrs.setdefault('class', 'form-control')
+
+    def clean_profile_photo(self):
+        photo = self.cleaned_data.get('profile_photo')
+        if photo and hasattr(photo, 'content_type'):
+            if photo.content_type not in ('image/jpeg', 'image/png', 'image/gif'):
+                raise forms.ValidationError('Please upload a JPG, PNG, or GIF image.')
+            if photo.size > 5 * 1024 * 1024:
+                raise forms.ValidationError('Photo must be smaller than 5MB.')
+        return photo
 
 
 class PaymentForm(forms.ModelForm):

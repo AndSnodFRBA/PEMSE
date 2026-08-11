@@ -37,12 +37,24 @@
 </div>
 
 <!-- Student roster with attendance summary -->
-<h6 class="text-muted fw-semibold mb-2" style="font-size:11px;letter-spacing:1px;text-transform:uppercase;">
-  Student Roster — Attendance Summary
-</h6>
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <h6 class="text-muted fw-semibold mb-0" style="font-size:11px;letter-spacing:1px;text-transform:uppercase;">
+    Student Roster — Attendance Summary
+  </h6>
+  {% if student_rows %}
+  <div class="btn-group btn-group-sm" role="group">
+    <button type="button" id="rosterListBtn" class="btn btn-outline-secondary active" onclick="setRosterView('list')">
+      <i class="bi bi-list-ul"></i> List
+    </button>
+    <button type="button" id="rosterGridBtn" class="btn btn-outline-secondary" onclick="setRosterView('grid')">
+      <i class="bi bi-grid-3x3-gap-fill"></i> Grid
+    </button>
+  </div>
+  {% endif %}
+</div>
 <div class="card mb-4">
   {% if student_rows %}
-    <div class="table-responsive">
+    <div class="table-responsive" id="rosterListView">
       <table class="table table-sm mb-0" style="font-size:13px;">
         <thead style="background:#f8fafc;">
           <tr>
@@ -83,6 +95,29 @@
           {% endfor %}
         </tbody>
       </table>
+    </div>
+    <div id="rosterGridView" class="p-3" style="display:none;">
+      <div class="row g-3">
+        {% for row in student_rows %}
+        <div class="col-6 col-md-3 col-lg-2 text-center">
+          <a href="{% url 'instructor_student_detail' row.student.pk %}" class="text-decoration-none">
+            {% if row.student.profile_photo %}
+              <img src="{{ row.student.profile_photo.url }}" alt=""
+                   style="width:72px;height:72px;border-radius:50%;object-fit:cover;">
+            {% else %}
+              <div style="width:72px;height:72px;border-radius:50%;background:#1a2e4a;color:#fff;
+                          font-size:22px;font-weight:600;display:flex;align-items:center;justify-content:center;margin:0 auto;">
+                {{ row.student.initials }}
+              </div>
+            {% endif %}
+            <div class="fw-semibold mt-2" style="font-size:12px;color:#1a2e4a;">
+              {{ row.student.get_full_name }}
+              {% if row.low_attendance %}<i class="bi bi-exclamation-triangle-fill text-danger ms-1"></i>{% endif %}
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
     </div>
   {% else %}
     <div class="p-4 text-center text-muted">No students enrolled in this course.</div>
@@ -206,4 +241,20 @@
     <div class="p-4 text-center text-muted">No invitations sent for this course yet.</div>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function setRosterView(view) {
+  const listView = document.getElementById('rosterListView');
+  const gridView = document.getElementById('rosterGridView');
+  const listBtn  = document.getElementById('rosterListBtn');
+  const gridBtn  = document.getElementById('rosterGridBtn');
+  if (!listView || !gridView) return;
+  listView.style.display = view === 'list' ? '' : 'none';
+  gridView.style.display = view === 'grid' ? '' : 'none';
+  listBtn.classList.toggle('active', view === 'list');
+  gridBtn.classList.toggle('active', view === 'grid');
+}
+</script>
 {% endblock %}
