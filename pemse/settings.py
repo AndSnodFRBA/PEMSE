@@ -18,6 +18,19 @@ load_dotenv(BASE_DIR / '.env')
 # ── SECURITY ──────────────────────────────────────────────────────────────────
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
+# ── ERROR TRACKING — Sentry ──────────────────────────────────────────────────
+SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
+if SENTRY_DSN and not DEBUG:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=0.1,
+        send_default_pii=False,
+        environment='production',
+    )
+
 SECRET_KEY = os.environ.get('SECRET_KEY')
 if not SECRET_KEY:
     if DEBUG:
