@@ -234,7 +234,7 @@ def registration_form_view(request):
             elif not enrollment:
                 messages.error(request, 'Please select a course first.')
             else:
-                conf = f'PEMSE-2025-{str(uuid.uuid4())[:8].upper()}'
+                conf = f'PEMSE-{timezone.now().year}-{str(uuid.uuid4())[:8].upper()}'
                 student.reg_submitted = True
                 student.reg_submitted_at = timezone.now()
                 student.reg_conf_number = conf
