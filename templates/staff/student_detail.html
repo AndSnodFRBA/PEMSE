@@ -445,6 +445,15 @@
           </div>
         </div>
 
+        {% if request.GET.new_payment %}
+        <div class="d-flex align-items-center justify-content-between p-3" style="background:#f0faf6;border-bottom:1px solid #dde4ef;">
+          <span style="font-size:12px;color:#065f46;"><i class="bi bi-check-circle-fill me-1"></i>Payment recorded.</span>
+          <a href="{% url 'staff_payment_receipt' request.GET.new_payment %}" target="_blank"
+             class="btn btn-sm btn-outline-success" style="font-size:12px;border-radius:6px;">
+            <i class="bi bi-printer me-1"></i>Print Receipt
+          </a>
+        </div>
+        {% endif %}
         {% if history %}
         <table class="table table-sm mb-0" style="font-size:12px;">
           <thead style="background:#f8fafc;">
@@ -455,6 +464,7 @@
               <th class="py-2" style="color:#6b7280;font-weight:600;">Check #</th>
               <th class="py-2" style="color:#6b7280;font-weight:600;">Notes</th>
               <th class="py-2" style="color:#6b7280;font-weight:600;">By</th>
+              <th class="py-2"></th>
             </tr>
           </thead>
           <tbody>
@@ -466,6 +476,11 @@
               <td class="py-2" style="color:#6b7280;">{{ p.check_number|default:"—" }}</td>
               <td class="py-2" style="color:#6b7280;">{{ p.notes|default:"—" }}</td>
               <td class="py-2" style="color:#6b7280;">{{ p.recorded_by.get_full_name|default:"—" }}</td>
+              <td class="py-2 pe-3">
+                <a href="{% url 'staff_payment_receipt' p.pk %}" target="_blank" style="font-size:11px;color:#2B5EA7;">
+                  <i class="bi bi-receipt"></i> Receipt
+                </a>
+              </td>
             </tr>
             {% endfor %}
           </tbody>

@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.core.files.storage import default_storage
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from courses.models import Course, CourseAnnouncement, CourseEnrollment
@@ -475,9 +476,20 @@ def add_payment(request, pk):
             record.save()
             send_payment_receipt(record)
             messages.success(request, f'Payment of ${record.amount} recorded.')
+            return redirect(f"{reverse('staff_student_detail', args=[pk])}?new_payment={record.pk}")
         else:
             messages.error(request, 'Please correct the errors below.')
     return redirect('staff_student_detail', pk=pk)
+
+
+@staff_required
+def payment_receipt_pdf(request, payment_id):
+    payment = get_object_or_404(PaymentHistory, pk=payment_id)
+    from students.payment_pdf import generate_payment_receipt
+    pdf_bytes = generate_payment_receipt(payment)
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="Receipt_{payment.pk}.pdf"'
+    return response
 
 
 @staff_required
