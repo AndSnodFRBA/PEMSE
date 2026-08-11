@@ -136,6 +136,11 @@ class AttendanceRecord(models.Model):
 
     class Meta:
         ordering = ['-session_date']
+        # NOTE: session_type is intentionally included in this constraint.
+        # This allows a course to have both a lecture AND a skills lab
+        # recorded on the same date (they differ by session_type).
+        # Do NOT simplify to (course, session_date) — that would break
+        # combined lecture+skills Monday sessions.
         unique_together = [['course', 'session_date', 'session_type']]
 
     def __str__(self):
