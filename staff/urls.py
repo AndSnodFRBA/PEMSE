@@ -55,6 +55,8 @@ urlpatterns = [
     path('course-reports/',                                         views.course_reports,           name='staff_course_reports'),
     path('course-reports/<int:course_pk>/',                         views.course_report_detail,     name='staff_course_report_detail'),
     path('course-reports/<int:course_pk>/pdf/',                     views.department_report_pdf,    name='staff_department_report_pdf'),
+    path('course-reports/<int:report_id>/dhhs-pdf/',                views.dhhs_report_pdf,           name='staff_dhhs_report_pdf'),
+    path('course-reports/<int:report_id>/mark-submitted/',          views.mark_report_submitted,     name='staff_mark_report_submitted'),
     # NREMT pass rates
     path('pass-rates/',                                             views.pass_rates,               name='staff_pass_rates'),
     # Backups

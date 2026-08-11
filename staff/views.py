@@ -1373,12 +1373,15 @@ def course_reports(request):
             and today >= deadline - timedelta(days=7)
             and not overdue
         )
+        days_remaining = (deadline - today).days if deadline else None
         rows.append({
             'course':   c,
             'report':   report,
             'deadline': deadline,
             'overdue':  overdue,
             'soon':     soon,
+            'days_remaining': days_remaining,
+            'days_overdue':   -days_remaining if days_remaining is not None and days_remaining < 0 else None,
         })
 
     return render(request, 'staff/course_reports.html', {'rows': rows, 'today': today})
@@ -1507,6 +1510,30 @@ def department_report_pdf(request, course_pk):
     resp = HttpResponse(buf, content_type='application/pdf')
     resp['Content-Disposition'] = f'attachment; filename="PEMSE-dept-report-{safe}.pdf"'
     return resp
+
+
+@staff_required
+def dhhs_report_pdf(request, report_id):
+    from students.models import CourseReportRecord
+    from students.dhhs_pdf import generate_dhhs_report
+    report = get_object_or_404(CourseReportRecord, pk=report_id)
+    pdf_bytes = generate_dhhs_report(report)
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    course_name = report.course.name.replace(' ', '_')[:30]
+    response['Content-Disposition'] = f'inline; filename="DHHS_Report_{course_name}.pdf"'
+    return response
+
+
+@staff_required
+def mark_report_submitted(request, report_id):
+    from students.models import CourseReportRecord
+    report = get_object_or_404(CourseReportRecord, pk=report_id)
+    if request.method == 'POST':
+        report.report_submitted_to_department = True
+        report.report_submitted_date = timezone.now().date()
+        report.save(update_fields=['report_submitted_to_department', 'report_submitted_date'])
+        messages.success(request, f'{report.course.name} marked as submitted to DHHS.')
+    return redirect('staff_course_reports')
 
 
 # ── NREMT Pass Rates ──────────────────────────────────────────────────────────

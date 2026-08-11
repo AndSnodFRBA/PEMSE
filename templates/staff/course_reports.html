@@ -41,6 +41,13 @@
                   <span class="badge ms-1" style="background:#fff3cd;color:#92600a;font-size:10px;">DUE SOON</span>
                 {% endif %}
               </span>
+              {% if not row.report.report_submitted_to_department %}
+              <div style="font-size:10px;margin-top:2px;color:{% if row.overdue %}#991b1b{% elif row.soon %}#92600a{% else %}#6b7280{% endif %};">
+                {% if row.days_overdue %}{{ row.days_overdue }} day{{ row.days_overdue|pluralize }} overdue
+                {% elif row.days_remaining == 0 %}Due today
+                {% else %}{{ row.days_remaining }} day{{ row.days_remaining|pluralize }} remaining{% endif %}
+              </div>
+              {% endif %}
             {% else %}
               <span style="color:#d1d5db;">No end date set</span>
             {% endif %}
@@ -58,8 +65,8 @@
                 <i class="bi bi-pencil me-1"></i>Draft saved
               </span>
             {% else %}
-              <span class="badge" style="background:#f3f4f6;color:#6b7280;font-size:11px;">
-                Not started
+              <span class="badge" style="background:#fee2e2;color:#991b1b;font-size:11px;">
+                Not submitted
               </span>
             {% endif %}
           </td>
@@ -77,16 +84,24 @@
             {% endif %}
           </td>
           <td class="py-3 pe-3">
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
               <a href="{% url 'staff_course_report_detail' row.course.pk %}"
                  class="btn btn-sm btn-outline-primary" style="font-size:11px;border-radius:6px;">
                 {% if row.report %}Edit{% else %}Fill Out{% endif %}
               </a>
               {% if row.report %}
-              <a href="{% url 'staff_department_report_pdf' row.course.pk %}"
+              <a href="{% url 'staff_dhhs_report_pdf' row.report.pk %}" target="_blank"
                  class="btn btn-sm btn-outline-secondary" style="font-size:11px;border-radius:6px;">
-                <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+                <i class="bi bi-file-earmark-pdf me-1"></i>Generate PDF
               </a>
+              {% if not row.report.report_submitted_to_department %}
+              <form method="post" action="{% url 'staff_mark_report_submitted' row.report.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-success" style="font-size:11px;border-radius:6px;">
+                  <i class="bi bi-check2 me-1"></i>Mark as Submitted
+                </button>
+              </form>
+              {% endif %}
               {% endif %}
             </div>
           </td>
