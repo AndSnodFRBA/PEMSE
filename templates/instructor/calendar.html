@@ -81,6 +81,12 @@
             <td class="py-2"><span class="evt-badge evt-{{ event.event_type }}">{{ event.get_event_type_display }}</span></td>
             <td class="py-2">{{ event.title }}</td>
             <td class="py-2 text-end pe-3">
+              {% if event.event_type == 'session' %}
+              <a href="{% url 'instructor_attendance_add' %}?date={{ event.date|date:'Y-m-d' }}&topic={{ event.title|urlencode }}&event_id={{ event.pk }}"
+                 class="btn btn-sm btn-outline-primary me-2" style="font-size:11px;">
+                <i class="bi bi-check2-square me-1"></i>Take Attendance
+              </a>
+              {% endif %}
               <a href="{% url 'instructor_calendar_edit' event.pk %}" class="text-primary me-2" style="font-size:12px;">Edit</a>
               <form method="post" action="{% url 'instructor_calendar_delete' event.pk %}" style="display:inline;"
                     onsubmit="return confirm('Delete this event?')">
@@ -114,6 +120,12 @@
           <td class="py-2"><span class="evt-badge evt-{{ event.event_type }}" style="opacity:.6;">{{ event.get_event_type_display }}</span></td>
           <td class="py-2 text-muted">{{ event.title }}</td>
           <td class="py-2 text-end pe-3">
+            {% if event.event_type == 'session' %}
+            <a href="{% url 'instructor_attendance_add' %}?date={{ event.date|date:'Y-m-d' }}&topic={{ event.title|urlencode }}&event_id={{ event.pk }}"
+               class="btn btn-sm btn-outline-primary me-2" style="font-size:11px;">
+              <i class="bi bi-check2-square me-1"></i>Take Attendance
+            </a>
+            {% endif %}
             <a href="{% url 'instructor_calendar_edit' event.pk %}" class="text-primary" style="font-size:12px;">Edit</a>
           </td>
         </tr>

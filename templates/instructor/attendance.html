@@ -27,7 +27,14 @@
         <tbody>
           {% for s in sessions %}
           <tr>
-            <td class="px-3 py-2">{{ s.session_date }}</td>
+            <td class="px-3 py-2">
+              {{ s.session_date }}
+              {% if s.calendar_event %}
+                <a href="{% url 'instructor_calendar_edit' s.calendar_event.pk %}" title="Linked to calendar event: {{ s.calendar_event.title }}">
+                  <i class="bi bi-calendar-check-fill text-primary ms-1"></i>
+                </a>
+              {% endif %}
+            </td>
             <td class="py-2">{{ s.course.tag }}</td>
             <td class="py-2">{{ s.get_session_type_display }}</td>
             <td class="py-2">{{ s.session_topic|default:"—" }}</td>

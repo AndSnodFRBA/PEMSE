@@ -349,7 +349,26 @@ def instructor_attendance(request):
 @instructor_required
 def instructor_attendance_add(request):
     instructor = request.user
-    form = AttendanceSessionForm(instructor, request.POST or None)
+
+    prefill_date       = request.GET.get('date', '')
+    prefill_topic      = request.GET.get('topic', '')
+    prefill_type       = request.GET.get('session_type', '')
+    calendar_event_id  = request.GET.get('event_id', '')
+
+    initial = {}
+    if prefill_date:
+        initial['session_date'] = prefill_date
+    if prefill_topic:
+        initial['session_topic'] = prefill_topic
+    if prefill_type:
+        initial['session_type'] = prefill_type
+    if calendar_event_id:
+        initial['calendar_event'] = calendar_event_id
+        linked_event = CalendarEvent.objects.filter(pk=calendar_event_id).first()
+        if linked_event:
+            initial.setdefault('course', linked_event.course_id)
+
+    form = AttendanceSessionForm(instructor, request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         session            = form.save(commit=False)
         session.instructor = instructor

@@ -1,5 +1,4 @@
 from django import forms
-from django.utils import timezone
 
 from documents.models import InstructorDocument
 from students.models import Student
@@ -98,11 +97,12 @@ class AttendanceSessionForm(forms.ModelForm):
         self.fields['course'].queryset = Course.objects.filter(pk__in=assigned_course_ids)
 
         from schedule.models import CalendarEvent
+        # Not date-restricted — attendance is most often taken for a session that
+        # already happened (today or recently), not just ones still upcoming.
         self.fields['calendar_event'].queryset = CalendarEvent.objects.filter(
             course_id__in=assigned_course_ids,
             event_type=CalendarEvent.EventType.SESSION,
-            date__gte=timezone.now().date(),
-        ).order_by('date')
+        ).order_by('-date')
         self.fields['calendar_event'].required = False
         self.fields['calendar_event'].label = 'Link to scheduled class (optional)'
 
