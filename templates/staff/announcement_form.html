@@ -25,12 +25,46 @@
         {{ form.body }}
         {% if form.body.errors %}<div class="text-danger" style="font-size:12px;margin-top:4px;">{{ form.body.errors.0 }}</div>{% endif %}
       </div>
+      <div class="row g-3 mb-3">
+        <div class="col-sm-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Publish date/time</label>
+          {{ form.publish_at }}
+          <div style="font-size:11px;color:#9ca3af;margin-top:3px;">{{ form.publish_at.help_text }}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Expires date/time</label>
+          {{ form.expires_at }}
+          <div style="font-size:11px;color:#9ca3af;margin-top:3px;">{{ form.expires_at.help_text }}</div>
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label" style="font-size:12px;font-weight:600;">Show to</label>
+        {{ form.course }}
+        <div style="font-size:11px;color:#9ca3af;margin-top:3px;">{{ form.course.help_text }}</div>
+      </div>
       <div class="mb-4">
         <div class="form-check">
           {{ form.is_active }}
           <label class="form-check-label" style="font-size:13px;">Show on student dashboards</label>
         </div>
       </div>
+
+      <div class="mb-4">
+        <button type="button" class="btn btn-sm btn-outline-secondary" style="border-radius:8px;" onclick="toggleAnnouncementPreview()">
+          <i class="bi bi-eye me-1"></i>Preview
+        </button>
+        <div id="announcement-preview" style="display:none;margin-top:12px;padding:14px 16px;background:var(--light);border:1px solid var(--border);border-radius:10px;">
+          <div style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">
+            Preview — student dashboard
+          </div>
+          <div class="announcement-item" style="border-bottom:none;padding:0;">
+            <div class="ann-date" id="preview-date"></div>
+            <div class="ann-title" id="preview-title"></div>
+            <div class="ann-body" id="preview-body"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="d-flex gap-2">
         <button type="submit" class="btn btn-sm" style="background:#2B5EA7;color:#fff;border-radius:8px;padding:9px 20px;font-weight:600;">
           {% if action == 'New' %}Post Announcement{% else %}Save Changes{% endif %}
@@ -42,4 +76,18 @@
     </form>
   </div>
 </div>
+
+{% block extra_js %}
+<script>
+  function toggleAnnouncementPreview() {
+    const box = document.getElementById('announcement-preview');
+    const titleField = document.querySelector('[name="title"]');
+    const bodyField   = document.querySelector('[name="body"]');
+    document.getElementById('preview-title').textContent = titleField.value || '(no title yet)';
+    document.getElementById('preview-body').textContent  = bodyField.value || '(no body yet)';
+    document.getElementById('preview-date').textContent  = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+    box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  }
+</script>
+{% endblock %}
 {% endblock %}

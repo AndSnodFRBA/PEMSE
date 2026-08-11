@@ -32,11 +32,20 @@
           <td class="py-3" style="color:#374151;">{{ ann.created_by.get_full_name|default:"—" }}</td>
           <td class="py-3" style="color:#6b7280;font-size:12px;">{{ ann.created_at|date:"M j, Y" }}</td>
           <td class="py-3">
-            {% if ann.is_active %}
-              <span class="badge" style="background:#d1fae5;color:#065f46;font-size:11px;padding:4px 8px;border-radius:5px;">Active</span>
-            {% else %}
-              <span class="badge" style="background:#f3f4f6;color:#6b7280;font-size:11px;padding:4px 8px;border-radius:5px;">Hidden</span>
-            {% endif %}
+            <div class="d-flex gap-1 flex-wrap">
+              {% if ann.is_active %}
+                <span class="badge" style="background:#d1fae5;color:#065f46;font-size:11px;padding:4px 8px;border-radius:5px;">Active</span>
+              {% else %}
+                <span class="badge" style="background:#f3f4f6;color:#6b7280;font-size:11px;padding:4px 8px;border-radius:5px;">Hidden</span>
+              {% endif %}
+              {% if ann.schedule_status == 'scheduled' %}
+                <span class="badge" style="background:#e5e7eb;color:#374151;font-size:11px;padding:4px 8px;border-radius:5px;">Scheduled</span>
+              {% elif ann.schedule_status == 'expired' %}
+                <span class="badge" style="background:#fee2e2;color:#991b1b;font-size:11px;padding:4px 8px;border-radius:5px;">Expired</span>
+              {% else %}
+                <span class="badge" style="background:#d1fae5;color:#065f46;font-size:11px;padding:4px 8px;border-radius:5px;">Live</span>
+              {% endif %}
+            </div>
           </td>
           <td class="py-3 pe-3">
             <div class="d-flex gap-2">

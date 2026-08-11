@@ -111,7 +111,16 @@ def dashboard_view(request):
     enrollment = CourseEnrollment.objects.filter(student=student).first()
     docs = StudentDocument.objects.filter(student=student).select_related('doc_type')
     doc_types = DocumentType.objects.all()
-    announcements = Announcement.objects.filter(is_active=True)[:6]
+    now = timezone.now()
+    announcements = Announcement.objects.filter(
+        is_active=True,
+    ).filter(
+        Q(publish_at__isnull=True) | Q(publish_at__lte=now)  # published already (blank = publish immediately)
+    ).filter(
+        Q(expires_at__isnull=True) | Q(expires_at__gte=now)  # not expired
+    ).filter(
+        Q(course__isnull=True) | Q(course__in=student.calendar_courses)  # all students or this course
+    ).order_by('-publish_at')[:6]
     chapters = HandbookChapter.objects.filter(is_active=True).count()
 
     # Checklist items

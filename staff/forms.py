@@ -86,11 +86,22 @@ class DocumentReviewForm(forms.Form):
 class StaffAnnouncementForm(forms.ModelForm):
     class Meta:
         model   = Announcement
-        fields  = ['title', 'body', 'is_active']
+        fields  = ['title', 'body', 'is_active', 'publish_at', 'expires_at', 'course']
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'body':  forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'title':      forms.TextInput(attrs={'class': 'form-control'}),
+            'body':       forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'publish_at': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+            'expires_at': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+            'course':     forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['publish_at'].input_formats = ['%Y-%m-%dT%H:%M']
+        self.fields['expires_at'].input_formats = ['%Y-%m-%dT%H:%M']
+        self.fields['course'].queryset = Course.objects.order_by('option_number')
+        self.fields['course'].required = False
+        self.fields['course'].empty_label = 'All students'
 
 
 class StaffStudentEditForm(forms.ModelForm):

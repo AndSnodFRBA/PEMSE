@@ -243,12 +243,37 @@ class Announcement(models.Model):
         Student, null=True, blank=True,
         on_delete=models.SET_NULL, related_name='announcements_created'
     )
+    publish_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text='Leave blank to publish immediately. Set a future date/time to schedule.'
+    )
+    expires_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text='Optional. Announcement automatically hides after this date/time.'
+    )
+    course = models.ForeignKey(
+        'courses.Course',
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='announcements',
+        help_text='Leave blank to show to all students. Select a course to show only to that course enrollment.'
+    )
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
         return self.title
+
+    @property
+    def schedule_status(self):
+        """'scheduled' / 'live' / 'expired' — for the staff announcements list."""
+        now = timezone.now()
+        if self.publish_at and self.publish_at > now:
+            return 'scheduled'
+        if self.expires_at and self.expires_at < now:
+            return 'expired'
+        return 'live'
 
 
 # ── 172 NAC Chapter 13 Compliance Records ────────────────────────────────────
