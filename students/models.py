@@ -379,18 +379,18 @@ class CourseCompletionRecord(models.Model):
     nremt_eligibility_sent  = models.BooleanField(default=False)
     nremt_eligibility_date  = models.DateField(null=True, blank=True)
     # NREMT exam outcomes per 172 NAC 13-004(A)
-    class NRMETResult(models.TextChoices):
+    class NREMTResult(models.TextChoices):
         PASS      = 'pass',      'Pass'
         FAIL      = 'fail',      'Fail'
         PENDING   = 'pending',   'Pending'
         NOT_TAKEN = 'not_taken', 'Not taken'
     nremt_cognitive_result   = models.CharField(
-        max_length=10, choices=NRMETResult.choices, default=NRMETResult.NOT_TAKEN, blank=True
+        max_length=10, choices=NREMTResult.choices, default=NREMTResult.NOT_TAKEN, blank=True
     )
     nremt_cognitive_date     = models.DateField(null=True, blank=True)
     nremt_cognitive_attempts = models.PositiveSmallIntegerField(default=0)
     nremt_psychomotor_result = models.CharField(
-        max_length=10, choices=NRMETResult.choices, default=NRMETResult.NOT_TAKEN, blank=True
+        max_length=10, choices=NREMTResult.choices, default=NREMTResult.NOT_TAKEN, blank=True
     )
     nremt_psychomotor_date   = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
