@@ -177,7 +177,7 @@ textarea.form-control { resize: vertical; }
 .progress-row:last-child { margin-bottom: 0; }
 .progress-row-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
 .progress-row-label span:last-child { color: var(--muted); font-weight: 500; }
-.progress-track { background: var(--light); border-radius: 100px; height: 8px; overflow: hidden; }
+.progress-track { background: #d8eaf8; border-radius: 100px; height: 8px; overflow: hidden; }
 .progress-fill { height: 100%; border-radius: 100px; background: var(--navy); }
 
 /* STATUS BADGES */

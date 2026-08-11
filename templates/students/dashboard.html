@@ -105,6 +105,7 @@
   </div>
 
   <!-- Progress tracker -->
+  {% if enrollment %}
   <div class="portal-card" style="grid-column:1/-1;">
     <div class="portal-card-title">Your progress</div>
     <div class="portal-card-sub">Tracked against your course's 172 NAC compliance requirements.</div>
@@ -113,7 +114,7 @@
       <div class="progress-row">
         <div class="progress-row-label">
           <span>{{ item.label }}</span>
-          <span>{{ item.display }}</span>
+          <span>{% if item.value == 0 %}No records yet{% else %}{{ item.display }}{% endif %}</span>
         </div>
         <div class="progress-track">
           <div class="progress-fill" style="width:{{ item.pct }}%;"></div>
@@ -122,6 +123,7 @@
       {% endfor %}
     </div>
   </div>
+  {% endif %}
 
   <!-- Payment History -->
   <div class="portal-card" style="grid-column:1/-1;">

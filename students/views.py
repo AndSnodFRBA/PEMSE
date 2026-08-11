@@ -221,70 +221,50 @@ def _pct(value, total):
 
 
 def _build_progress_summary(student, enrollment):
-    """Compute the dashboard's hours/contacts/skills/exams progress bars."""
-    from decimal import Decimal
-    from datetime import datetime
+    """Compute the dashboard's attendance/contacts/skills/exams progress bars."""
+    attendance_entries = StudentAttendance.objects.filter(
+        student=student, status__in=['present', 'late', 'makeup'],
+    ).select_related('session')
+    sessions_attended = attendance_entries.count()
+    total_sessions = AttendanceRecord.objects.filter(course__in=student.calendar_courses).count()
+    attendance_pct = round((sessions_attended / total_sessions * 100) if total_sessions else 0)
 
-    course = enrollment.course if enrollment else None
+    contacts_required = 25 if (enrollment and enrollment.course.licensure == 'AEMT') else 5
+    patient_contacts = PatientContactRecord.objects.filter(student=student).count()
 
-    hours_attended = Decimal('0')
-    hours_total = Decimal('0')
-    if course:
-        attended_session_ids = set(
-            StudentAttendance.objects.filter(
-                student=student, session__course=course, status__in=['present', 'late', 'makeup'],
-            ).values_list('session_id', flat=True)
-        )
-        sessions = AttendanceRecord.objects.filter(
-            course=course, session_start__isnull=False, session_end__isnull=False,
-        )
-        for session in sessions:
-            start_dt = datetime.combine(session.session_date, session.session_start)
-            end_dt = datetime.combine(session.session_date, session.session_end)
-            duration = Decimal(str(round((end_dt - start_dt).total_seconds() / 3600, 2)))
-            hours_total += duration
-            if session.id in attended_session_ids:
-                hours_attended += duration
+    skills_passed = PsychomotorSkillRecord.objects.filter(
+        student=student, passed=True,
+    ).values('skill_name').distinct().count()
+    skills_attempted = PsychomotorSkillRecord.objects.filter(
+        student=student,
+    ).values('skill_name').distinct().count()
 
-    is_aemt = bool(course and course.licensure in ('AEMT', 'PARA'))
-    contacts_required = 25 if is_aemt else 5
-    contacts_logged = PatientContactRecord.objects.filter(student=student).count()
-
-    skills_qs = PsychomotorSkillRecord.objects.filter(student=student)
-    skills_total = skills_qs.count()
-    skills_passed = skills_qs.filter(passed=True).count()
-
-    exams_qs = CognitiveExamRecord.objects.filter(student=student)
-    exams_total = exams_qs.count()
-    exams_passed = exams_qs.filter(passed=True).count()
+    exams_passed = CognitiveExamRecord.objects.filter(student=student, passed=True).count()
+    exams_total = CognitiveExamRecord.objects.filter(student=student).values('exam_name').distinct().count()
 
     return [
         {
-            'label': 'Hours attended',
-            'value': hours_attended,
-            'total': hours_total,
-            'display': f'{hours_attended}/{hours_total} hrs',
-            'pct': _pct(hours_attended, hours_total),
+            'label': 'Attendance',
+            'value': sessions_attended,
+            'display': f'{sessions_attended} of {total_sessions} sessions ({attendance_pct}%)',
+            'pct': attendance_pct,
         },
         {
             'label': 'Patient contacts',
-            'value': contacts_logged,
-            'total': contacts_required,
-            'display': f'{contacts_logged}/{contacts_required} required',
-            'pct': _pct(contacts_logged, contacts_required),
+            'value': patient_contacts,
+            'display': f'{patient_contacts} of {contacts_required} required',
+            'pct': _pct(patient_contacts, contacts_required),
         },
         {
-            'label': 'Psychomotor skills',
+            'label': 'Skills completed',
             'value': skills_passed,
-            'total': skills_total,
-            'display': f'{skills_passed}/{skills_total} passed',
-            'pct': _pct(skills_passed, skills_total),
+            'display': f'{skills_passed} skills passed',
+            'pct': _pct(skills_passed, skills_attempted),
         },
         {
-            'label': 'Cognitive exams',
+            'label': 'Exams',
             'value': exams_passed,
-            'total': exams_total,
-            'display': f'{exams_passed}/{exams_total} passed',
+            'display': f'{exams_passed} of {exams_total} passed',
             'pct': _pct(exams_passed, exams_total),
         },
     ]
