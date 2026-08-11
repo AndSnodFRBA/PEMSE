@@ -58,6 +58,25 @@
     {% endif %}
   </div>
 
+  <!-- Progress tracker -->
+  <div class="portal-card" style="grid-column:1/-1;">
+    <div class="portal-card-title">Your progress</div>
+    <div class="portal-card-sub">Tracked against your course's 172 NAC compliance requirements.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 32px;margin-top:10px;">
+      {% for item in progress %}
+      <div class="progress-row">
+        <div class="progress-row-label">
+          <span>{{ item.label }}</span>
+          <span>{{ item.display }}</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width:{{ item.pct }}%;"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
   <!-- Payment History -->
   <div class="portal-card" style="grid-column:1/-1;">
     <div class="portal-card-title">Payment history</div>
