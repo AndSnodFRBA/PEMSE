@@ -55,37 +55,76 @@
   </div>
 </div>
 
-<!-- Active / Archived tabs + search -->
-<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-  <ul class="nav nav-tabs" style="border-bottom:none;">
-    <li class="nav-item">
-      <a class="nav-link {% if not show_archived %}active{% endif %}"
-         href="?{% if status_filter %}status={{ status_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}">
-        Active Courses
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if show_archived %}active{% endif %}"
-         href="?archived=1{% if status_filter %}&status={{ status_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}">
-        Archived Courses
-      </a>
-    </li>
-  </ul>
-  <div style="max-width:280px;width:100%;">
-    <input type="text" id="studentSearch" class="form-control form-control-sm"
-           placeholder="Search name, email, or course…" autocomplete="off">
-  </div>
-</div>
+<!-- Active / Archived tabs -->
+<ul class="nav nav-tabs mb-3" style="border-bottom:none;">
+  <li class="nav-item">
+    <a class="nav-link {% if not show_archived %}active{% endif %}"
+       href="?{% if search %}q={{ search|urlencode }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if course_filter %}course={{ course_filter }}&{% endif %}{% if docs_filter %}docs={{ docs_filter }}&{% endif %}{% if balance_filter %}balance={{ balance_filter }}{% endif %}">
+      Active Courses
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if show_archived %}active{% endif %}"
+       href="?archived=1{% if search %}&q={{ search|urlencode }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}{% if docs_filter %}&docs={{ docs_filter }}{% endif %}{% if balance_filter %}&balance={{ balance_filter }}{% endif %}">
+      Archived Courses
+    </a>
+  </li>
+</ul>
 
-{% if course_filter or status_filter %}
-<div class="mb-3" style="font-size:12px;color:#5a7a9a;">
-  Filtered
-  {% if course_filter %}— Option {{ course_filter }}{% endif %}
-  {% if status_filter %}— status: {{ status_filter }}{% endif %}
-  &nbsp;·&nbsp;
-  <a href="?{% if show_archived %}archived=1{% endif %}">Clear filters</a>
-</div>
-{% endif %}
+<!-- Search + filter controls -->
+<form method="get" class="card p-3 mb-3">
+  {% if show_archived %}<input type="hidden" name="archived" value="1">{% endif %}
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-4">
+      <label class="form-label" style="font-size:11px;color:#6b7280;margin-bottom:2px;">Search</label>
+      <input type="text" id="studentSearch" name="q" value="{{ search }}" class="form-control form-control-sm"
+             placeholder="Search by name, email or phone" autocomplete="off">
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="form-label" style="font-size:11px;color:#6b7280;margin-bottom:2px;">Status</label>
+      <select name="status" class="form-select form-select-sm">
+        <option value="">All</option>
+        {% for val, label in enroll_status_choices %}
+          <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="form-label" style="font-size:11px;color:#6b7280;margin-bottom:2px;">Course</label>
+      <select name="course" class="form-select form-select-sm">
+        <option value="">All courses</option>
+        {% for c in all_courses %}
+          <option value="{{ c.option_number }}" {% if course_filter == c.option_number|stringformat:"s" %}selected{% endif %}>
+            Option {{ c.option_number }} — {{ c.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="form-label" style="font-size:11px;color:#6b7280;margin-bottom:2px;">Documents</label>
+      <select name="docs" class="form-select form-select-sm">
+        <option value="">All</option>
+        <option value="incomplete" {% if docs_filter == 'incomplete' %}selected{% endif %}>Incomplete documents</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="form-label" style="font-size:11px;color:#6b7280;margin-bottom:2px;">Balance</label>
+      <select name="balance" class="form-select form-select-sm">
+        <option value="">All</option>
+        <option value="outstanding" {% if balance_filter == 'outstanding' %}selected{% endif %}>Outstanding balance</option>
+      </select>
+    </div>
+  </div>
+  <div class="d-flex align-items-center gap-2 mt-2">
+    <button type="submit" class="btn btn-sm" style="background:#2B5EA7;color:#fff;border-radius:6px;">
+      <i class="bi bi-funnel me-1"></i>Filter
+    </button>
+    {% if any_filter_active %}
+      <a href="?{% if show_archived %}archived=1{% endif %}" class="btn btn-sm btn-outline-secondary" style="border-radius:6px;">Clear filters</a>
+    {% endif %}
+    <span style="font-size:12px;color:#6b7280;">Showing {{ students_shown }} of {{ students_total }} students</span>
+  </div>
+</form>
 
 {% if not show_archived %}
   {% for group in active_groups %}

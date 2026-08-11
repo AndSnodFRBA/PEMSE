@@ -122,16 +122,36 @@ def _student_row(student, enrollment, course):
     }
 
 
-def _course_group(course, status_filter=None):
+def _passes_filters(student, status_filter=None, search=None, docs_filter=None):
+    if status_filter and student.enroll_status != status_filter:
+        return False
+    if search:
+        q = search.lower()
+        haystack = [student.first_name, student.last_name, student.email, student.phone]
+        if not any(q in (field or '').lower() for field in haystack):
+            return False
+    if docs_filter == 'incomplete':
+        approved_required = StudentDocument.objects.filter(
+            student=student, doc_type__required=True, status='approved',
+        ).count()
+        if approved_required >= 3:
+            return False
+    return True
+
+
+def _course_group(course, status_filter=None, search=None, docs_filter=None, balance_filter=None):
     enrollments = CourseEnrollment.objects.filter(course=course).select_related('student').order_by(
         'student__last_name', 'student__first_name'
     )
     rows = []
     for enrollment in enrollments:
         student = enrollment.student
-        if status_filter and student.enroll_status != status_filter:
+        if not _passes_filters(student, status_filter, search, docs_filter):
             continue
-        rows.append(_student_row(student, enrollment, course))
+        row = _student_row(student, enrollment, course)
+        if balance_filter == 'outstanding' and not row['balance_due']:
+            continue
+        rows.append(row)
     return {'course': course, 'rows': rows, 'count': len(rows)}
 
 
@@ -142,9 +162,13 @@ def staff_dashboard(request):
 
     today = timezone.now().date()
 
-    show_archived = request.GET.get('archived') == '1'
-    course_filter = request.GET.get('course') or ''
-    status_filter = request.GET.get('status') or ''
+    show_archived  = request.GET.get('archived') == '1'
+    course_filter  = request.GET.get('course') or ''
+    status_filter  = request.GET.get('status') or ''
+    search         = request.GET.get('q', '').strip()
+    docs_filter    = request.GET.get('docs', '')
+    balance_filter = request.GET.get('balance', '')
+    any_filter_active = bool(course_filter or status_filter or search or docs_filter or balance_filter)
 
     # A course is "archived" once it's been explicitly deactivated, or its
     # end date has passed — either way it drops out of the active roster.
@@ -160,8 +184,8 @@ def staff_dashboard(request):
     unassigned_rows = []
     if not show_archived:
         for course in active_courses_qs:
-            group = _course_group(course, status_filter)
-            if status_filter and not group['count']:
+            group = _course_group(course, status_filter, search, docs_filter, balance_filter)
+            if any_filter_active and not group['count']:
                 continue
             active_groups.append(group)
 
@@ -169,15 +193,18 @@ def staff_dashboard(request):
             role=Student.Role.STUDENT, enrollment__isnull=True
         ).order_by('last_name', 'first_name')
         for s in unassigned_qs:
-            if status_filter and s.enroll_status != status_filter:
+            if not _passes_filters(s, status_filter, search, docs_filter):
                 continue
-            unassigned_rows.append(_student_row(s, None, None))
+            row = _student_row(s, None, None)
+            if balance_filter == 'outstanding' and not row['balance_due']:
+                continue
+            unassigned_rows.append(row)
 
     archived_groups = []
     if show_archived:
         for course in archived_courses_qs:
-            group = _course_group(course, status_filter)
-            if status_filter and not group['count']:
+            group = _course_group(course, status_filter, search, docs_filter, balance_filter)
+            if any_filter_active and not group['count']:
                 continue
             enrolled_count  = CourseEnrollment.objects.filter(course=course).count()
             completed_count = CourseEnrollment.objects.filter(
@@ -207,6 +234,13 @@ def staff_dashboard(request):
     all_students = Student.objects.filter(role=Student.Role.STUDENT)
     incomplete_enrollment_count = sum(1 for s in all_students if not s.enrollment_complete)
     outstanding_balance_count   = sum(1 for s in all_students if compute_balance(s)[3] > 0)
+
+    # Results count for the current tab (respects all active filters)
+    if show_archived:
+        students_shown = sum(g['count'] for g in archived_groups)
+    else:
+        students_shown = sum(g['count'] for g in active_groups) + len(unassigned_rows)
+    students_total = all_students.count()
 
     # NREMT pass-rate alerts: courses with any rate below 75%
     pass_rate_alerts = []
@@ -272,7 +306,14 @@ def staff_dashboard(request):
         'show_archived':   show_archived,
         'course_filter':   course_filter,
         'status_filter':   status_filter,
+        'search':          search,
+        'docs_filter':     docs_filter,
+        'balance_filter':  balance_filter,
+        'any_filter_active': any_filter_active,
+        'students_shown':   students_shown,
+        'students_total':   students_total,
         'enroll_status_choices': Student.EnrollStatus.choices,
+        'all_courses':           Course.objects.order_by('option_number'),
         'course_breakdown':      course_breakdown,
         'total_active_students': total_active_students,
         'incomplete_enrollment_count': incomplete_enrollment_count,
