@@ -69,6 +69,25 @@ def add_rotation(request):
 
 
 @login_required
+def resend_preceptor_eval(request, eval_id):
+    import uuid
+    evaluation = get_object_or_404(
+        PreceptorEvaluation, pk=eval_id, rotation__student=request.user
+    )
+    if request.method == 'POST':
+        if evaluation.status == PreceptorEvaluation.Status.COMPLETED:
+            messages.error(request, 'This evaluation has already been completed.')
+        else:
+            # Reset token and extend expiry 14 days
+            evaluation.token = uuid.uuid4()
+            evaluation.token_expires = timezone.now() + timedelta(days=14)
+            evaluation.status = PreceptorEvaluation.Status.PENDING
+            evaluation.save(update_fields=['token', 'token_expires', 'status'])
+            messages.success(request, 'A new evaluation link has been generated. Copy it and send it to your preceptor.')
+    return redirect('rotation_log')
+
+
+@login_required
 def site_eval(request, pk):
     rotation = get_object_or_404(ClinicalRotation, pk=pk, student=request.user)
 
