@@ -45,5 +45,27 @@ class CalendarEvent(models.Model):
     class Meta:
         ordering = ['date', 'start_time']
 
+    @classmethod
+    def next_session(cls, course):
+        """The soonest upcoming class-session event for a course, or None."""
+        from django.utils import timezone
+        return cls.objects.filter(
+            course=course, event_type=cls.EventType.SESSION, date__gte=timezone.now().date(),
+        ).order_by('date').first()
+
+    @property
+    def countdown_days(self):
+        from django.utils import timezone
+        return (self.date - timezone.now().date()).days
+
+    @property
+    def countdown_label(self):
+        days = self.countdown_days
+        if days <= 0:
+            return 'Today'
+        if days == 1:
+            return 'Tomorrow'
+        return f'In {days} days'
+
     def __str__(self):
         return f'[{self.course.tag}] {self.get_event_type_display()} — {self.title} ({self.date})'

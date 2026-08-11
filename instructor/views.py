@@ -112,18 +112,23 @@ def instructor_dashboard(request):
 
     # Build course summary cards
     course_cards = []
+    next_class = None
     for assignment in assignments:
         course = assignment.course
         enrolled_count = CourseEnrollment.objects.filter(course=course).count()
         next_session = AttendanceRecord.objects.filter(
             course=course, session_date__gte=today
         ).order_by('session_date').first()
+        next_class_event = CalendarEvent.next_session(course)
         course_cards.append({
-            'assignment':    assignment,
-            'course':        course,
-            'enrolled':      enrolled_count,
-            'next_session':  next_session,
+            'assignment':       assignment,
+            'course':           course,
+            'enrolled':         enrolled_count,
+            'next_session':     next_session,
+            'next_class_event': next_class_event,
         })
+        if next_class_event and (next_class is None or next_class_event.date < next_class.date):
+            next_class = next_class_event
 
     return render(request, 'instructor/dashboard.html', {
         'course_cards':      course_cards,
@@ -133,6 +138,7 @@ def instructor_dashboard(request):
         'pending_obs':       pending_obs,
         'pending_meetings':  pending_meetings,
         'license_warning':   license_warning,
+        'next_class':        next_class,
     })
 
 

@@ -157,6 +157,7 @@ def dashboard_view(request):
 
     progress = _build_progress_summary(student, enrollment)
     upcoming_deadlines = _build_upcoming_deadlines(enrollment)
+    next_class = CalendarEvent.next_session(enrollment.course) if enrollment else None
 
     return render(request, 'students/dashboard.html', {
         'student':                student,
@@ -175,6 +176,7 @@ def dashboard_view(request):
         'pending_preceptor_evals': pending_preceptor_evals,
         'progress':               progress,
         'upcoming_deadlines':     upcoming_deadlines,
+        'next_class':             next_class,
     })
 
 
