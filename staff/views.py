@@ -557,6 +557,64 @@ def document_review_queue(request):
     return render(request, 'staff/document_queue.html', {'pending_docs': pending_docs})
 
 
+@staff_required
+def export_students_csv(request):
+    import csv
+    from django.http import StreamingHttpResponse
+    from students.balance import compute_balance
+
+    course_filter = request.GET.get('course', '')
+    status_filter = request.GET.get('status', '')
+
+    students = Student.objects.filter(
+        role=Student.Role.STUDENT
+    ).select_related('enrollment__course').order_by(
+        'enrollment__course__option_number', 'last_name', 'first_name'
+    )
+    if course_filter:
+        students = students.filter(enrollment__course__option_number=course_filter)
+    if status_filter:
+        students = students.filter(enroll_status=status_filter)
+
+    def generate_rows():
+        yield [
+            'Last Name', 'First Name', 'Email', 'Phone',
+            'Course', 'Enrollment Status', 'Registration Submitted',
+            'Handbook Signed', 'Contract Signed',
+            'Documents Uploaded', 'Total Paid', 'Balance Due',
+            'Date Joined', 'Confirmation Number'
+        ]
+        for s in students:
+            enrollment, total_paid, total_owed, balance_due = compute_balance(s)
+            doc_count = s.documents.filter(doc_type__required=True).count()
+            yield [
+                s.last_name, s.first_name, s.email, s.phone,
+                enrollment.course.name if enrollment else '',
+                s.get_enroll_status_display(),
+                'Yes' if s.reg_submitted else 'No',
+                'Yes' if s.handbook_signed else 'No',
+                'Yes' if s.contract_signed else 'No',
+                f'{doc_count}/4',
+                f'${total_paid:,.2f}',
+                f'${balance_due:,.2f}',
+                s.date_joined.strftime('%Y-%m-%d'),
+                s.reg_conf_number,
+            ]
+
+    class Echo:
+        def write(self, value):
+            return value
+
+    writer = csv.writer(Echo())
+    response = StreamingHttpResponse(
+        (writer.writerow(row) for row in generate_rows()),
+        content_type='text/csv'
+    )
+    filename = f'PEMSE_Students_{timezone.now().strftime("%Y%m%d")}.csv'
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
 # ── Course management ─────────────────────────────────────────────────────────
 
 @staff_required

@@ -130,6 +130,10 @@
     {% if any_filter_active %}
       <a href="?{% if show_archived %}archived=1{% endif %}" class="btn btn-sm btn-outline-secondary" style="border-radius:6px;">Clear filters</a>
     {% endif %}
+    <a href="{% url 'staff_export_students_csv' %}?{% if course_filter %}course={{ course_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}{% endif %}"
+       class="btn btn-sm btn-outline-secondary" style="border-radius:6px;">
+      <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export CSV
+    </a>
     <span style="font-size:12px;color:#6b7280;">Showing {{ students_shown }} of {{ students_total }} students</span>
   </div>
 </form>

@@ -21,6 +21,7 @@ urlpatterns = [
     path('documents/<int:doc_id>/download/',   views.document_download,     name='staff_document_download'),
     path('documents/bulk-approve/',            views.bulk_approve_documents, name='staff_bulk_approve_documents'),
     path('documents/pending/',                 views.document_review_queue, name='staff_document_queue'),
+    path('students/export/csv/',               views.export_students_csv,   name='staff_export_students_csv'),
     path('invite/',                            views.invite_student,        name='staff_invite'),
     path('invite/<int:pk>/resend/',            views.resend_student_invite, name='staff_invite_resend'),
     path('invite/<int:pk>/edit/',              views.edit_student_invite,   name='staff_invite_edit'),
