@@ -15,7 +15,7 @@
   </p>
 </div>
 
-<form method="post" style="max-width:700px;">
+<form method="post" id="site-eval-form" style="max-width:700px;">
   {% csrf_token %}
 
   <!-- Rating scale key -->
@@ -26,20 +26,11 @@
 
   <!-- Site Evaluation -->
   <div class="card mb-4">
-    <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
+    <div class="card-header py-3 eval-section-header" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
       <i class="bi bi-hospital me-2"></i>Clinical Site Evaluation
+      <span class="float-end text-muted" style="font-weight:500;">Section 1 of 3</span>
     </div>
     <div class="card-body">
-      <div class="row g-3">
-        {% for field_name, label in site_fields %}
-        <div class="col-md-6">
-          <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">{{ label }}</label>
-          {{ form|field_value:field_name }}
-        </div>
-        {% endfor %}
-      </div>
-
-      {% with form.site_organization as f %}
       <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">Organization &amp; Structure</label>
@@ -66,14 +57,14 @@
           {{ form.site_would_return }}
         </div>
       </div>
-      {% endwith %}
     </div>
   </div>
 
   <!-- Preceptor Evaluation -->
   <div class="card mb-4">
-    <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
+    <div class="card-header py-3 eval-section-header" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
       <i class="bi bi-person-badge me-2"></i>Preceptor Evaluation
+      <span class="float-end text-muted" style="font-weight:500;">Section 2 of 3</span>
     </div>
     <div class="card-body">
       <div class="row g-3">
@@ -103,8 +94,9 @@
 
   <!-- Written Feedback -->
   <div class="card mb-4">
-    <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
+    <div class="card-header py-3 eval-section-header" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
       <i class="bi bi-chat-text me-2"></i>Written Feedback
+      <span class="float-end text-muted" style="font-weight:500;">Section 3 of 3</span>
     </div>
     <div class="card-body">
       <div class="row g-3">
@@ -135,4 +127,48 @@
     Cancel
   </a>
 </form>
+
+<button type="submit" form="site-eval-form" class="btn btn-primary floating-submit">
+  <i class="bi bi-check-lg me-1"></i>Submit Evaluation
+</button>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  // Turn each 1-5 rating <select> into a row of large touch-friendly buttons.
+  var RATING_LABELS = {'1': 'Unsatisfactory', '2': 'Below', '3': 'Meets', '4': 'Exceeds', '5': 'Outstanding'};
+  document.querySelectorAll('#site-eval-form select').forEach(function (select) {
+    var opts = Array.prototype.filter.call(select.options, function (o) { return !!RATING_LABELS[o.value]; });
+    if (opts.length !== 5) return; // skip the Yes/No selects
+
+    select.style.display = 'none';
+    select.setAttribute('aria-hidden', 'true');
+
+    var group = document.createElement('div');
+    group.className = 'rating-group';
+    opts.forEach(function (opt) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'rating-btn';
+      if (select.value === opt.value) btn.classList.add('selected');
+      btn.innerHTML = opt.value + '<span>' + RATING_LABELS[opt.value] + '</span>';
+      btn.addEventListener('click', function () {
+        select.value = opt.value;
+        Array.prototype.forEach.call(group.querySelectorAll('.rating-btn'), function (b) { b.classList.remove('selected'); });
+        btn.classList.add('selected');
+      });
+      group.appendChild(btn);
+    });
+    select.insertAdjacentElement('afterend', group);
+  });
+
+  // Auto-resize textareas as the student types.
+  document.querySelectorAll('#site-eval-form textarea').forEach(function (ta) {
+    function resize() { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+    ta.addEventListener('input', resize);
+    resize();
+  });
+})();
+</script>
 {% endblock %}

@@ -41,9 +41,21 @@
     .bool-btn:hover  { border-color: #2B5EA7; color: #2B5EA7; }
     .bool-btn.active { border-color: #059669; background: #059669; color: #fff; }
     .bool-btn.active-no { border-color: #dc2626; background: #dc2626; color: #fff; }
-    @media (max-width: 600px) {
-      .rating-btn { width: 56px; height: 56px; font-size: 18px; }
-      .rating-group { gap: 6px; }
+    .floating-submit { display: none; }
+    @media (max-width: 768px) {
+      .rating-btn { width: 56px; height: 56px; min-width: 44px; min-height: 44px; font-size: 18px; }
+      .rating-group { gap: 6px; flex-wrap: nowrap; }
+      .eval-section-header {
+        position: sticky; top: 0; background: #fff; z-index: 10;
+        padding: 8px 0; border-bottom: 2px solid #2B5EA7; margin-bottom: 16px;
+      }
+      textarea { min-height: 80px; resize: vertical; }
+      .floating-submit {
+        display: block;
+        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+        z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.2); border-radius: 50px; padding: 14px 32px; font-size: 16px;
+      }
+      body { padding-bottom: 90px; }
     }
     /* Progress bar */
     .progress-strip { height: 4px; background: #dde4ef; border-radius: 0; }
@@ -81,7 +93,10 @@
     <!-- Section 1: Course Content -->
     <div class="card mb-4">
       <div class="card-body">
-        <div class="section-title"><i class="bi bi-book me-2"></i>Course Content &amp; Curriculum</div>
+        <div class="section-title eval-section-header">
+          <i class="bi bi-book me-2"></i>Course Content &amp; Curriculum
+          <span class="float-end text-muted" style="font-weight:500;text-transform:none;letter-spacing:normal;">Section 1 of 7</span>
+        </div>
         {% include "evaluations/_rating_q.html" with field="content_objectives_clear"       label="Learning objectives were clear and well defined" %}
         {% include "evaluations/_rating_q.html" with field="content_material_relevant"      label="Material was relevant to real-world EMS practice" %}
         {% include "evaluations/_rating_q.html" with field="content_material_current"       label="Material was current and up-to-date" %}
@@ -93,7 +108,10 @@
     <!-- Section 2: Instruction -->
     <div class="card mb-4">
       <div class="card-body">
-        <div class="section-title"><i class="bi bi-person-chalkboard me-2"></i>Instruction Quality</div>
+        <div class="section-title eval-section-header">
+          <i class="bi bi-person-chalkboard me-2"></i>Instruction Quality
+          <span class="float-end text-muted" style="font-weight:500;text-transform:none;letter-spacing:normal;">Section 2 of 7</span>
+        </div>
         {% include "evaluations/_rating_q.html" with field="instruction_knowledge"          label="Instructor demonstrated strong subject knowledge" %}
         {% include "evaluations/_rating_q.html" with field="instruction_communication"      label="Instructor communicated material effectively" %}
         {% include "evaluations/_rating_q.html" with field="instruction_feedback"           label="Instructor provided helpful, timely feedback" %}
@@ -106,7 +124,10 @@
     <!-- Section 3: Facilities -->
     <div class="card mb-4">
       <div class="card-body">
-        <div class="section-title"><i class="bi bi-building me-2"></i>Facilities &amp; Resources</div>
+        <div class="section-title eval-section-header">
+          <i class="bi bi-building me-2"></i>Facilities &amp; Resources
+          <span class="float-end text-muted" style="font-weight:500;text-transform:none;letter-spacing:normal;">Section 3 of 7</span>
+        </div>
         {% include "evaluations/_rating_q.html" with field="facility_classroom_adequate"  label="Classroom space was adequate for the group size" %}
         {% include "evaluations/_rating_q.html" with field="facility_equipment_adequate"  label="Equipment was adequate and in good working order" %}
         {% include "evaluations/_rating_q.html" with field="facility_supplies_adequate"   label="Supplies and materials were adequate" %}
@@ -117,7 +138,10 @@
     <!-- Section 4: Online/Hybrid (optional section) -->
     <div class="card mb-4">
       <div class="card-body">
-        <div class="section-title"><i class="bi bi-laptop me-2"></i>Online / Hybrid Component <small style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:#9ca3af;">(skip if not applicable)</small></div>
+        <div class="section-title eval-section-header">
+          <i class="bi bi-laptop me-2"></i>Online / Hybrid Component <small style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:#9ca3af;">(skip if not applicable)</small>
+          <span class="float-end text-muted" style="font-weight:500;text-transform:none;letter-spacing:normal;">Section 4 of 7</span>
+        </div>
         {% include "evaluations/_rating_q.html" with field="online_platform_easy_to_use" label="The online platform was easy to use" %}
         {% include "evaluations/_rating_q.html" with field="online_content_organized"    label="Online content was well organized" %}
         {% include "evaluations/_rating_q.html" with field="online_support_available"    label="Technical support was available when needed" %}
@@ -127,7 +151,10 @@
     <!-- Section 5: Overall -->
     <div class="card mb-4">
       <div class="card-body">
-        <div class="section-title"><i class="bi bi-star me-2"></i>Overall Experience</div>
+        <div class="section-title eval-section-header">
+          <i class="bi bi-star me-2"></i>Overall Experience
+          <span class="float-end text-muted" style="font-weight:500;text-transform:none;letter-spacing:normal;">Section 5 of 7</span>
+        </div>
         {% include "evaluations/_rating_q.html" with field="overall_satisfaction"       label="Overall satisfaction with this course" %}
         {% include "evaluations/_rating_q.html" with field="overall_prepared_for_nremt" label="This course prepared me well for NREMT testing" %}
 
@@ -144,7 +171,10 @@
     {% if eval.eval_type == 'mid' %}
     <div class="card mb-4">
       <div class="card-body">
-        <div class="section-title"><i class="bi bi-bar-chart-steps me-2"></i>Mid-Course Check-In</div>
+        <div class="section-title eval-section-header">
+          <i class="bi bi-bar-chart-steps me-2"></i>Mid-Course Check-In
+          <span class="float-end text-muted" style="font-weight:500;text-transform:none;letter-spacing:normal;">Section 6 of 7</span>
+        </div>
         {% include "evaluations/_rating_q.html" with field="mid_keeping_up_with_material" label="I am keeping up with the course material" %}
         <div class="mb-3">
           <label class="rating-label">What additional support do you need to succeed?</label>
@@ -162,7 +192,10 @@
     {% if eval.eval_type == 'end' %}
     <div class="card mb-4">
       <div class="card-body">
-        <div class="section-title"><i class="bi bi-trophy me-2"></i>End-of-Course Questions</div>
+        <div class="section-title eval-section-header">
+          <i class="bi bi-trophy me-2"></i>End-of-Course Questions
+          <span class="float-end text-muted" style="font-weight:500;text-transform:none;letter-spacing:normal;">Section 6 of 7</span>
+        </div>
         {% include "evaluations/_rating_q.html" with field="eoc_registration_process" label="The registration process was smooth and straightforward" %}
         {% include "evaluations/_rating_q.html" with field="eoc_staff_helpfulness"    label="PEMSE office staff were helpful and responsive" %}
         {% include "evaluations/_rating_q.html" with field="eoc_value_for_money"      label="This course was a good value for the cost" %}
@@ -193,7 +226,10 @@
     <!-- Written Feedback -->
     <div class="card mb-4">
       <div class="card-body">
-        <div class="section-title"><i class="bi bi-chat-left-text me-2"></i>Written Feedback</div>
+        <div class="section-title eval-section-header">
+          <i class="bi bi-chat-left-text me-2"></i>Written Feedback
+          <span class="float-end text-muted" style="font-weight:500;text-transform:none;letter-spacing:normal;">Section 7 of 7</span>
+        </div>
         <div class="mb-3">
           <label class="rating-label">What worked well in this course?</label>
           <textarea name="what_worked_well" class="form-control" rows="3" style="font-size:13px;"></textarea>
@@ -224,6 +260,10 @@
     Panhandle EMS Education &mdash; Your responses are kept confidential and used to improve the program.
   </p>
 </div>
+
+<button type="submit" form="evalForm" class="btn btn-primary floating-submit">
+  <i class="bi bi-check2-circle me-2"></i>Submit Evaluation
+</button>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -258,6 +298,13 @@ function updateProgress() {
 }
 
 updateProgress();
+
+// Auto-resize textareas as the student types.
+document.querySelectorAll('textarea').forEach(function (ta) {
+  function resize() { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+  ta.addEventListener('input', resize);
+  resize();
+});
 </script>
 </body>
 </html>

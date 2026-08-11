@@ -22,12 +22,42 @@
     .rating-label { font-size: 13px; color: #374151; font-weight: 500; }
     .scale-key { background: #eff6ff; border: 1px solid #dbeafe; border-radius: 8px; padding: 12px 16px; font-size: 12px; }
     .rating-row select, .rating-row input[type=number] { min-height: 44px; font-size: 15px; width: 100%; }
-    @media (max-width: 600px) {
+
+    /* Numbered rating buttons (JS-generated next to each rating <select>) */
+    .rating-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+    .rating-btn {
+      min-width: 44px; min-height: 44px; flex: 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+      font-size: 16px; font-weight: 700; border-radius: 10px;
+      border: 2px solid #2B5EA7; background: #fff; color: #2B5EA7; cursor: pointer; transition: all 0.15s;
+    }
+    .rating-btn span { font-size: 9px; font-weight: 500; color: #6b7280; line-height: 1.1; }
+    .rating-btn.selected { background: #2B5EA7; color: #fff; }
+    .rating-btn.selected span { color: rgba(255,255,255,.8); }
+    .progress-indicator { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 2px; }
+    .floating-submit { display: none; }
+
+    @media (max-width: 768px) {
       .rating-row { grid-template-columns: 1fr; gap: 6px; padding: 12px 0; }
       .scale-key { font-size: 11px; }
       .scale-key span { display: block; margin: 2px 0; }
       .eval-header h1 { font-size: 16px; }
       .section-title { font-size: 12px; }
+
+      .rating-group { display: flex; gap: 8px; flex-wrap: nowrap; }
+      .rating-btn { min-width: 44px; min-height: 44px; flex: 1; font-size: 18px; font-weight: 700; border-radius: 10px; border: 2px solid #2B5EA7; background: white; cursor: pointer; transition: all 0.15s; }
+      .rating-btn.selected { background: #2B5EA7; color: white; }
+      .eval-section-header {
+        position: sticky; top: 0; background: white; z-index: 10;
+        padding: 8px 0; border-bottom: 2px solid #2B5EA7; margin-bottom: 16px;
+      }
+      textarea { min-height: 80px; resize: vertical; }
+      .floating-submit {
+        display: block;
+        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+        z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.2); border-radius: 50px; padding: 14px 32px; font-size: 16px;
+      }
+      body { padding-bottom: 90px; } /* room for the floating submit button */
     }
   </style>
 </head>
@@ -76,13 +106,16 @@
     <div class="alert alert-danger">{{ form.non_field_errors }}</div>
   {% endif %}
 
-  <form method="post">
+  <form method="post" id="preceptor-eval-form">
     {% csrf_token %}
 
     <!-- Section 1: Professional Behavior -->
     <div class="card mb-4">
       <div class="card-body">
-        <div class="section-title"><i class="bi bi-person-check me-2"></i>Professional Behavior</div>
+        <div class="section-title eval-section-header">
+          <i class="bi bi-person-check me-2"></i>Professional Behavior
+          <span class="float-end text-muted" style="font-weight:500;text-transform:none;letter-spacing:normal;">Section 1 of 4</span>
+        </div>
 
         {% for field_name, label in prof_fields %}{% endfor %}
 
@@ -117,7 +150,10 @@
     <!-- Section 2: Clinical Skills -->
     <div class="card mb-4">
       <div class="card-body">
-        <div class="section-title"><i class="bi bi-heart-pulse me-2"></i>Clinical Skills</div>
+        <div class="section-title eval-section-header">
+          <i class="bi bi-heart-pulse me-2"></i>Clinical Skills
+          <span class="float-end text-muted" style="font-weight:500;text-transform:none;letter-spacing:normal;">Section 2 of 4</span>
+        </div>
         <div class="rating-row">
           <div class="rating-label">Patient Assessment</div>
           <div>{{ form.patient_assessment }}
@@ -149,7 +185,10 @@
     <!-- Section 3: Overall Assessment -->
     <div class="card mb-4">
       <div class="card-body">
-        <div class="section-title"><i class="bi bi-star me-2"></i>Overall Assessment</div>
+        <div class="section-title eval-section-header">
+          <i class="bi bi-star me-2"></i>Overall Assessment
+          <span class="float-end text-muted" style="font-weight:500;text-transform:none;letter-spacing:normal;">Section 3 of 4</span>
+        </div>
         <div class="rating-row">
           <div class="rating-label">Overall Performance</div>
           <div>{{ form.overall_performance }}
@@ -166,7 +205,10 @@
     <!-- Section 4: Written Feedback -->
     <div class="card mb-4">
       <div class="card-body">
-        <div class="section-title"><i class="bi bi-chat-left-text me-2"></i>Written Feedback</div>
+        <div class="section-title eval-section-header">
+          <i class="bi bi-chat-left-text me-2"></i>Written Feedback
+          <span class="float-end text-muted" style="font-weight:500;text-transform:none;letter-spacing:normal;">Section 4 of 4</span>
+        </div>
         <div class="mb-3">
           <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">Strengths</label>
           {{ form.strengths }}
@@ -194,6 +236,47 @@
   </p>
 </div>
 
+<button type="submit" form="preceptor-eval-form" class="btn btn-primary floating-submit">
+  <i class="bi bi-check2-circle me-2"></i>Submit Evaluation
+</button>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function () {
+  // Turn each 1-5 rating <select> into a row of large touch-friendly buttons.
+  var RATING_LABELS = {'1': 'Unsatisfactory', '2': 'Below', '3': 'Meets', '4': 'Exceeds', '5': 'Outstanding'};
+  document.querySelectorAll('.rating-row select').forEach(function (select) {
+    var opts = Array.prototype.filter.call(select.options, function (o) { return !!RATING_LABELS[o.value]; });
+    if (opts.length !== 5) return; // skip the Yes/No select
+
+    select.style.display = 'none';
+    select.setAttribute('aria-hidden', 'true');
+
+    var group = document.createElement('div');
+    group.className = 'rating-group';
+    opts.forEach(function (opt) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'rating-btn';
+      if (select.value === opt.value) btn.classList.add('selected');
+      btn.innerHTML = opt.value + '<span>' + RATING_LABELS[opt.value] + '</span>';
+      btn.addEventListener('click', function () {
+        select.value = opt.value;
+        Array.prototype.forEach.call(group.querySelectorAll('.rating-btn'), function (b) { b.classList.remove('selected'); });
+        btn.classList.add('selected');
+      });
+      group.appendChild(btn);
+    });
+    select.insertAdjacentElement('afterend', group);
+  });
+
+  // Auto-resize textareas as the preceptor types.
+  document.querySelectorAll('textarea').forEach(function (ta) {
+    function resize() { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+    ta.addEventListener('input', resize);
+    resize();
+  });
+})();
+</script>
 </body>
 </html>

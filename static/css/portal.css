@@ -195,6 +195,70 @@ textarea.form-control { resize: vertical; }
 .badge-status.status-red    { background: #fdeaea; color: var(--red); }
 .badge-status.status-blue   { background: #ddeefa; color: var(--navy); }
 
+/* EVALUATION FORMS — mobile optimization (rating buttons, sticky section
+   headers, floating submit). Base rules keep the JS-generated rating
+   buttons styled at any screen size; the media query tunes them for phones. */
+.rating-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.rating-btn {
+  min-width: 44px; min-height: 44px; flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  font-size: 16px; font-weight: 700; border-radius: 10px;
+  border: 2px solid var(--navy); background: #fff; color: var(--navy); cursor: pointer; transition: all 0.15s;
+}
+.rating-btn span { font-size: 9px; font-weight: 500; color: var(--muted); line-height: 1.1; }
+.rating-btn.selected { background: var(--navy); color: #fff; }
+.rating-btn.selected span { color: rgba(255,255,255,.8); }
+.floating-submit { display: none; }
+
+@media (max-width: 768px) {
+    .rating-group {
+        display: flex;
+        gap: 8px;
+        flex-wrap: nowrap;
+    }
+    .rating-btn {
+        min-width: 44px;
+        min-height: 44px;
+        flex: 1;
+        font-size: 18px;
+        font-weight: 700;
+        border-radius: 10px;
+        border: 2px solid var(--navy);
+        background: white;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .rating-btn.selected {
+        background: var(--navy);
+        color: white;
+    }
+    .eval-section-header {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
+        padding: 8px 0;
+        border-bottom: 2px solid var(--navy);
+        margin-bottom: 16px;
+    }
+    textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+    .floating-submit {
+        display: block;
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        border-radius: 50px;
+        padding: 14px 32px;
+        font-size: 16px;
+    }
+}
+
 /* HANDBOOK */
 .handbook-layout   { display: grid; grid-template-columns: 210px 1fr; gap: 20px; align-items: start; }
 .handbook-nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-radius: 8px; cursor: pointer; margin-bottom: 2px; font-size: 13px; color: var(--muted); text-decoration: none; transition: all 0.15s; }
