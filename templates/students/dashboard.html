@@ -85,24 +85,32 @@
     {% endif %}
   </div>
 
+  {% if enrollment %}
   <!-- Upcoming deadlines -->
   <div class="portal-card">
     <div class="portal-card-title">Upcoming deadlines</div>
-    <div class="portal-card-sub">Quizzes and exams due soon for your course.</div>
+    <div class="portal-card-sub">Quizzes, exams, and due dates for your course.</div>
     {% if upcoming_deadlines %}
       {% for d in upcoming_deadlines %}
       <div class="announcement-item" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
         <div>
-          <div class="ann-date">{{ d.event.date|date:"M j, Y" }} — {{ d.event.get_event_type_display }}</div>
+          <div class="ann-date">
+            <span class="badge-status status-blue" style="margin-right:6px;">{{ d.event.get_event_type_display }}</span>
+            {{ d.event.date|date:"M j, Y" }}
+          </div>
           <div class="ann-title">{{ d.event.title }}</div>
         </div>
         <span class="badge-status status-{{ d.color }}">{{ d.countdown }}</span>
       </div>
       {% endfor %}
     {% else %}
-      <p style="font-size:13px;color:#6b7280;">No quizzes or exams coming up.</p>
+      <p style="font-size:13px;color:#6b7280;">No upcoming deadlines — you are up to date!</p>
     {% endif %}
+    <div style="margin-top:10px;text-align:right;">
+      <a href="{% url 'calendar' %}" style="font-size:12px;color:var(--navy);">View full calendar →</a>
+    </div>
   </div>
+  {% endif %}
 
   <!-- Progress tracker -->
   {% if enrollment %}

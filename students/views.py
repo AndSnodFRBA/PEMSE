@@ -157,7 +157,7 @@ def dashboard_view(request):
     ).count()
 
     progress = _build_progress_summary(student, enrollment)
-    upcoming_deadlines = _build_upcoming_deadlines(enrollment)
+    upcoming_deadlines = _build_upcoming_deadlines(student)
     next_class = CalendarEvent.next_session(enrollment.course) if enrollment else None
 
     return render(request, 'students/dashboard.html', {
@@ -181,17 +181,14 @@ def dashboard_view(request):
     })
 
 
-def _build_upcoming_deadlines(enrollment):
-    """Next 3 upcoming quiz/exam CalendarEvents for the student's course, with a countdown label."""
-    if not enrollment:
-        return []
-
+def _build_upcoming_deadlines(student):
+    """Next 5 upcoming quiz/exam/due-date CalendarEvents across the student's courses, with a countdown label."""
     today = timezone.now().date()
     events = CalendarEvent.objects.filter(
-        course=enrollment.course,
-        event_type__in=[CalendarEvent.EventType.QUIZ, CalendarEvent.EventType.EXAM],
+        course__in=student.calendar_courses,
+        event_type__in=[CalendarEvent.EventType.QUIZ, CalendarEvent.EventType.EXAM, CalendarEvent.EventType.DUE_DATE],
         date__gte=today,
-    ).order_by('date')[:3]
+    ).order_by('date')[:5]
 
     deadlines = []
     for event in events:
@@ -203,7 +200,7 @@ def _build_upcoming_deadlines(enrollment):
         else:
             countdown = f'Due in {days} days'
 
-        if days <= 2:
+        if days <= 1:
             color = 'red'
         elif days <= 7:
             color = 'yellow'
