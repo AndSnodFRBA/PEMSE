@@ -30,25 +30,27 @@
   {% endif %}
 </div>
 
-{% if next_class %}
 <div class="portal-card" style="margin-bottom:18px;">
   <div class="portal-card-title">Next class</div>
+  {% if next_class %}
   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:6px;">
     <div>
       <div style="font-size:15px;font-weight:600;color:#0a2540;">{{ next_class.title }}</div>
       <div style="font-size:13px;color:var(--muted);margin-top:2px;">
-        {{ next_class.date|date:"l, M j, Y" }}
-        {% if next_class.start_time %}&nbsp;·&nbsp;{{ next_class.start_time|time:"g:i A" }}{% if next_class.end_time %}–{{ next_class.end_time|time:"g:i A" }}{% endif %}{% endif %}
+        {{ next_class.date|date:"l, F j, Y" }}
+        {% if next_class.start_time %}&nbsp;·&nbsp;{{ next_class.start_time|time:"g:i A" }}{% if next_class.end_time %}&nbsp;—&nbsp;{{ next_class.end_time|time:"g:i A" }}{% endif %}{% endif %}
         {% if next_class.location %}&nbsp;·&nbsp;{{ next_class.location }}{% endif %}
       </div>
       {% if next_class.description %}
-      <div style="font-size:13px;color:#444;margin-top:6px;white-space:pre-line;">{{ next_class.description }}</div>
+      <div style="font-size:13px;color:#444;margin-top:6px;">{{ next_class.description|truncatechars:100 }}</div>
       {% endif %}
     </div>
-    <span class="badge-status status-blue">{{ next_class.countdown_label }}</span>
+    <span class="badge-status status-{{ next_class.countdown_color }}">{{ next_class.countdown_label }}</span>
   </div>
+  {% else %}
+  <p style="font-size:13px;color:#6b7280;margin-top:6px;">No upcoming sessions scheduled.</p>
+  {% endif %}
 </div>
-{% endif %}
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
 

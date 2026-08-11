@@ -158,7 +158,7 @@ def dashboard_view(request):
 
     progress = _build_progress_summary(student, enrollment)
     upcoming_deadlines = _build_upcoming_deadlines(student)
-    next_class = CalendarEvent.next_session(enrollment.course) if enrollment else None
+    next_class = CalendarEvent.next_session(student.calendar_courses)
 
     return render(request, 'students/dashboard.html', {
         'student':                student,

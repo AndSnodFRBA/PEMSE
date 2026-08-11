@@ -39,23 +39,28 @@
   </div>
 {% endif %}
 
-{% if next_class %}
 <div class="card p-3 mb-4 d-flex flex-row align-items-center justify-content-between flex-wrap gap-3">
+  {% if next_class %}
   <div>
     <h6 class="text-muted fw-semibold mb-1" style="font-size:11px;letter-spacing:1px;text-transform:uppercase;">Next Class — {{ next_class.course.tag }}</h6>
     <div class="fw-semibold" style="color:#1a2e4a;">{{ next_class.title }}</div>
     <div class="text-muted" style="font-size:13px;">
-      {{ next_class.date|date:"l, M j, Y" }}
-      {% if next_class.start_time %}&nbsp;·&nbsp;{{ next_class.start_time|time:"g:i A" }}{% if next_class.end_time %}–{{ next_class.end_time|time:"g:i A" }}{% endif %}{% endif %}
+      {{ next_class.date|date:"l, F j, Y" }}
+      {% if next_class.start_time %}&nbsp;·&nbsp;{{ next_class.start_time|time:"g:i A" }}{% if next_class.end_time %}&nbsp;—&nbsp;{{ next_class.end_time|time:"g:i A" }}{% endif %}{% endif %}
       {% if next_class.location %}&nbsp;·&nbsp;{{ next_class.location }}{% endif %}
     </div>
     {% if next_class.description %}
-      <div style="font-size:13px;color:#444;margin-top:4px;white-space:pre-line;">{{ next_class.description }}</div>
+      <div style="font-size:13px;color:#444;margin-top:4px;">{{ next_class.description|truncatechars:100 }}</div>
     {% endif %}
   </div>
-  <span class="badge bg-primary-subtle text-primary-emphasis" style="font-size:12px;padding:6px 12px;">{{ next_class.countdown_label }}</span>
+  <span class="badge {% if next_class.countdown_color == 'red' %}bg-danger-subtle text-danger-emphasis{% elif next_class.countdown_color == 'yellow' %}bg-warning-subtle text-warning-emphasis{% else %}bg-primary-subtle text-primary-emphasis{% endif %}" style="font-size:12px;padding:6px 12px;">{{ next_class.countdown_label }}</span>
+  {% else %}
+  <div class="text-muted" style="font-size:13px;">
+    <h6 class="text-muted fw-semibold mb-1" style="font-size:11px;letter-spacing:1px;text-transform:uppercase;">Next Class</h6>
+    No upcoming sessions scheduled.
+  </div>
+  {% endif %}
 </div>
-{% endif %}
 
 <!-- Hours summary -->
 <div class="row g-3 mb-4">
