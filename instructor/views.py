@@ -101,6 +101,9 @@ def instructor_dashboard(request):
     unverified_hours_this_month = InstructionalHourLog.objects.filter(
         instructor=instructor, session_date__gte=first_of_month, verified=False,
     ).aggregate(total=Sum('hours'))['total'] or Decimal('0')
+    verified_hours_this_month = InstructionalHourLog.objects.filter(
+        instructor=instructor, session_date__gte=first_of_month, verified=True,
+    ).aggregate(total=Sum('hours'))['total'] or Decimal('0')
 
     # Progress toward the "majority of class sessions" requirement, 172 NAC 13-004(B)(ii)(1):
     # what share of this month's logged sessions, across this instructor's assigned courses,
@@ -115,6 +118,13 @@ def instructor_dashboard(request):
     majority_pct = (
         round(sessions_this_month_mine / sessions_this_month_all * 100) if sessions_this_month_all else 0
     )
+
+    # All-time totals per course
+    course_hour_totals = InstructionalHourLog.objects.filter(
+        instructor=instructor
+    ).values('course__name', 'course__option_number').annotate(
+        total=Sum('hours')
+    ).order_by('course__option_number')
 
     # Recent attendance sessions
     recent_attendance = AttendanceRecord.objects.filter(
@@ -169,9 +179,11 @@ def instructor_dashboard(request):
         'next_class':        next_class,
         'hours_by_type':               hours_by_type,
         'unverified_hours_this_month': unverified_hours_this_month,
+        'verified_hours_this_month':   verified_hours_this_month,
         'majority_pct':                majority_pct,
         'sessions_this_month_mine':    sessions_this_month_mine,
         'sessions_this_month_all':     sessions_this_month_all,
+        'course_hour_totals':          course_hour_totals,
     })
 
 
