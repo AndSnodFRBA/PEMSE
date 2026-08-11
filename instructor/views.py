@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.db.models import Sum, Count, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from courses.models import Course, CourseEnrollment
@@ -226,14 +227,34 @@ def instructor_hours(request):
 @instructor_required
 def instructor_hours_add(request):
     instructor = request.user
-    form = HourLogForm(instructor, request.POST or None)
+
+    from_attendance = request.GET.get('from_attendance') or request.POST.get('from_attendance', '')
+
+    initial = {}
+    if request.GET.get('date'):
+        initial['session_date'] = request.GET['date']
+    if request.GET.get('session_type'):
+        initial['session_type'] = request.GET['session_type']
+    if request.GET.get('topic'):
+        initial['topic_covered'] = request.GET['topic']
+    if request.GET.get('course'):
+        initial['course'] = request.GET['course']
+    if request.GET.get('students_present'):
+        initial['students_present'] = request.GET['students_present']
+
+    form = HourLogForm(instructor, request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         log            = form.save(commit=False)
         log.instructor = instructor
         log.save()
         messages.success(request, f'Hour log entry added — {log.hours} hours on {log.session_date}.')
+        if from_attendance:
+            return redirect('instructor_attendance_detail', pk=from_attendance)
         return redirect('instructor_hours')
-    return render(request, 'instructor/hours_add.html', {'form': form})
+    return render(request, 'instructor/hours_add.html', {
+        'form': form,
+        'from_attendance': from_attendance,
+    })
 
 
 @instructor_required
@@ -384,6 +405,23 @@ def instructor_attendance_add(request):
                 defaults={'status': StudentAttendance.Status.PRESENT},
             )
         messages.success(request, f'Attendance session created for {session.session_date}. Take roll below.')
+
+        existing_hour_log = InstructionalHourLog.objects.filter(
+            instructor=instructor, course=session.course, session_date=session.session_date,
+        ).exists()
+        if not existing_hour_log:
+            from urllib.parse import urlencode
+            present_count = session.student_attendance.filter(status='present').count()
+            query = urlencode({
+                'date':             session.session_date,
+                'session_type':     session.session_type,
+                'topic':            session.session_topic,
+                'course':           session.course_id,
+                'students_present': present_count,
+                'from_attendance':  session.pk,
+            })
+            return redirect(f"{reverse('instructor_hours_add')}?{query}")
+
         return redirect('instructor_attendance_detail', pk=session.pk)
     return render(request, 'instructor/attendance_add.html', {'form': form})
 
