@@ -28,111 +28,147 @@
   </a>
 </div>
 
-<div class="card">
-  <div class="card-body p-0">
-    {% if rows %}
-    <table class="table table-hover mb-0" style="font-size:13px;">
-      <thead style="background:#f8fafc;border-bottom:2px solid #dde4ef;">
-        <tr>
-          <th class="ps-4 py-3" style="color:#1a2e4a;font-weight:600;">Student</th>
-          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Course</th>
-          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Status</th>
-          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="Registration submitted">Reg</th>
-          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="Handbook signed">Handbook</th>
-          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="Contract signed">Contract</th>
-          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="3+ required docs approved">Docs</th>
-          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="Registered with physical textbook">Textbook</th>
-          <th class="py-3 text-center" style="color:#1a2e4a;font-weight:600;" title="Department paying">Dept</th>
-          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Joined</th>
-          <th class="py-3"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in rows %}
-        <tr>
-          <td class="ps-4 py-3">
-            <div style="font-weight:600;color:#1a2e4a;">
-              {{ row.student.get_full_name }}
-              {% if row.attendance %}
-                {% if row.attendance.level == 'red' %}
-                  <span title="Attendance {{ row.attendance.pct }}% — below 80%" style="background:#fee2e2;color:#991b1b;border-radius:12px;font-size:10px;font-weight:700;padding:1px 7px;margin-left:4px;"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ row.attendance.pct }}%</span>
-                {% elif row.attendance.level == 'yellow' %}
-                  <span title="Attendance {{ row.attendance.pct }}%" style="background:#fef3c7;color:#92600a;border-radius:12px;font-size:10px;font-weight:700;padding:1px 7px;margin-left:4px;">{{ row.attendance.pct }}%</span>
-                {% else %}
-                  <span title="Attendance {{ row.attendance.pct }}%" style="background:#dcfce7;color:#166534;border-radius:12px;font-size:10px;font-weight:700;padding:1px 7px;margin-left:4px;">{{ row.attendance.pct }}%</span>
-                {% endif %}
-              {% endif %}
-            </div>
-            <div style="color:#5a7a9a;font-size:11px;">{{ row.student.email }}</div>
-          </td>
-          <td class="py-3" style="color:#374151;">
-            {% if row.enrollment %}
-              Opt. {{ row.enrollment.course.option_number }} — {{ row.enrollment.course.tag }}
-            {% else %}
-              <span style="color:#9ca3af;">—</span>
-            {% endif %}
-          </td>
-          <td class="py-3">
-            <span class="badge badge-{{ row.student.enroll_status }}" style="font-size:11px;padding:4px 8px;border-radius:6px;">
-              {{ row.student.get_enroll_status_display }}
-            </span>
-          </td>
-          <td class="py-3 text-center">
-            {% if row.student.reg_submitted %}<i class="bi bi-check-circle-fill check-icon"></i>
-            {% else %}<i class="bi bi-circle cross-icon"></i>{% endif %}
-          </td>
-          <td class="py-3 text-center">
-            {% if row.student.handbook_signed %}<i class="bi bi-check-circle-fill check-icon"></i>
-            {% else %}<i class="bi bi-circle cross-icon"></i>{% endif %}
-          </td>
-          <td class="py-3 text-center">
-            {% if row.student.contract_signed %}<i class="bi bi-check-circle-fill check-icon"></i>
-            {% else %}<i class="bi bi-circle cross-icon"></i>{% endif %}
-          </td>
-          <td class="py-3 text-center">
-            {% if row.docs_ok %}<i class="bi bi-check-circle-fill check-icon"></i>
-            {% else %}<span style="color:#9ca3af;font-size:11px;">{{ row.docs_count }}/3</span>{% endif %}
-          </td>
-          <td class="py-3 text-center">
-            {% if row.enrollment and row.enrollment.course.has_book_option %}
-              {% if row.enrollment.book_included %}
-                <i class="bi bi-check-circle-fill check-icon" title="With textbook"></i>
-              {% else %}
-                <i class="bi bi-circle cross-icon" title="Without textbook"></i>
-              {% endif %}
-            {% else %}
-              <span style="color:#9ca3af;">—</span>
-            {% endif %}
-          </td>
-          <td class="py-3 text-center">
-            {% if row.payment and row.payment.method == 'dept' %}
-              <i class="bi bi-check-circle-fill check-icon" title="{{ row.payment.dept_name|default:'Department paying' }}"></i>
-            {% else %}
-              <i class="bi bi-circle cross-icon"></i>
-            {% endif %}
-          </td>
-          <td class="py-3" style="color:#6b7280;font-size:12px;">{{ row.student.date_joined|date:"M j, Y" }}</td>
-          <td class="py-3 pe-3">
-            <a href="{% url 'staff_student_detail' row.student.pk %}"
-               class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:6px;">
-              View →
-            </a>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div class="text-center py-5" style="color:#9ca3af;">
-      <i class="bi bi-people" style="font-size:32px;"></i>
-      <div class="mt-2" style="font-size:14px;">No students yet. <a href="{% url 'staff_invite' %}">Invite one</a>.</div>
+<!-- Student summary widget -->
+<div class="row g-2 mb-3">
+  <div class="col-6 col-md-3">
+    <div class="card p-3">
+      <div style="font-size:22px;font-weight:700;color:#1a2e4a;">{{ total_active_students }}</div>
+      <div style="font-size:12px;color:#6b7280;">Active students</div>
+      {% if course_breakdown %}
+      <div style="font-size:11px;color:#9ca3af;margin-top:4px;">
+        {% for c in course_breakdown %}{{ c.course.tag }}: {{ c.count }}{% if not forloop.last %} &nbsp;·&nbsp; {% endif %}{% endfor %}
+      </div>
+      {% endif %}
     </div>
-    {% endif %}
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3">
+      <div style="font-size:22px;font-weight:700;color:#92600a;">{{ incomplete_enrollment_count }}</div>
+      <div style="font-size:12px;color:#6b7280;">Incomplete enrollment</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3">
+      <div style="font-size:22px;font-weight:700;color:#991b1b;">{{ outstanding_balance_count }}</div>
+      <div style="font-size:12px;color:#6b7280;">Outstanding balance</div>
+    </div>
   </div>
 </div>
 
-<div class="mt-2" style="font-size:12px;color:#9ca3af;">{{ rows|length }} student{{ rows|length|pluralize }} total</div>
+<!-- Active / Archived tabs + search -->
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+  <ul class="nav nav-tabs" style="border-bottom:none;">
+    <li class="nav-item">
+      <a class="nav-link {% if not show_archived %}active{% endif %}"
+         href="?{% if status_filter %}status={{ status_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}">
+        Active Courses
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if show_archived %}active{% endif %}"
+         href="?archived=1{% if status_filter %}&status={{ status_filter }}{% endif %}{% if course_filter %}&course={{ course_filter }}{% endif %}">
+        Archived Courses
+      </a>
+    </li>
+  </ul>
+  <div style="max-width:280px;width:100%;">
+    <input type="text" id="studentSearch" class="form-control form-control-sm"
+           placeholder="Search name, email, or course…" autocomplete="off">
+  </div>
+</div>
 
+{% if course_filter or status_filter %}
+<div class="mb-3" style="font-size:12px;color:#5a7a9a;">
+  Filtered
+  {% if course_filter %}— Option {{ course_filter }}{% endif %}
+  {% if status_filter %}— status: {{ status_filter }}{% endif %}
+  &nbsp;·&nbsp;
+  <a href="?{% if show_archived %}archived=1{% endif %}">Clear filters</a>
+</div>
+{% endif %}
+
+{% if not show_archived %}
+  {% for group in active_groups %}
+  <div class="card mb-3 course-section" data-course-name="{{ group.course.name|lower }} {{ group.course.tag|lower }} option {{ group.course.option_number }}"
+       style="border-left:4px solid {{ group.course.tag_color }};">
+    <div class="card-body p-0">
+      <button class="btn w-100 text-start d-flex align-items-center justify-content-between p-3" type="button"
+              data-bs-toggle="collapse" data-bs-target="#course-{{ group.course.pk }}" aria-expanded="true">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span style="font-weight:600;color:#1a2e4a;">Option {{ group.course.option_number }} — {{ group.course.name }}</span>
+          {% if group.course.licensure %}
+          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:{{ group.course.tag_bg }};color:{{ group.course.tag_color }};">
+            {{ group.course.get_licensure_display }}
+          </span>
+          {% endif %}
+          <span style="font-size:12px;color:#6b7280;">
+            {{ group.course.start_date|date:"M j, Y"|default:"TBD" }} – {{ group.course.end_date|date:"M j, Y"|default:"TBD" }}
+          </span>
+          <span style="font-size:12px;color:#6b7280;">{{ group.count }} student{{ group.count|pluralize }}</span>
+        </div>
+        <i class="bi bi-chevron-down chevron"></i>
+      </button>
+      <div class="collapse show" id="course-{{ group.course.pk }}">
+        {% include "staff/_student_table.html" with rows=group.rows read_only=False %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="card p-4 text-center text-muted mb-3">No active courses{% if course_filter or status_filter %} match this filter{% endif %}.</div>
+  {% endfor %}
+
+  <div class="card mb-3 course-section" data-course-name="unassigned">
+    <div class="card-body p-0">
+      <button class="btn w-100 text-start d-flex align-items-center justify-content-between p-3" type="button"
+              data-bs-toggle="collapse" data-bs-target="#unassigned-section" aria-expanded="false">
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-weight:600;color:#1a2e4a;">Unassigned students</span>
+          <span style="font-size:12px;color:#6b7280;">{{ unassigned_rows|length }} student{{ unassigned_rows|length|pluralize }}</span>
+        </div>
+        <i class="bi bi-chevron-down chevron"></i>
+      </button>
+      <div class="collapse" id="unassigned-section">
+        {% include "staff/_student_table.html" with rows=unassigned_rows read_only=False %}
+      </div>
+    </div>
+  </div>
+{% else %}
+  {% for group in archived_groups %}
+  <div class="card mb-3 course-section" data-course-name="{{ group.course.name|lower }} {{ group.course.tag|lower }} option {{ group.course.option_number }}"
+       style="border-left:4px solid {{ group.course.tag_color }};background:#f8fafc;opacity:.9;">
+    <div class="card-body p-0">
+      <button class="btn w-100 text-start d-flex align-items-center justify-content-between p-3" type="button"
+              data-bs-toggle="collapse" data-bs-target="#archived-course-{{ group.course.pk }}" aria-expanded="false">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span style="font-weight:600;color:#6b7280;">Option {{ group.course.option_number }} — {{ group.course.name }}</span>
+          {% if group.course.licensure %}
+          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:#e5e7eb;color:#6b7280;">
+            {{ group.course.get_licensure_display }}
+          </span>
+          {% endif %}
+          <span style="font-size:12px;color:#9ca3af;">
+            {{ group.course.start_date|date:"M j, Y"|default:"TBD" }} – {{ group.course.end_date|date:"M j, Y"|default:"TBD" }}
+          </span>
+        </div>
+        <i class="bi bi-chevron-down chevron"></i>
+      </button>
+      <div class="collapse" id="archived-course-{{ group.course.pk }}">
+        <div class="px-3 pb-3 d-flex gap-4 flex-wrap" style="font-size:12px;color:#6b7280;">
+          <div><strong>{{ group.enrolled_count }}</strong> enrolled</div>
+          <div><strong>{{ group.completed_count }}</strong> completed</div>
+          <div><strong>{{ group.withdrew_count }}</strong> withdrew</div>
+          <div>Pass rate: <strong>{% if group.pass_rate is not None %}{{ group.pass_rate }}%{% else %}—{% endif %}</strong></div>
+        </div>
+        {% include "staff/_student_table.html" with rows=group.rows read_only=True %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="card p-4 text-center text-muted mb-3">No archived courses{% if course_filter or status_filter %} match this filter{% endif %}.</div>
+  {% endfor %}
+{% endif %}
+
+{% if not show_archived %}
 <div class="mt-4">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
     <h2 style="font-size:15px;font-weight:600;color:#1a2e4a;margin:0;">
@@ -295,4 +331,42 @@
   </div>
 </div>
 {% endif %}
+{% endif %}
+
+{% block extra_css %}
+<style>
+  .chevron { transition: transform .2s; }
+  [aria-expanded="true"] .chevron { transform: rotate(180deg); }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const input = document.getElementById('studentSearch');
+  if (!input) return;
+  input.addEventListener('input', function () {
+    const q = this.value.trim().toLowerCase();
+    document.querySelectorAll('.course-section').forEach(function (section) {
+      const courseName = (section.dataset.courseName || '');
+      const courseMatches = !!q && courseName.includes(q);
+      let anyVisible = false;
+      const rows = section.querySelectorAll('tbody tr[data-search]');
+      rows.forEach(function (row) {
+        const match = !q || courseMatches || (row.dataset.search || '').includes(q);
+        row.style.display = match ? '' : 'none';
+        if (match) anyVisible = true;
+      });
+      section.style.display = (q && rows.length && !anyVisible) ? 'none' : '';
+      if (q && anyVisible) {
+        const collapseEl = section.querySelector('.collapse');
+        if (collapseEl && !collapseEl.classList.contains('show')) {
+          bootstrap.Collapse.getOrCreateInstance(collapseEl).show();
+        }
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}
 {% endblock %}

@@ -102,23 +102,111 @@ def _attendance_summary(student, course):
     return {'pct': pct, 'level': level}
 
 
+def _student_row(student, enrollment, course):
+    """One row of the by-course student table: docs, balance, attendance."""
+    from documents.models import DocumentType
+    from students.balance import compute_balance
+
+    docs_total    = DocumentType.objects.count()
+    docs_uploaded = StudentDocument.objects.filter(student=student).count()
+    _, total_paid, total_owed, balance_due = compute_balance(student)
+
+    return {
+        'student':      student,
+        'enrollment':   enrollment,
+        'payment':      getattr(student, 'payment', None),
+        'docs_uploaded': docs_uploaded,
+        'docs_total':   docs_total,
+        'balance_due':  balance_due,
+        'attendance':   _attendance_summary(student, course),
+    }
+
+
+def _course_group(course, status_filter=None):
+    enrollments = CourseEnrollment.objects.filter(course=course).select_related('student').order_by(
+        'student__last_name', 'student__first_name'
+    )
+    rows = []
+    for enrollment in enrollments:
+        student = enrollment.student
+        if status_filter and student.enroll_status != status_filter:
+            continue
+        rows.append(_student_row(student, enrollment, course))
+    return {'course': course, 'rows': rows, 'count': len(rows)}
+
+
 @staff_required
 def staff_dashboard(request):
-    students = Student.objects.filter(role=Student.Role.STUDENT).select_related('payment').order_by('-date_joined')
+    from django.db.models import Q
+    from students.balance import compute_balance
 
-    # Attach quick-status data to each student
-    rows = []
-    for s in students:
-        enrollment = CourseEnrollment.objects.filter(student=s).first()
-        req_docs   = StudentDocument.objects.filter(student=s, doc_type__required=True)
-        rows.append({
-            'student':    s,
-            'enrollment': enrollment,
-            'docs_count': req_docs.count(),
-            'docs_ok':    req_docs.filter(status='approved').count() >= 3,
-            'payment':    getattr(s, 'payment', None),
-            'attendance': _attendance_summary(s, enrollment.course if enrollment else None),
-        })
+    today = timezone.now().date()
+
+    show_archived = request.GET.get('archived') == '1'
+    course_filter = request.GET.get('course') or ''
+    status_filter = request.GET.get('status') or ''
+
+    # A course is "archived" once it's been explicitly deactivated, or its
+    # end date has passed — either way it drops out of the active roster.
+    archived_q = Q(is_active=False) | (Q(end_date__isnull=False) & Q(end_date__lt=today))
+    active_courses_qs   = Course.objects.exclude(archived_q).order_by('option_number')
+    archived_courses_qs = Course.objects.filter(archived_q).order_by('option_number')
+
+    if course_filter:
+        active_courses_qs   = active_courses_qs.filter(option_number=course_filter)
+        archived_courses_qs = archived_courses_qs.filter(option_number=course_filter)
+
+    active_groups = []
+    unassigned_rows = []
+    if not show_archived:
+        for course in active_courses_qs:
+            group = _course_group(course, status_filter)
+            if status_filter and not group['count']:
+                continue
+            active_groups.append(group)
+
+        unassigned_qs = Student.objects.filter(
+            role=Student.Role.STUDENT, enrollment__isnull=True
+        ).order_by('last_name', 'first_name')
+        for s in unassigned_qs:
+            if status_filter and s.enroll_status != status_filter:
+                continue
+            unassigned_rows.append(_student_row(s, None, None))
+
+    archived_groups = []
+    if show_archived:
+        for course in archived_courses_qs:
+            group = _course_group(course, status_filter)
+            if status_filter and not group['count']:
+                continue
+            enrolled_count  = CourseEnrollment.objects.filter(course=course).count()
+            completed_count = CourseEnrollment.objects.filter(
+                course=course, student__enroll_status=Student.EnrollStatus.COMPLETE
+            ).count()
+            withdrew_count  = CourseEnrollment.objects.filter(
+                course=course, student__enroll_status=Student.EnrollStatus.WITHDRAWN
+            ).count()
+            group.update({
+                'enrolled_count':  enrolled_count,
+                'completed_count': completed_count,
+                'withdrew_count':  withdrew_count,
+                'pass_rate': round(completed_count / enrolled_count * 100, 1) if enrolled_count else None,
+            })
+            archived_groups.append(group)
+
+    # Student summary widget: active students by course, incomplete enrollments, balances due
+    course_breakdown = []
+    for course in Course.objects.filter(is_active=True).order_by('option_number'):
+        cnt = CourseEnrollment.objects.filter(
+            course=course, student__enroll_status=Student.EnrollStatus.ACTIVE
+        ).count()
+        if cnt:
+            course_breakdown.append({'course': course, 'count': cnt})
+    total_active_students = sum(c['count'] for c in course_breakdown)
+
+    all_students = Student.objects.filter(role=Student.Role.STUDENT)
+    incomplete_enrollment_count = sum(1 for s in all_students if not s.enrollment_complete)
+    outstanding_balance_count   = sum(1 for s in all_students if compute_balance(s)[3] > 0)
 
     # NREMT pass-rate alerts: courses with any rate below 75%
     pass_rate_alerts = []
@@ -144,7 +232,6 @@ def staff_dashboard(request):
 
     # Semi-annual meeting compliance widget
     from instructor.models import InstructorMeeting
-    today = timezone.now().date()
     instructors = Student.objects.filter(role=Student.Role.INSTRUCTOR)
     meeting_compliance = []
     for inst in instructors:
@@ -179,7 +266,17 @@ def staff_dashboard(request):
     soon_reports    = [r for r in report_records if not r.is_overdue and r.deadline_soon]
 
     return render(request, 'staff/dashboard.html', {
-        'rows': rows,
+        'active_groups':   active_groups,
+        'archived_groups': archived_groups,
+        'unassigned_rows': unassigned_rows,
+        'show_archived':   show_archived,
+        'course_filter':   course_filter,
+        'status_filter':   status_filter,
+        'enroll_status_choices': Student.EnrollStatus.choices,
+        'course_breakdown':      course_breakdown,
+        'total_active_students': total_active_students,
+        'incomplete_enrollment_count': incomplete_enrollment_count,
+        'outstanding_balance_count':   outstanding_balance_count,
         'pass_rate_alerts': pass_rate_alerts,
         'ce_pending_mid': ce_pending_mid,
         'ce_pending_end': ce_pending_end,
