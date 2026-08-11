@@ -171,6 +171,13 @@ def staff_dashboard(request):
     invite_pending_count   = StudentInvitation.objects.filter(used=False, expires_at__gt=timezone.now()).count()
     invite_expired_count   = StudentInvitation.objects.filter(used=False, expires_at__lte=timezone.now()).count()
 
+    # Department report deadline warnings (172 NAC 13-004(D))
+    report_records = CourseReportRecord.objects.filter(
+        report_submitted_to_department=False
+    ).select_related('course')
+    overdue_reports = [r for r in report_records if r.is_overdue]
+    soon_reports    = [r for r in report_records if not r.is_overdue and r.deadline_soon]
+
     return render(request, 'staff/dashboard.html', {
         'rows': rows,
         'pass_rate_alerts': pass_rate_alerts,
@@ -180,6 +187,8 @@ def staff_dashboard(request):
         'invite_completed_count': invite_completed_count,
         'invite_pending_count':   invite_pending_count,
         'invite_expired_count':   invite_expired_count,
+        'overdue_reports': overdue_reports,
+        'soon_reports':    soon_reports,
     })
 
 
