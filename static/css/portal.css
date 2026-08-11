@@ -185,6 +185,7 @@ textarea.form-control { resize: vertical; }
 .badge-status.status-green  { background: #e3f7ee; color: var(--green); }
 .badge-status.status-yellow { background: #fbf0d9; color: var(--gold); }
 .badge-status.status-red    { background: #fdeaea; color: var(--red); }
+.badge-status.status-blue   { background: #ddeefa; color: var(--navy); }
 
 /* HANDBOOK */
 .handbook-layout   { display: grid; grid-template-columns: 210px 1fr; gap: 20px; align-items: start; }

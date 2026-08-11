@@ -16,6 +16,7 @@ from courses.models import CourseEnrollment
 from documents.models import StudentDocument, DocumentType
 from handbook.models import HandbookChapter
 from instructor.models import AttendanceRecord, StudentAttendance
+from schedule.models import CalendarEvent
 
 
 def landing_view(request):
@@ -155,6 +156,7 @@ def dashboard_view(request):
     ).count()
 
     progress = _build_progress_summary(student, enrollment)
+    upcoming_deadlines = _build_upcoming_deadlines(enrollment)
 
     return render(request, 'students/dashboard.html', {
         'student':                student,
@@ -172,7 +174,41 @@ def dashboard_view(request):
         'rotation_count':         rotations.count(),
         'pending_preceptor_evals': pending_preceptor_evals,
         'progress':               progress,
+        'upcoming_deadlines':     upcoming_deadlines,
     })
+
+
+def _build_upcoming_deadlines(enrollment):
+    """Next 3 upcoming quiz/exam CalendarEvents for the student's course, with a countdown label."""
+    if not enrollment:
+        return []
+
+    today = timezone.now().date()
+    events = CalendarEvent.objects.filter(
+        course=enrollment.course,
+        event_type__in=[CalendarEvent.EventType.QUIZ, CalendarEvent.EventType.EXAM],
+        date__gte=today,
+    ).order_by('date')[:3]
+
+    deadlines = []
+    for event in events:
+        days = (event.date - today).days
+        if days == 0:
+            countdown = 'Due today'
+        elif days == 1:
+            countdown = 'Due tomorrow'
+        else:
+            countdown = f'Due in {days} days'
+
+        if days <= 2:
+            color = 'red'
+        elif days <= 7:
+            color = 'yellow'
+        else:
+            color = 'blue'
+
+        deadlines.append({'event': event, 'countdown': countdown, 'color': color})
+    return deadlines
 
 
 def _pct(value, total):
