@@ -16,7 +16,7 @@ from django.core.management.base import BaseCommand
 from courses.models import Course
 from schedule.models import CalendarEvent
 
-LOCATION = '1409 Central Ave, Nebraska City, NE 68410'
+LOCATION = '709 Rosedale Dr., Scottsbluff, NE 69361'
 COURSE_OPTION_NUMBERS = [3, 4]
 
 SESSIONS = [
