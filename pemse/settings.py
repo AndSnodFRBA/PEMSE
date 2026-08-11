@@ -152,7 +152,6 @@ AUTH_PASSWORD_VALIDATORS = [
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ── MEDIA / FILE UPLOADS — AWS S3 ────────────────────────────────────────────
 AWS_ACCESS_KEY_ID       = os.environ.get('AWS_ACCESS_KEY_ID')
@@ -166,12 +165,23 @@ AWS_QUERYSTRING_EXPIRE  = 300    # URL expires in 5 minutes
 AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
 
 if AWS_ACCESS_KEY_ID:
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    DEFAULT_FILE_STORAGE_BACKEND = 'storages.backends.s3boto3.S3Boto3Storage'
     MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
 else:
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    DEFAULT_FILE_STORAGE_BACKEND = 'django.core.files.storage.FileSystemStorage'
     MEDIA_URL  = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
+
+# Django 5.1 removed DEFAULT_FILE_STORAGE / STATICFILES_STORAGE in favor of
+# this single STORAGES mapping — both prior settings are silently ignored.
+STORAGES = {
+    'default': {
+        'BACKEND': DEFAULT_FILE_STORAGE_BACKEND,
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 # Max upload size: 10 MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
