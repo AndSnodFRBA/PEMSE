@@ -23,6 +23,9 @@ def enroll_view(request, course_id):
     if existing and existing.course_id != course.id:
         messages.error(request, 'Your course is set by PEMSE staff. Contact the office if you need to change courses.')
         return redirect('registration_form')
+    if not existing and course.is_full:
+        messages.error(request, f'{course.name} is full. Please contact PEMSE staff or choose another course.')
+        return redirect('registration_form')
     if request.method == 'POST':
         shirt_size = request.POST.get('shirt_size', '')
         book_included = request.POST.get('book_included') == '1' if course.has_book_option else False

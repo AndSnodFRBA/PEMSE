@@ -95,6 +95,18 @@ class Course(models.Model):
         return max(0, self.max_students - self.enrollments.count())
 
     @property
+    def capacity_warning(self):
+        if not self.max_students:
+            return False
+        return self.spots_remaining is not None and self.spots_remaining <= 3
+
+    @property
+    def is_full(self):
+        if not self.max_students:
+            return False
+        return self.spots_remaining == 0
+
+    @property
     def location_display(self):
         parts = [p for p in [self.location_name, self.location_city] if p]
         return ', '.join(parts) if parts else ''

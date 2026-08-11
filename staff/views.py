@@ -237,6 +237,11 @@ def staff_dashboard(request):
     outstanding_balance_count   = sum(1 for s in all_students if compute_balance(s)[3] > 0)
     pending_docs_count = StudentDocument.objects.filter(status='pending').count()
 
+    capacity_warnings = [
+        c for c in Course.objects.filter(is_active=True).order_by('option_number')
+        if c.capacity_warning or c.is_full
+    ]
+
     # Results count for the current tab (respects all active filters)
     if show_archived:
         students_shown = sum(g['count'] for g in archived_groups)
@@ -321,6 +326,7 @@ def staff_dashboard(request):
         'incomplete_enrollment_count': incomplete_enrollment_count,
         'outstanding_balance_count':   outstanding_balance_count,
         'pending_docs_count':          pending_docs_count,
+        'capacity_warnings':           capacity_warnings,
         'pass_rate_alerts': pass_rate_alerts,
         'ce_pending_mid': ce_pending_mid,
         'ce_pending_end': ce_pending_end,

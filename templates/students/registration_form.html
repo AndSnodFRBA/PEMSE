@@ -177,10 +177,10 @@
         {% endif %}
       </div>
       {% endif %}
-      <button type="{% if course.includes_shirt or course.has_book_option %}button{% else %}submit{% endif %}"
+      <button type="{% if course.is_full %}button{% elif course.includes_shirt or course.has_book_option %}button{% else %}submit{% endif %}"
               class="course-card {% if enrollment.course == course %}selected{% endif %}"
-              style="width:100%;text-align:left;background:none;border:none;padding:0;cursor:pointer;"
-              {% if course.includes_shirt or course.has_book_option %}onclick="toggleExtra({{ course.id }}, this)"{% endif %}>
+              style="width:100%;text-align:left;background:none;border:none;padding:0;cursor:{% if course.is_full %}not-allowed{% else %}pointer{% endif %};{% if course.is_full %}opacity:.55;{% endif %}"
+              {% if course.is_full %}disabled title="This course is full"{% elif course.includes_shirt or course.has_book_option %}onclick="toggleExtra({{ course.id }}, this)"{% endif %}>
         <div class="course-tag" style="background:{{ course.tag_bg }};color:{{ course.tag_color }};">
           {% if course.licensure %}{{ course.get_licensure_display }}{% else %}{{ course.tag }}{% endif %}
         </div>
@@ -201,11 +201,15 @@
         <div class="course-down">Min. down: ${{ course.min_down|floatformat:0 }}</div>
         {% if course.has_book_option %}<div style="font-size:11px;color:#6b7280;margin-top:2px;">+${{ course.book_price|floatformat:0 }} with physical textbook (${{ course.price_with_book|floatformat:0 }} total)</div>{% endif %}
         {% if course.includes_shirt %}<div style="font-size:11px;color:var(--green);margin-top:4px;">✓ Polo shirt included</div>{% endif %}
-        {% with spots=course.spots_remaining %}
-          {% if spots is not None %}
-            {% if spots <= 5 and spots > 0 %}<div style="font-size:11px;color:#92600a;font-weight:600;margin-top:4px;">Only {{ spots }} spot{{ spots|pluralize }} left!</div>{% endif %}
+        {% if course.max_students %}
+          {% if course.is_full %}
+            <div style="font-size:11px;color:#991b1b;font-weight:700;margin-top:4px;">Course Full</div>
+          {% elif course.capacity_warning %}
+            <div style="font-size:11px;color:#92600a;font-weight:600;margin-top:4px;">Only {{ course.spots_remaining }} spot{{ course.spots_remaining|pluralize }} left!</div>
+          {% else %}
+            <div style="font-size:11px;color:#6b7280;margin-top:4px;">{{ course.spots_remaining }} spot{{ course.spots_remaining|pluralize }} remaining</div>
           {% endif %}
-        {% endwith %}
+        {% endif %}
         <div class="course-check"><i class="bi bi-check-lg"></i></div>
       </button>
     </form>

@@ -324,7 +324,13 @@ def registration_form_view(request):
     student = request.user
     enrollment = CourseEnrollment.objects.filter(student=student).first()
     payment, _ = PaymentRecord.objects.get_or_create(student=student)
-    courses = [c for c in Course.objects.filter(is_active=True) if c.registration_open]
+    # Full courses still show (disabled, "Course Full") rather than disappearing —
+    # registration_open excludes them entirely, so filter on close-date only here.
+    today = timezone.now().date()
+    courses = [
+        c for c in Course.objects.filter(is_active=True)
+        if not (c.registration_close_date and today > c.registration_close_date)
+    ]
 
     pay_form = PaymentForm(request.POST or None, instance=payment)
 
