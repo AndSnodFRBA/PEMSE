@@ -1,4 +1,9 @@
-"""python manage.py seed_documents"""
+"""
+python manage.py seed_documents
+
+Safe to re-run — uses get_or_create, so document types already edited in the
+admin are never modified.
+"""
 from django.core.management.base import BaseCommand
 from documents.models import DocumentType
 
@@ -15,8 +20,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         for data in DOCS:
-            obj, created = DocumentType.objects.update_or_create(
-                slug=data['slug'], defaults=data
+            slug = data['slug']
+            defaults = {k: v for k, v in data.items() if k != 'slug'}
+            obj, created = DocumentType.objects.get_or_create(
+                slug=slug, defaults=defaults
             )
-            self.stdout.write(f'{"Created" if created else "Updated"}: {obj.label}')
-        self.stdout.write(self.style.SUCCESS(f'\n✓ {len(DOCS)} document types seeded.'))
+            if created:
+                self.stdout.write(f'Created: {obj.label}')
+            else:
+                self.stdout.write(f'Already exists, skipping: {obj.label}')
+        self.stdout.write(self.style.SUCCESS('\n✓ Document type seeding complete.'))

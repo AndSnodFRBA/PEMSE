@@ -2,7 +2,8 @@
 python manage.py seed_courses
 
 Seeds the 7 PEMSE 2025 courses exactly as they appear on the registration form.
-Safe to re-run — uses update_or_create.
+Safe to re-run — uses get_or_create, so existing courses (including any staff
+edits made through the admin or staff portal) are never modified.
 """
 from django.core.management.base import BaseCommand
 from courses.models import Course
@@ -57,10 +58,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         for i, data in enumerate(COURSES):
-            obj, created = Course.objects.update_or_create(
-                option_number=data['option_number'],
-                defaults={**data, 'order': i, 'is_active': True}
+            option_number = data['option_number']
+            defaults = {k: v for k, v in data.items() if k != 'option_number'}
+            defaults.update({'order': i, 'is_active': True})
+            obj, created = Course.objects.get_or_create(
+                option_number=option_number,
+                defaults=defaults,
             )
-            verb = 'Created' if created else 'Updated'
-            self.stdout.write(f'{verb}: Option {obj.option_number} — {obj.name} (${obj.price})')
-        self.stdout.write(self.style.SUCCESS(f'\n✓ {len(COURSES)} courses seeded.'))
+            if created:
+                self.stdout.write(f'Created: Option {obj.option_number} — {obj.name} (${obj.price})')
+            else:
+                self.stdout.write(f'Already exists, skipping: Option {obj.option_number} — {obj.name}')
+        self.stdout.write(self.style.SUCCESS('\n✓ Course seeding complete.'))

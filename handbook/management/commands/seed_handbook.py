@@ -1,4 +1,9 @@
-"""python manage.py seed_handbook"""
+"""
+python manage.py seed_handbook
+
+Safe to re-run — uses get_or_create, so chapters already edited in the admin
+are never modified.
+"""
 from django.core.management.base import BaseCommand
 from handbook.models import HandbookChapter
 
@@ -145,10 +150,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         for number, title, body in CHAPTERS:
-            obj, created = HandbookChapter.objects.update_or_create(
+            obj, created = HandbookChapter.objects.get_or_create(
                 number=number,
                 defaults={'title': title, 'body': body.strip(), 'is_active': True}
             )
-            verb = 'Created' if created else 'Updated'
-            self.stdout.write(f'{verb}: Chapter {number} — {title}')
-        self.stdout.write(self.style.SUCCESS(f'\n✓ {len(CHAPTERS)} chapters seeded.'))
+            if created:
+                self.stdout.write(f'Created: Chapter {number} — {title}')
+            else:
+                self.stdout.write(f'Already exists, skipping: Chapter {number} — {obj.title}')
+        self.stdout.write(self.style.SUCCESS('\n✓ Handbook seeding complete.'))
