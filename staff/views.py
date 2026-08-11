@@ -295,6 +295,16 @@ def staff_dashboard(request):
                 'status':       status,
             })
 
+    # Instructor license expiry warnings (expired or expiring within 90 days)
+    license_warnings = []
+    for inst in instructors.filter(instructor_license_expiry__isnull=False):
+        days_left = (inst.instructor_license_expiry - today).days
+        if days_left < 0:
+            license_warnings.append({'instructor': inst, 'status': 'expired', 'days_left': days_left})
+        elif days_left <= 90:
+            license_warnings.append({'instructor': inst, 'status': 'expiring', 'days_left': days_left})
+    license_warnings.sort(key=lambda w: w['days_left'])
+
     # Student invitation status counts
     invite_completed_count = StudentInvitation.objects.filter(used=True).count()
     invite_pending_count   = StudentInvitation.objects.filter(used=False, expires_at__gt=timezone.now()).count()
@@ -333,6 +343,7 @@ def staff_dashboard(request):
         'ce_pending_mid': ce_pending_mid,
         'ce_pending_end': ce_pending_end,
         'meeting_compliance': meeting_compliance,
+        'license_warnings': license_warnings,
         'invite_completed_count': invite_completed_count,
         'invite_pending_count':   invite_pending_count,
         'invite_expired_count':   invite_expired_count,
@@ -2098,11 +2109,12 @@ def staff_instructor_list(request):
 
         # License status
         license_status = 'ok'
+        license_days_left = None
         if inst.instructor_license_expiry:
-            days_left = (inst.instructor_license_expiry - today).days
-            if days_left < 0:
+            license_days_left = (inst.instructor_license_expiry - today).days
+            if license_days_left < 0:
                 license_status = 'expired'
-            elif days_left <= 90:
+            elif license_days_left <= 90:
                 license_status = 'expiring'
 
         from decimal import Decimal
@@ -2118,6 +2130,7 @@ def staff_instructor_list(request):
             'last_meeting':   last_meeting,
             'meeting_status': meeting_status,
             'license_status': license_status,
+            'license_days_left': license_days_left,
             'hours_year':     hours_year,
         })
 
