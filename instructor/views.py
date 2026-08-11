@@ -88,6 +88,34 @@ def instructor_dashboard(request):
         instructor=instructor
     ).aggregate(total=Sum('hours'))['total'] or Decimal('0')
 
+    # Verified hours this month, broken down by session type
+    session_type_labels = dict(InstructionalHourLog.SESSION_TYPES)
+    hours_by_type = InstructionalHourLog.objects.filter(
+        instructor=instructor, session_date__gte=first_of_month, verified=True,
+    ).values('session_type').annotate(total=Sum('hours')).order_by('-total')
+    hours_by_type = [
+        {'label': session_type_labels.get(row['session_type'], row['session_type']), 'hours': row['total']}
+        for row in hours_by_type
+    ]
+
+    unverified_hours_this_month = InstructionalHourLog.objects.filter(
+        instructor=instructor, session_date__gte=first_of_month, verified=False,
+    ).aggregate(total=Sum('hours'))['total'] or Decimal('0')
+
+    # Progress toward the "majority of class sessions" requirement, 172 NAC 13-004(B)(ii)(1):
+    # what share of this month's logged sessions, across this instructor's assigned courses,
+    # were taught by this instructor.
+    course_ids = list(course_ids)
+    sessions_this_month_all = InstructionalHourLog.objects.filter(
+        course_id__in=course_ids, session_date__gte=first_of_month,
+    ).count()
+    sessions_this_month_mine = InstructionalHourLog.objects.filter(
+        instructor=instructor, course_id__in=course_ids, session_date__gte=first_of_month,
+    ).count()
+    majority_pct = (
+        round(sessions_this_month_mine / sessions_this_month_all * 100) if sessions_this_month_all else 0
+    )
+
     # Recent attendance sessions
     recent_attendance = AttendanceRecord.objects.filter(
         instructor=instructor
@@ -139,6 +167,11 @@ def instructor_dashboard(request):
         'pending_meetings':  pending_meetings,
         'license_warning':   license_warning,
         'next_class':        next_class,
+        'hours_by_type':               hours_by_type,
+        'unverified_hours_this_month': unverified_hours_this_month,
+        'majority_pct':                majority_pct,
+        'sessions_this_month_mine':    sessions_this_month_mine,
+        'sessions_this_month_all':     sessions_this_month_all,
     })
 
 
