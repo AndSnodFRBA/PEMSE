@@ -350,6 +350,35 @@ textarea.form-control { resize: vertical; }
 }
 .hamburger-btn span { display: block; width: 20px; height: 2px; background: #fff; border-radius: 1px; transition: all .2s; }
 
+/* NOTIFICATION BELL — fixed top-right, mirrors the hamburger button since this
+   layout uses a sidebar rather than a top navbar. */
+.notif-bell {
+  position: fixed; top: 12px; right: 12px; z-index: 200;
+  background: #163366; border-radius: 8px;
+  width: 42px; height: 42px;
+  color: white; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+.notif-bell:hover { color: white; background: #1e4480; }
+.notif-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #e53e3e;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
 /* SIDEBAR OVERLAY */
 .sidebar-overlay {
   display: none; position: fixed; inset: 0;

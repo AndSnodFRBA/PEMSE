@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Notifications — PEMSE{% endblock %}
+
+{% block extra_css %}
+<style>
+  .notif-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px; border-radius: 10px; border: 1px solid var(--border);
+    margin-bottom: 8px; background: #fff;
+  }
+  .notif-item.unread { border-left: 4px solid var(--navy); background: #f5f9ff; }
+  .notif-icon {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    background: #eaf2fb; color: var(--navy);
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .notif-body { flex: 1; min-width: 0; }
+  .notif-title { font-weight: 600; color: #1a2e4a; font-size: 14px; }
+  .notif-text { color: #6b7280; font-size: 12px; margin-top: 2px; }
+  .notif-time { color: #9ca3af; font-size: 11px; margin-top: 4px; }
+  .notif-group-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px;
+    color: #9ca3af; margin: 18px 0 8px;
+  }
+  .notif-group-label:first-child { margin-top: 0; }
+  .notif-delete { color: #9ca3af; background: none; border: none; font-size: 16px; padding: 4px; }
+  .notif-delete:hover { color: #dc2626; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="page-hero-badge">Notifications</div>
+  <h1>Your Notifications</h1>
+  <p>Document reviews, payments, announcements, and upcoming deadlines — all in one place.</p>
+</div>
+
+{% if groups %}
+<div class="d-flex justify-content-end mb-2">
+  <form method="post" action="{% url 'mark_all_notifications_read' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-check2-all me-1"></i> Mark all as read
+    </button>
+  </form>
+</div>
+
+{% for label, items in groups %}
+  <div class="notif-group-label">{{ label }}</div>
+  {% for n in items %}
+    <div class="notif-item {% if not n.is_read %}unread{% endif %}">
+      <div class="notif-icon">
+        {% if n.notif_type == 'doc_approved' %}<i class="bi bi-check-circle-fill"></i>
+        {% elif n.notif_type == 'doc_rejected' %}<i class="bi bi-x-circle-fill"></i>
+        {% elif n.notif_type == 'payment' %}<i class="bi bi-cash-coin"></i>
+        {% elif n.notif_type == 'announcement' %}<i class="bi bi-megaphone-fill"></i>
+        {% elif n.notif_type == 'deadline' %}<i class="bi bi-clock-fill"></i>
+        {% elif n.notif_type == 'eval_request' %}<i class="bi bi-journal-check"></i>
+        {% else %}<i class="bi bi-bell-fill"></i>
+        {% endif %}
+      </div>
+      <a href="{% url 'mark_notification_read' n.pk %}" class="notif-body text-decoration-none">
+        <div class="notif-title">{{ n.title }}</div>
+        {% if n.body %}<div class="notif-text">{{ n.body }}</div>{% endif %}
+        <div class="notif-time">{{ n.created_at|date:"g:i A" }}</div>
+      </a>
+      <form method="post" action="{% url 'delete_notification' n.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="notif-delete" title="Delete" onclick="return confirm('Delete this notification?')">
+          <i class="bi bi-trash"></i>
+        </button>
+      </form>
+    </div>
+  {% endfor %}
+{% endfor %}
+
+{% else %}
+<div class="portal-card text-center text-muted">
+  <i class="bi bi-check2-circle" style="font-size:40px;color:#dde4ef;"></i>
+  <div class="mt-3">You are all caught up!</div>
+</div>
+{% endif %}
+{% endblock %}

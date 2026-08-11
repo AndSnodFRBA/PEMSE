@@ -121,6 +121,7 @@ TEMPLATES = [{
             'django.contrib.auth.context_processors.auth',
             'django.contrib.messages.context_processors.messages',
             'evaluations.context_processors.eval_counts',
+            'students.context_processors.notifications',
         ],
     },
 }]

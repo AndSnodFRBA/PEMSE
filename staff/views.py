@@ -23,7 +23,7 @@ from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
     CourseReportRecord, EntranceRequirementRecord,
     PatientContactRecord, PaymentHistory, PaymentRecord, PsychomotorSkillRecord,
-    ReminderLog, Student, StudentNote,
+    ReminderLog, Student, StudentNote, StudentNotification,
 )
 from students.reminders import BalanceDueRule, RegistrationIncompleteRule
 from .forms import (
@@ -515,6 +515,13 @@ def add_payment(request, pk):
             record.recorded_by = request.user
             record.save()
             send_payment_receipt(record)
+            StudentNotification.create(
+                student=record.student,
+                notif_type=StudentNotification.NotificationType.PAYMENT_RECORDED,
+                title=f'Payment of ${record.amount:,.2f} recorded',
+                body=f'Payment method: {record.get_method_display()}. Check your payment history for details.',
+                link='/register/form/#payment',
+            )
             messages.success(request, f'Payment of ${record.amount} recorded.')
             return redirect(f"{reverse('staff_student_detail', args=[pk])}?new_payment={record.pk}")
         else:
@@ -578,6 +585,22 @@ def review_document(request, doc_id):
         doc.reviewed_at = timezone.now()
         doc.save()
         send_document_review_notification(doc)
+        if doc.status == StudentDocument.Status.APPROVED:
+            StudentNotification.create(
+                student=doc.student,
+                notif_type=StudentNotification.NotificationType.DOCUMENT_APPROVED,
+                title=f'Your {doc.doc_type.label} has been approved',
+                body='Your document has been reviewed and approved by PEMSE staff.',
+                link='/documents/',
+            )
+        elif doc.status == StudentDocument.Status.REJECTED:
+            StudentNotification.create(
+                student=doc.student,
+                notif_type=StudentNotification.NotificationType.DOCUMENT_REJECTED,
+                title=f'Your {doc.doc_type.label} needs to be re-uploaded',
+                body=f'Reason: {doc.notes}' if doc.notes else 'Please re-upload this document.',
+                link='/documents/',
+            )
         messages.success(request, f'{doc.doc_type.label} marked as {doc.status}.')
     return redirect('staff_student_detail', pk=doc.student_id)
 
@@ -587,14 +610,25 @@ def bulk_approve_documents(request):
     if request.method != 'POST':
         return redirect('staff_dashboard')
     doc_ids = request.POST.getlist('doc_ids')
-    updated = StudentDocument.objects.filter(
+    docs_to_approve = list(StudentDocument.objects.filter(
         pk__in=doc_ids,
         status=StudentDocument.Status.PENDING,
+    ).select_related('student', 'doc_type'))
+    updated = StudentDocument.objects.filter(
+        pk__in=[d.pk for d in docs_to_approve],
     ).update(
         status=StudentDocument.Status.APPROVED,
         reviewed_at=timezone.now(),
         reviewed_by=request.user,
     )
+    for doc in docs_to_approve:
+        StudentNotification.create(
+            student=doc.student,
+            notif_type=StudentNotification.NotificationType.DOCUMENT_APPROVED,
+            title=f'Your {doc.doc_type.label} has been approved',
+            body='Your document has been reviewed and approved by PEMSE staff.',
+            link='/documents/',
+        )
     messages.success(request, f'{updated} document(s) approved successfully.')
     return redirect(request.POST.get('next') or 'staff_dashboard')
 
@@ -869,6 +903,18 @@ def announcement_create(request):
         ann            = form.save(commit=False)
         ann.created_by = request.user
         ann.save()
+        if ann.schedule_status == 'live':
+            target_students = Student.objects.filter(role=Student.Role.STUDENT)
+            if ann.course:
+                target_students = target_students.filter(enrollment__course=ann.course)
+            for student in target_students:
+                StudentNotification.create(
+                    student=student,
+                    notif_type=StudentNotification.NotificationType.ANNOUNCEMENT,
+                    title=ann.title,
+                    body=ann.body[:200],
+                    link='/dashboard/',
+                )
         messages.success(request, 'Announcement posted.')
         return redirect('staff_announcements')
     return render(request, 'staff/announcement_form.html', {'form': form, 'action': 'New'})

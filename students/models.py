@@ -276,6 +276,43 @@ class Announcement(models.Model):
         return 'live'
 
 
+class StudentNotification(models.Model):
+    """In-portal notification bell items for students."""
+
+    class NotificationType(models.TextChoices):
+        DOCUMENT_APPROVED  = 'doc_approved',  'Document approved'
+        DOCUMENT_REJECTED  = 'doc_rejected',  'Document rejected'
+        PAYMENT_RECORDED   = 'payment',       'Payment recorded'
+        ANNOUNCEMENT       = 'announcement',  'New announcement'
+        DEADLINE_REMINDER  = 'deadline',      'Upcoming deadline'
+        EVAL_REQUESTED     = 'eval_request',  'Evaluation requested'
+        GENERAL            = 'general',       'General'
+
+    student     = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='notifications')
+    notif_type  = models.CharField(max_length=20, choices=NotificationType.choices)
+    title       = models.CharField(max_length=200)
+    body        = models.TextField(blank=True)
+    link        = models.CharField(max_length=300, blank=True, help_text='URL to link to')
+    is_read     = models.BooleanField(default=False)
+    created_at  = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.student} — {self.title}'
+
+    @classmethod
+    def create(cls, student, notif_type, title, body='', link=''):
+        return cls.objects.create(
+            student=student,
+            notif_type=notif_type,
+            title=title,
+            body=body,
+            link=link,
+        )
+
+
 # ── 172 NAC Chapter 13 Compliance Records ────────────────────────────────────
 
 class CognitiveExamRecord(models.Model):

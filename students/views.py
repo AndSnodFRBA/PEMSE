@@ -10,6 +10,7 @@ import uuid
 from .models import (
     Student, PaymentRecord, Announcement, PaymentHistory,
     CognitiveExamRecord, PsychomotorSkillRecord, PatientContactRecord,
+    StudentNotification,
 )
 from .forms import StudentRegistrationForm, StudentLoginForm, ProfileForm, PaymentForm
 from .emails import send_instructor_registration_notifications, send_registration_confirmation
@@ -297,6 +298,56 @@ def profile_view(request):
         messages.success(request, 'Profile updated successfully.')
         return redirect('profile')
     return render(request, 'students/profile.html', {'form': form})
+
+
+@login_required
+def notifications_view(request):
+    from itertools import groupby
+
+    today = timezone.now().date()
+    yesterday = today - timezone.timedelta(days=1)
+    week_ago = today - timezone.timedelta(days=7)
+
+    notifs = StudentNotification.objects.filter(student=request.user)
+
+    def bucket(n):
+        d = n.created_at.date()
+        if d == today:
+            return 'Today'
+        if d == yesterday:
+            return 'Yesterday'
+        if d >= week_ago:
+            return 'This week'
+        return 'Older'
+
+    groups = []
+    for label, items in groupby(notifs, key=bucket):
+        groups.append((label, list(items)))
+
+    return render(request, 'students/notifications.html', {'groups': groups})
+
+
+@login_required
+def mark_notification_read(request, notif_id):
+    notif = get_object_or_404(StudentNotification, pk=notif_id, student=request.user)
+    notif.is_read = True
+    notif.save(update_fields=['is_read'])
+    if notif.link:
+        return redirect(notif.link)
+    return redirect('notifications')
+
+
+@login_required
+def mark_all_notifications_read(request):
+    StudentNotification.objects.filter(student=request.user, is_read=False).update(is_read=True)
+    return redirect('notifications')
+
+
+@login_required
+def delete_notification(request, notif_id):
+    if request.method == 'POST':
+        StudentNotification.objects.filter(pk=notif_id, student=request.user).delete()
+    return redirect('notifications')
 
 
 @login_required

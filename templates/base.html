@@ -17,6 +17,14 @@
 <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu">
   <span></span><span></span><span></span>
 </button>
+{% if not user.is_office_staff and not user.is_instructor %}
+<a href="{% url 'notifications' %}" class="notif-bell" title="Notifications">
+  <i class="bi bi-bell-fill"></i>
+  {% if unread_notifications %}
+  <span class="notif-badge">{{ unread_notifications }}</span>
+  {% endif %}
+</a>
+{% endif %}
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <aside class="sidebar" id="mainSidebar">
