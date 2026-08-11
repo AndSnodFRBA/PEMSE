@@ -120,6 +120,7 @@ DATABASES = {
         ssl_require=not DEBUG and bool(os.environ.get('DATABASE_URL')),
     )
 }
+DATABASES['default']['CONN_HEALTH_CHECKS'] = True
 
 # ── AUTH ──────────────────────────────────────────────────────────────────────
 AUTH_USER_MODEL = 'students.Student'
