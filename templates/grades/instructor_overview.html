@@ -1,0 +1,45 @@
+{% extends 'instructor/base_instructor.html' %}
+{% block title %}Grades — PEMSE Instructor Portal{% endblock %}
+
+{% block content %}
+<div class="inst-topbar">
+  <h1 class="inst-page-title">Student Grades</h1>
+</div>
+
+<div class="card">
+  {% if rows %}
+    <div class="table-responsive">
+      <table class="table table-sm mb-0" style="font-size:13px;">
+        <thead style="background:#f8fafc;">
+          <tr>
+            <th class="px-3 py-2">Student</th>
+            <th class="py-2">Course</th>
+            <th class="py-2 text-center">Overall Grade</th>
+            <th class="py-2 text-center">Letter</th>
+            <th class="py-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            <td class="px-3 py-2 fw-semibold">{{ row.student.get_full_name }}</td>
+            <td class="py-2">{{ row.course.name }}</td>
+            <td class="py-2 text-center">
+              {% if row.gradebook and row.gradebook.overall_grade is not None %}{{ row.gradebook.overall_grade }}%{% else %}—{% endif %}
+            </td>
+            <td class="py-2 text-center fw-semibold">
+              {% if row.gradebook %}{{ row.gradebook.letter_grade }}{% else %}—{% endif %}
+            </td>
+            <td class="py-2 pe-3 text-end">
+              <a href="{% url 'instructor_gradebook_detail' row.student.pk %}" class="btn btn-sm btn-outline-primary" style="font-size:12px;">View</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="p-4 text-center text-muted">No students in your assigned courses yet.</div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -104,6 +104,10 @@
        class="nav-item {% if request.resolver_match.url_name == 'staff_pass_rates' %}active{% endif %}">
       <i class="bi bi-graph-up-arrow"></i> NREMT Pass Rates
     </a>
+    <a href="{% url 'staff_grade_overview' %}"
+       class="nav-item {% if 'grade' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-mortarboard-fill"></i> Grade Book
+    </a>
   </nav>
 
   <div class="sidebar-section-label mt-3">Reminders</div>

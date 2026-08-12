@@ -459,9 +459,13 @@ def student_detail(request, pk):
         ('End-of-Course Evaluation', 'end', end_eval),
     ]
 
+    from grades.models import GradeBook
+    gb = GradeBook.objects.filter(student=student, course=enrollment.course).first() if enrollment else None
+
     return render(request, 'staff/student_detail.html', {
         'student':            student,
         'enrollment':         enrollment,
+        'gb':                 gb,
         'courses_all':        Course.objects.order_by('option_number'),
         'doc_forms':          doc_forms,
         'pending_docs_exist': pending_docs_exist,

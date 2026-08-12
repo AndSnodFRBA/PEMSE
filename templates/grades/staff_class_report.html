@@ -1,0 +1,98 @@
+{% extends 'staff/base_staff.html' %}
+{% block title %}Class Grade Report — {{ course.name }} — PEMSE Staff{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <div>
+    <h1 class="staff-page-title">Class Grade Report</h1>
+    <div style="font-size:13px;color:#6b7280;">{{ course.name }}</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'staff_grade_report_csv' course.pk %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-filetype-csv me-1"></i> Export CSV
+    </a>
+    <button onclick="window.print()" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-printer me-1"></i> Print
+    </button>
+    <a href="{% url 'staff_grade_overview' %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back
+    </a>
+  </div>
+</div>
+
+<div class="row g-2 mb-3">
+  <div class="col-6 col-md-3">
+    <div class="card p-3">
+      <div style="font-size:22px;font-weight:700;color:#1a2e4a;">{{ rows|length }}</div>
+      <div style="font-size:12px;color:#6b7280;">Total students</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3">
+      <div style="font-size:22px;font-weight:700;color:#065f46;">{{ passing_count }}</div>
+      <div style="font-size:12px;color:#6b7280;">Passing</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card p-3">
+      <div style="font-size:22px;font-weight:700;color:#1a2e4a;">
+        {% if pass_rate is not None %}{{ pass_rate }}%{% else %}—{% endif %}
+      </div>
+      <div style="font-size:12px;color:#6b7280;">Pass rate</div>
+    </div>
+  </div>
+</div>
+
+<div class="card p-3 mb-3">
+  <div class="d-flex gap-2" style="font-size:12px;">
+    <span>Sort by:</span>
+    <a href="?sort=name" class="{% if sort == 'name' %}fw-bold{% endif %}">Last Name</a> |
+    <a href="?sort=grade" class="{% if sort == 'grade' %}fw-bold{% endif %}">Overall Grade</a> |
+    <a href="?sort=passing" class="{% if sort == 'passing' %}fw-bold{% endif %}">Passing Status</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-sm mb-0" style="font-size:13px;">
+      <thead style="background:#f8fafc;">
+        <tr>
+          <th class="px-3 py-2">Student</th>
+          <th class="py-2 text-center">Component 1 (30%)</th>
+          <th class="py-2 text-center">Section Exams (40%)</th>
+          <th class="py-2 text-center">Final Exam (30%)</th>
+          <th class="py-2 text-center">Overall</th>
+          <th class="py-2 text-center">Letter</th>
+          <th class="py-2 text-center">Passing</th>
+          <th class="py-2 text-center">Completion Reqs Met</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td class="px-3 py-2 fw-semibold">{{ row.student.get_full_name }}</td>
+          {% if row.gb %}
+            <td class="py-2 text-center">{{ row.gb.component_1_average|default:"—" }}</td>
+            <td class="py-2 text-center">{{ row.gb.section_exam_average|default:"—" }}</td>
+            <td class="py-2 text-center">{{ row.gb.final_exam_score|default:"—" }}</td>
+            <td class="py-2 text-center fw-semibold">{{ row.gb.overall_grade|default:"—" }}</td>
+            <td class="py-2 text-center">{{ row.gb.letter_grade }}</td>
+            <td class="py-2 text-center">
+              {% if row.gb.overall_grade is None %}—
+              {% elif row.gb.is_passing %}<span style="color:#065f46;">Pass</span>
+              {% else %}<span style="color:#991b1b;">Fail</span>{% endif %}
+            </td>
+            <td class="py-2 text-center">
+              {% if row.gb.meets_completion_requirements %}<i class="bi bi-check-circle-fill text-success"></i>
+              {% else %}<i class="bi bi-x-circle-fill text-danger"></i>{% endif %}
+            </td>
+          {% else %}
+            <td class="py-2 text-center text-muted" colspan="7">No gradebook</td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

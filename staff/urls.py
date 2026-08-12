@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from evaluations import views as eval_views
+from grades import views as grade_views
 from students.views import registration_pdf_view
 
 urlpatterns = [
@@ -92,4 +93,16 @@ urlpatterns = [
     path('calendar/add/',                      views.staff_calendar_add,    name='staff_calendar_add'),
     path('calendar/<int:pk>/edit/',            views.staff_calendar_edit,   name='staff_calendar_edit'),
     path('calendar/<int:pk>/delete/',          views.staff_calendar_delete, name='staff_calendar_delete'),
+    # Grades
+    path('grades/',                                  grade_views.staff_grade_overview,        name='staff_grade_overview'),
+    path('grades/report/<int:course_id>/',           grade_views.staff_grade_report,           name='staff_grade_report'),
+    path('grades/report/<int:course_id>/csv/',       grade_views.staff_grade_report_csv,       name='staff_grade_report_csv'),
+    path('grades/<int:student_id>/',                 grade_views.staff_gradebook_detail,       name='staff_gradebook_detail'),
+    path('grades/<int:student_id>/create/',          grade_views.staff_gradebook_create,       name='staff_gradebook_create'),
+    path('grades/<int:student_id>/quiz/<int:quiz_number>/', grade_views.staff_quiz_edit,        name='staff_quiz_edit'),
+    path('grades/<int:student_id>/exam/<str:exam_id>/',     grade_views.staff_exam_edit,        name='staff_exam_edit'),
+    path('grades/<int:student_id>/worksheet/<str:worksheet_id>/', grade_views.staff_worksheet_edit, name='staff_worksheet_edit'),
+    path('grades/<int:student_id>/skill/<str:skill_id>/',   grade_views.staff_skill_edit,       name='staff_skill_edit'),
+    path('grades/<int:student_id>/participation/deduct/',   grade_views.staff_participation_deduct, name='staff_participation_deduct'),
+    path('grades/<int:student_id>/fisdap/',                 grade_views.staff_fisdap_edit,      name='staff_fisdap_edit'),
 ]

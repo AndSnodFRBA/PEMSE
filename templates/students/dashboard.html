@@ -68,6 +68,34 @@
   {% endif %}
 </div>
 
+<a href="{% url 'student_grades' %}" class="portal-card d-block text-decoration-none" style="margin-bottom:18px;">
+  <div class="portal-card-title">My Grade</div>
+  {% if gb and gb.overall_grade is not None %}
+    <div style="display:flex;align-items:center;gap:16px;margin-top:6px;">
+      <div style="font-size:34px;font-weight:800;line-height:1;color:{% if gb.is_passing %}#059669{% else %}#dc2626{% endif %};">
+        {{ gb.overall_grade }}%
+      </div>
+      <div style="font-size:22px;font-weight:700;color:{% if gb.is_passing %}#059669{% else %}#dc2626{% endif %};">
+        {{ gb.letter_grade }}
+      </div>
+      <div style="flex:1;">
+        <div class="progress-track">
+          <div class="progress-fill" style="width:{{ gb.overall_grade }}%;background:{% if gb.is_passing %}#059669{% else %}#dc2626{% endif %};"></div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">
+          {% if gb.is_passing %}On track — passing (75%+ required){% else %}Below passing threshold (75% required){% endif %}
+        </div>
+      </div>
+    </div>
+  {% elif gb %}
+    <p style="font-size:13px;color:#6b7280;margin-top:6px;">
+      Grades in progress — not enough data yet for an overall grade.
+    </p>
+  {% else %}
+    <p style="font-size:13px;color:#6b7280;margin-top:6px;">Grades not yet posted.</p>
+  {% endif %}
+</a>
+
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
 
   <!-- Checklist -->

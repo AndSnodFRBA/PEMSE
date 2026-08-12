@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}My Grades — PEMSE Student Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+  .grade-summary-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f4f8; font-size: 13px; }
+  .grade-summary-row:last-child { border-bottom: none; }
+  .req-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 13px; }
+  .scale-table th, .scale-table td { padding: 6px 12px; font-size: 12px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="page-hero-badge">My Grades</div>
+  <h1>Grade Book</h1>
+  <p>{% if course %}{{ course.name }}{% else %}Your course grades and progress.{% endif %}</p>
+</div>
+
+{% if not course %}
+  <div class="portal-card text-center text-muted">You aren't enrolled in a course yet.</div>
+{% elif not gb %}
+  <div class="portal-card text-center text-muted">Grades not yet posted.</div>
+{% else %}
+
+<div class="portal-card mb-3">
+  <div class="portal-card-title">Your Current Grade</div>
+  <div class="grade-summary-row">
+    <span>Your quiz/worksheet/participation/skills average</span>
+    <span class="fw-semibold">{% if gb.component_1_average is not None %}{{ gb.component_1_average }}% (counts 30%){% else %}Not yet recorded{% endif %}</span>
+  </div>
+  <div class="grade-summary-row">
+    <span>Your section exam average</span>
+    <span class="fw-semibold">{% if gb.section_exam_average is not None %}{{ gb.section_exam_average }}% (counts 40%){% else %}Not yet recorded{% endif %}</span>
+  </div>
+  <div class="grade-summary-row">
+    <span>Your final exam</span>
+    <span class="fw-semibold">{% if gb.final_exam_score is not None %}{{ gb.final_exam_score }}% (counts 30%){% else %}Not yet recorded{% endif %}</span>
+  </div>
+  <div class="grade-summary-row" style="border-top:2px solid #dde4ef;margin-top:6px;padding-top:12px;">
+    <span class="fw-semibold">Your current overall grade</span>
+    <span style="font-size:20px;font-weight:700;color:{% if gb.letter_grade == 'F' %}#991b1b{% elif gb.letter_grade == '—' %}#9ca3af{% else %}#065f46{% endif %};">
+      {% if gb.overall_grade is not None %}{{ gb.overall_grade }}% — Letter Grade: {{ gb.letter_grade }}{% else %}Not yet calculable{% endif %}
+    </span>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <div class="portal-card h-100">
+      <div class="portal-card-title">Grading Scale</div>
+      <table class="table scale-table mb-0">
+        <tbody>
+          <tr><td>91–100</td><td class="fw-semibold">A</td></tr>
+          <tr><td>83–90</td><td class="fw-semibold">B</td></tr>
+          <tr><td>75–82</td><td class="fw-semibold">C</td></tr>
+          <tr><td>60–74</td><td class="fw-semibold">D</td></tr>
+          <tr><td>Below 59</td><td class="fw-semibold">F</td></tr>
+        </tbody>
+      </table>
+      <div class="text-muted mt-2" style="font-size:12px;">Passing = 75% or above.</div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="portal-card h-100">
+      <div class="portal-card-title">Course Completion Requirements</div>
+      <div class="req-item">{% if gb.is_passing %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle text-muted"></i>{% endif %} Overall grade 75%+</div>
+      <div class="req-item">{% if gb.section_exams_all_passing %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle text-muted"></i>{% endif %} All section exams 75%+ individually</div>
+      <div class="req-item">{% if gb.final_exam_score is not None and gb.final_exam_score >= 75 %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle text-muted"></i>{% endif %} Final exam 75%+</div>
+      <div class="req-item">{% if gb.fisdap_passed %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle text-muted"></i>{% endif %} FISDAP passed</div>
+      <div class="mt-2">
+        {% if gb.meets_completion_requirements %}
+          <span style="background:#d1fae5;color:#065f46;border-radius:12px;font-size:12px;font-weight:700;padding:3px 10px;">All requirements met</span>
+        {% else %}
+          <span style="background:#fef3c7;color:#92600a;border-radius:12px;font-size:12px;font-weight:700;padding:3px 10px;">Requirements still needed</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="portal-card mb-3">
+  <div class="portal-card-title">Participation</div>
+  <div style="font-size:22px;font-weight:700;color:#1a2e4a;">{{ gb.participation_score }}</div>
+  {% if gb.participation_deductions.all %}
+    <table class="table table-sm mt-2 mb-0" style="font-size:12px;">
+      <thead><tr><th>Date</th><th>Reason</th><th class="text-center">Points</th></tr></thead>
+      <tbody>
+        {% for d in gb.participation_deductions.all %}
+        <tr><td>{{ d.date }}</td><td>{{ d.get_reason_display }}</td><td class="text-center text-danger">-{{ d.points }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="text-muted mt-2" style="font-size:12px;">No deductions on record.</div>
+  {% endif %}
+</div>
+
+<div class="portal-card mb-3">
+  <div class="portal-card-title">Quizzes {% if gb.quiz_average is not None %}(average {{ gb.quiz_average }}%){% endif %}</div>
+  {% if gb.quiz_grades.all %}
+    <table class="table table-sm mb-0" style="font-size:13px;">
+      <thead><tr><th>Quiz</th><th class="text-center">Score</th><th>Date</th></tr></thead>
+      <tbody>
+        {% for q in gb.quiz_grades.all %}
+        <tr>
+          <td>{{ q.quiz_name }}</td>
+          <td class="text-center fw-semibold">{{ q.score }}%</td>
+          <td class="text-muted">{{ q.date_taken|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="text-muted" style="font-size:13px;">Not yet recorded.</div>
+  {% endif %}
+</div>
+
+<div class="portal-card mb-3">
+  <div class="portal-card-title">Section Exams {% if gb.section_exam_average is not None %}(average {{ gb.section_exam_average }}%){% endif %}</div>
+  {% with section_exams=gb.section_exam_grades.all %}
+  {% if section_exams %}
+    <table class="table table-sm mb-0" style="font-size:13px;">
+      <thead><tr><th>Exam</th><th class="text-center">Score</th><th class="text-center">Status</th></tr></thead>
+      <tbody>
+        {% for e in section_exams %}
+        <tr {% if e.is_final_exam %}style="background:#f0f7ff;"{% endif %}>
+          <td>{% if e.is_final_exam %}<strong>{{ e.exam_name }} (Final)</strong>{% else %}{{ e.exam_name }}{% endif %}</td>
+          <td class="text-center fw-semibold">{{ e.score }}%</td>
+          <td class="text-center">
+            {% if e.is_passing %}
+              <span style="background:#d1fae5;color:#065f46;border-radius:12px;font-size:11px;padding:2px 8px;">PASS</span>
+            {% else %}
+              <span style="background:#fee2e2;color:#991b1b;border-radius:12px;font-size:11px;padding:2px 8px;">FAIL</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="text-muted" style="font-size:13px;">Not yet recorded.</div>
+  {% endif %}
+  {% endwith %}
+</div>
+
+<div class="portal-card">
+  <div class="portal-card-title">FISDAP</div>
+  <div class="grade-summary-row"><span>Best score</span><span class="fw-semibold">{{ gb.fisdap_best_score|default:"Not yet recorded" }}</span></div>
+  <div class="grade-summary-row">
+    <span>Status</span>
+    <span>
+      {% if gb.fisdap_passed %}
+        <span style="background:#d1fae5;color:#065f46;border-radius:12px;font-size:11px;padding:2px 8px;">Passed</span>
+      {% else %}
+        <span class="text-muted">Not yet passed</span>
+      {% endif %}
+    </span>
+  </div>
+</div>
+
+{% endif %}
+{% endblock %}

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from grades import views as grade_views
 
 urlpatterns = [
     # Auth
@@ -53,4 +54,8 @@ urlpatterns = [
     path('calendar/add/',                views.instructor_calendar_add,    name='instructor_calendar_add'),
     path('calendar/<int:pk>/edit/',      views.instructor_calendar_edit,   name='instructor_calendar_edit'),
     path('calendar/<int:pk>/delete/',    views.instructor_calendar_delete, name='instructor_calendar_delete'),
+
+    # Grades (read-only)
+    path('grades/',            grade_views.instructor_grade_overview,   name='instructor_grade_overview'),
+    path('grades/<int:student_id>/', grade_views.instructor_gradebook_detail, name='instructor_gradebook_detail'),
 ]

@@ -1,0 +1,48 @@
+{% extends 'staff/base_staff.html' %}
+{% block title %}{% if instance %}Edit{% else %}Add{% endif %} Skill — {{ student.get_full_name }} — PEMSE Staff{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">{% if instance %}Edit{% else %}Add{% endif %} Skill — {{ student.get_full_name }}</h1>
+  <a href="{% url 'staff_gradebook_detail' student.pk %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> Back to Grade Book
+  </a>
+</div>
+
+<div class="card p-4" style="max-width:600px;">
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Skill name</label>
+      {{ form.skill_name }}
+    </div>
+    <div class="row g-2">
+      <div class="col-6">
+        <label class="form-label">Score (%)</label>
+        {{ form.score }}
+      </div>
+      <div class="col-6">
+        <label class="form-label">Attempt number</label>
+        {{ form.attempt_number }}
+      </div>
+    </div>
+    <div class="form-check mt-3">
+      {{ form.passed }}
+      <label class="form-check-label" for="{{ form.passed.id_for_label }}">Passed</label>
+    </div>
+    <div class="mb-3 mt-3">
+      <label class="form-label">Date evaluated</label>
+      {{ form.date_evaluated }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Evaluator name</label>
+      {{ form.evaluator_name }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Notes</label>
+      {{ form.notes }}
+    </div>
+    <button type="submit" class="btn btn-primary">Save Skills Grade</button>
+  </form>
+</div>
+{% endblock %}

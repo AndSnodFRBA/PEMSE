@@ -86,6 +86,10 @@
        class="nav-item {% if 'document' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-folder2-open"></i> Documents
     </a>
+    <a href="{% url 'instructor_grade_overview' %}"
+       class="nav-item {% if 'grade' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-mortarboard-fill"></i> Grades
+    </a>
   </nav>
 
   <div class="sidebar-section-label mt-3">Students</div>

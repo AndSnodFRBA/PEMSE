@@ -181,6 +181,9 @@ def dashboard_view(request):
     upcoming_deadlines = _build_upcoming_deadlines(student)
     next_class = CalendarEvent.next_session(student.calendar_courses)
 
+    from grades.models import GradeBook
+    gb = GradeBook.objects.filter(student=student, course=enrollment.course).first() if enrollment else None
+
     return render(request, 'students/dashboard.html', {
         'student':                student,
         'enrollment':             enrollment,
@@ -200,6 +203,7 @@ def dashboard_view(request):
         'progress':               progress,
         'upcoming_deadlines':     upcoming_deadlines,
         'next_class':             next_class,
+        'gb':                     gb,
     })
 
 

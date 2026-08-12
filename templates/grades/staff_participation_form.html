@@ -1,0 +1,73 @@
+{% extends 'staff/base_staff.html' %}
+{% block title %}Add Deduction — {{ student.get_full_name }} — PEMSE Staff{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">Add Participation Deduction — {{ student.get_full_name }}</h1>
+  <a href="{% url 'staff_gradebook_detail' student.pk %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> Back to Grade Book
+  </a>
+</div>
+
+<div class="card p-4" style="max-width:600px;">
+  <div class="card p-3 mb-3" style="background:#f8fafc;">
+    <div style="font-size:12px;color:#6b7280;">Current participation score</div>
+    <div style="font-size:22px;font-weight:700;" id="currentScore">{{ gb.participation_score }}</div>
+    <div style="font-size:12px;color:#6b7280;margin-top:6px;">After this deduction</div>
+    <div style="font-size:20px;font-weight:700;color:#991b1b;" id="afterScore">{{ gb.participation_score }}</div>
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Reason</label>
+      {{ form.reason }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Points (auto-filled unless "Other")</label>
+      {{ form.points }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Date</label>
+      {{ form.date }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Notes</label>
+      {{ form.notes }}
+    </div>
+    {% if form.non_field_errors %}
+      <div class="text-danger mb-2" style="font-size:12px;">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <button type="submit" class="btn btn-danger">Save Deduction</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const DEDUCTIONS = {
+    'excused_absence': 10, 'unexcused_absence': 25, 'sleeping': 25, 'disruptive': 25, 'cheating': 50,
+  };
+  const currentScore = {{ gb.participation_score }};
+  const reasonSelect = document.querySelector('[name="reason"]');
+  const pointsInput = document.querySelector('[name="points"]');
+  const afterScoreEl = document.getElementById('afterScore');
+
+  function update() {
+    let points = DEDUCTIONS[reasonSelect.value];
+    if (points !== undefined) {
+      pointsInput.value = points;
+    } else {
+      points = parseInt(pointsInput.value, 10) || 0;
+    }
+    const after = Math.max(0, currentScore - points);
+    afterScoreEl.textContent = after;
+  }
+  if (reasonSelect) {
+    reasonSelect.addEventListener('change', update);
+    pointsInput.addEventListener('input', update);
+    update();
+  }
+})();
+</script>
+{% endblock %}

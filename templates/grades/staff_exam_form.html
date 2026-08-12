@@ -1,0 +1,65 @@
+{% extends 'staff/base_staff.html' %}
+{% block title %}{% if instance %}Edit Exam{% else %}Add Exam{% endif %} — {{ student.get_full_name }} — PEMSE Staff{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">{% if instance %}Edit Exam{% else %}Add Exam{% endif %} — {{ student.get_full_name }}</h1>
+  <a href="{% url 'staff_gradebook_detail' student.pk %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> Back to Grade Book
+  </a>
+</div>
+
+<div class="card p-4" style="max-width:600px;">
+  {% if reset_warning %}
+  <div class="alert alert-warning" style="font-size:12px;">
+    <i class="bi bi-exclamation-triangle-fill me-1"></i> This exam is already at the 2-reset limit per handbook policy.
+  </div>
+  {% endif %}
+  <div class="alert alert-info" style="font-size:12px;">
+    Per handbook policy: max 2 resets per exam; a reset retake's score is capped at 75%. The Final Written Exam requires 75%+ to pass.
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Exam name</label>
+      {{ form.exam_name }}
+    </div>
+    <div class="row g-2">
+      <div class="col-6">
+        <label class="form-label">Exam number</label>
+        {{ form.exam_number }}
+      </div>
+      <div class="col-6">
+        <label class="form-label">Score (%)</label>
+        {{ form.score }}
+      </div>
+    </div>
+    <div class="form-check mt-3">
+      {{ form.is_final_exam }}
+      <label class="form-check-label" for="{{ form.is_final_exam.id_for_label }}">This is the Final Written Exam</label>
+    </div>
+    <div class="row g-2 mt-1">
+      <div class="col-4 form-check ms-2">
+        {{ form.was_reset }}
+        <label class="form-check-label" for="{{ form.was_reset.id_for_label }}">Was reset</label>
+      </div>
+      <div class="col-4">
+        <label class="form-label">Reset count</label>
+        {{ form.reset_count }}
+      </div>
+    </div>
+    <div class="mb-3 mt-3">
+      <label class="form-label">Date taken</label>
+      {{ form.date_taken }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Notes</label>
+      {{ form.notes }}
+    </div>
+    {% if form.non_field_errors %}
+      <div class="text-danger mb-2" style="font-size:12px;">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <button type="submit" class="btn btn-primary">Save Exam Grade</button>
+  </form>
+</div>
+{% endblock %}
