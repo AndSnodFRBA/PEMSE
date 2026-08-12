@@ -19,7 +19,7 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 EXCLUDED_APPS = ['contenttypes', 'auth.permission', 'sessions.session', 'admin.logentry']
-KEEP_BACKUPS  = 60  # roughly 2 months of daily backups plus deploy-triggered ones
+KEEP_BACKUPS  = 30  # roughly a month of daily backups plus deploy-triggered ones
 
 
 class Command(BaseCommand):
