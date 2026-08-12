@@ -10,7 +10,7 @@ import uuid
 from .models import (
     Student, PaymentRecord, Announcement, PaymentHistory,
     CognitiveExamRecord, PsychomotorSkillRecord, PatientContactRecord,
-    StudentNotification,
+    StudentNotification, CourseCompletionRecord,
 )
 from .forms import StudentRegistrationForm, StudentLoginForm, ProfileForm, PaymentForm
 from .emails import send_instructor_registration_notifications, send_registration_confirmation
@@ -184,6 +184,13 @@ def dashboard_view(request):
     from grades.models import GradeBook
     gb = GradeBook.objects.filter(student=student, course=enrollment.course).first() if enrollment else None
 
+    certificate_available = False
+    if enrollment and gb:
+        completion_record = CourseCompletionRecord.objects.filter(student=student, course=enrollment.course).first()
+        if completion_record:
+            from grades.views import certificate_requirements_checklist
+            _, certificate_available = certificate_requirements_checklist(student, enrollment, gb, completion_record)
+
     return render(request, 'students/dashboard.html', {
         'student':                student,
         'enrollment':             enrollment,
@@ -204,6 +211,7 @@ def dashboard_view(request):
         'upcoming_deadlines':     upcoming_deadlines,
         'next_class':             next_class,
         'gb':                     gb,
+        'certificate_available':  certificate_available,
     })
 
 
@@ -451,4 +459,42 @@ def registration_pdf_view(request, student_id=None):
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     safe_name = student.get_full_name().replace(' ', '_')
     response['Content-Disposition'] = f'inline; filename="PEMSE_Registration_{safe_name}.pdf"'
+    return response
+
+
+@login_required
+def completion_certificate_pdf(request, student_id=None):
+    if student_id:
+        if not request.user.is_office_staff:
+            return HttpResponseForbidden()
+        student = get_object_or_404(Student, pk=student_id)
+        error_redirect = 'staff_student_detail'
+        error_args = [student_id]
+    else:
+        student = request.user
+        error_redirect = 'dashboard'
+        error_args = []
+
+    from courses.models import CourseEnrollment
+    from grades.models import GradeBook
+    from grades.views import certificate_requirements_checklist
+    enrollment = CourseEnrollment.objects.filter(student=student).select_related('course').first()
+    gradebook = GradeBook.objects.filter(student=student, course=enrollment.course).first() if enrollment else None
+    completion_record = CourseCompletionRecord.objects.filter(
+        student=student, course=enrollment.course
+    ).first() if enrollment else None
+
+    all_met = False
+    if enrollment and gradebook and completion_record:
+        _, all_met = certificate_requirements_checklist(student, enrollment, gradebook, completion_record)
+
+    if not all_met:
+        messages.error(request, 'This student has not yet met all course completion requirements.')
+        return redirect(error_redirect, *error_args)
+
+    from students.certificate_pdf import generate_completion_certificate
+    pdf_bytes = generate_completion_certificate(student, enrollment, gradebook, completion_record)
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    safe_name = student.get_full_name().replace(' ', '_')
+    response['Content-Disposition'] = f'inline; filename="PEMSE_Certificate_{safe_name}.pdf"'
     return response

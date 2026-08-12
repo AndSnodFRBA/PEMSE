@@ -332,6 +332,11 @@
             </div>
           </div>
           <a href="{% url 'staff_gradebook_detail' student.pk %}" class="btn btn-sm btn-outline-primary">View/Edit Grades →</a>
+          {% if certificate_available %}
+            <a href="{% url 'staff_student_certificate' student.pk %}" target="_blank" class="btn btn-sm ms-1" style="background:#C9A84C;color:#fff;">
+              <i class="bi bi-award-fill me-1"></i>Generate Certificate
+            </a>
+          {% endif %}
         {% else %}
           <p class="text-muted mb-2" style="font-size:12px;">No grades entered.</p>
           <form method="post" action="{% url 'staff_gradebook_create' student.pk %}">

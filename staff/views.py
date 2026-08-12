@@ -482,10 +482,16 @@ def student_detail(request, pk):
     from grades.models import GradeBook
     gb = GradeBook.objects.filter(student=student, course=enrollment.course).first() if enrollment else None
 
+    certificate_available = False
+    if enrollment and gb and completion_rec:
+        from grades.views import certificate_requirements_checklist
+        _, certificate_available = certificate_requirements_checklist(student, enrollment, gb, completion_rec)
+
     return render(request, 'staff/student_detail.html', {
         'student':            student,
         'enrollment':         enrollment,
         'gb':                 gb,
+        'certificate_available': certificate_available,
         'courses_all':        Course.objects.order_by('option_number'),
         'doc_forms':          doc_forms,
         'pending_docs_exist': pending_docs_exist,

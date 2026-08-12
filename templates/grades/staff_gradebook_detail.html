@@ -136,30 +136,29 @@
     </div>
 
     <div class="card p-3 mb-3">
-      <div class="portal-card-title mb-2" style="font-size:14px;">Meets Completion Requirements</div>
-      <div class="mb-2">
-        {% if gb.meets_completion_requirements %}
-          <span style="background:#d1fae5;color:#065f46;border-radius:12px;font-size:12px;font-weight:700;padding:3px 10px;">
-            <i class="bi bi-check-circle-fill me-1"></i> Yes
-          </span>
-        {% else %}
-          <span style="background:#fee2e2;color:#991b1b;border-radius:12px;font-size:12px;font-weight:700;padding:3px 10px;">
-            <i class="bi bi-x-circle-fill me-1"></i> No
-          </span>
-        {% endif %}
-      </div>
-      <div class="req-item">
-        {% if gb.is_passing %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle text-muted"></i>{% endif %}
-        Overall grade 75%+
-      </div>
-      <div class="req-item">
-        {% if gb.section_exams_all_passing %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle text-muted"></i>{% endif %}
-        All section exams 75%+ individually
-      </div>
-      <div class="req-item">
-        {% if gb.final_exam_score is not None and gb.final_exam_score >= 75 %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle text-muted"></i>{% endif %}
-        Final exam 75%+
-      </div>
+      <div class="portal-card-title mb-2" style="font-size:14px;">Course Completion Requirements</div>
+      {% if checklist %}
+        {% for item in checklist %}
+        <div class="req-item">
+          {% if item.met %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle text-muted"></i>{% endif %}
+          <span>{{ item.label }}</span>
+          <span class="text-muted ms-auto" style="font-size:11px;">{{ item.detail }}</span>
+        </div>
+        {% endfor %}
+        <div class="mt-3">
+          {% if certificate_available %}
+            <a href="{% url 'staff_student_certificate' student.pk %}" target="_blank" class="btn btn-sm w-100" style="background:#C9A84C;color:#fff;">
+              <i class="bi bi-award-fill me-1"></i> Generate Certificate
+            </a>
+          {% else %}
+            <button class="btn btn-sm btn-outline-secondary w-100" disabled>
+              Generate Certificate (requirements not yet met)
+            </button>
+          {% endif %}
+        </div>
+      {% else %}
+        <p class="text-muted mb-0" style="font-size:12px;">Not enough data yet to evaluate completion requirements.</p>
+      {% endif %}
     </div>
   </div>
 

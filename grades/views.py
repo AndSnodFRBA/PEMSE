@@ -35,6 +35,62 @@ def _get_or_none_gradebook(student):
     return gb, course
 
 
+def certificate_requirements_checklist(student, enrollment, gradebook, completion_record):
+    """The 6 conditions gating certificate generation — broader than
+    GradeBook.meets_completion_requirements, which only covers the 3
+    grade-based conditions (overall/section-exams/final). Certificate
+    issuance also needs hours verified, paperwork complete, and the
+    balance paid off."""
+    from students.balance import compute_balance
+
+    is_clinical_course = enrollment.course.licensure in ('AEMT', 'PARA')
+    section_exams = gradebook.section_exam_grades.filter(is_final_exam=False)
+    section_exams_passing = section_exams.filter(score__gte=75).count()
+    section_exams_total = section_exams.count()
+
+    hours_complete = (not is_clinical_course) or (completion_record.verification_date is not None)
+    paperwork_complete = student.enrollment_complete
+    _, _, _, balance_due = compute_balance(student)
+    financial_complete = balance_due <= 0
+
+    items = [
+        {
+            'label': 'Overall grade 75%+',
+            'met': gradebook.is_passing,
+            'detail': f'Current: {gradebook.overall_grade}%' if gradebook.overall_grade is not None else 'Not yet calculable',
+        },
+        {
+            'label': 'All section exams 75%+',
+            'met': bool(gradebook.section_exams_all_passing),
+            'detail': f'{section_exams_passing} of {section_exams_total} passing',
+        },
+        {
+            'label': 'Final exam 75%+',
+            'met': gradebook.final_exam_score is not None and gradebook.final_exam_score >= 75,
+            'detail': f'Score: {gradebook.final_exam_score}%' if gradebook.final_exam_score is not None else 'Not yet taken',
+        },
+        {
+            'label': 'Field/clinical hours complete (for EMT/AEMT)',
+            'met': hours_complete,
+            'detail': 'N/A for this course' if not is_clinical_course else (
+                'Verified by staff' if hours_complete else 'Not yet verified'
+            ),
+        },
+        {
+            'label': 'All required paperwork submitted',
+            'met': paperwork_complete,
+            'detail': 'Complete' if paperwork_complete else 'Incomplete',
+        },
+        {
+            'label': 'Financial obligations fulfilled',
+            'met': financial_complete,
+            'detail': 'Paid in full' if financial_complete else f'Balance due: ${balance_due:,.2f}',
+        },
+    ]
+    all_met = all(item['met'] for item in items)
+    return items, all_met
+
+
 def _notify_staff_if_at_risk(gradebook):
     """Notify staff when a grade drops a student below passing.
     Skips a staff member who already has an unread notification for this
@@ -93,11 +149,25 @@ def staff_gradebook_detail(request, student_id):
     student = get_object_or_404(Student, pk=student_id, role=Student.Role.STUDENT)
     gb, course = _get_or_none_gradebook(student)
     course_ended = bool(course and course.end_date and course.end_date < timezone.now().date())
+
+    checklist, certificate_available = None, False
+    enrollment = None
+    if gb and course:
+        from students.models import CourseCompletionRecord
+        enrollment = CourseEnrollment.objects.filter(student=student, course=course).first()
+        completion_record = CourseCompletionRecord.objects.filter(student=student, course=course).first()
+        if enrollment and completion_record:
+            checklist, certificate_available = certificate_requirements_checklist(
+                student, enrollment, gb, completion_record
+            )
+
     return render(request, 'grades/staff_gradebook_detail.html', {
         'student': student,
         'course': course,
         'gb': gb,
         'course_ended': course_ended,
+        'checklist': checklist,
+        'certificate_available': certificate_available,
     })
 
 
