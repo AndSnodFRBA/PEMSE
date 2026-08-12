@@ -18,6 +18,7 @@ from .forms import (
     QuizGradeForm, SectionExamGradeForm, WorksheetGradeForm, SkillsGradeForm,
     ParticipationDeductionForm, FisdapForm,
 )
+from .audit import log_grade_change
 
 
 def _student_current_course(student):
@@ -99,6 +100,8 @@ def staff_quiz_edit(request, student_id, quiz_number):
     instance = QuizGrade.objects.filter(gradebook=gb, quiz_number=quiz_number).first()
 
     if request.method == 'POST':
+        was_create = instance is None
+        old_score = instance.score if instance else ''
         form = QuizGradeForm(request.POST, instance=instance)
         if form.is_valid():
             obj = form.save(commit=False)
@@ -107,6 +110,10 @@ def staff_quiz_edit(request, student_id, quiz_number):
             obj.entered_by = request.user
             obj.score = form.cleaned_data['score']
             obj.save()
+            log_grade_change(
+                gb, request.user, 'create' if was_create else 'update', 'QuizGrade', obj.pk,
+                field_name='score', old_value=old_score, new_value=obj.score,
+            )
             messages.success(request, f'Quiz {quiz_number} grade saved.')
             return redirect('staff_gradebook_detail', student_id=student.pk)
     else:
@@ -131,6 +138,8 @@ def staff_exam_edit(request, student_id, exam_id):
         instance = get_object_or_404(SectionExamGrade, pk=exam_id, gradebook=gb)
 
     if request.method == 'POST':
+        was_create = instance is None
+        old_score = instance.score if instance else ''
         form = SectionExamGradeForm(request.POST, instance=instance)
         if form.is_valid():
             obj = form.save(commit=False)
@@ -138,6 +147,10 @@ def staff_exam_edit(request, student_id, exam_id):
             obj.entered_by = request.user
             obj.score = form.cleaned_data['score']
             obj.save()
+            log_grade_change(
+                gb, request.user, 'create' if was_create else 'update', 'SectionExamGrade', obj.pk,
+                field_name='score', old_value=old_score, new_value=obj.score,
+            )
             messages.success(request, 'Exam grade saved.')
             return redirect('staff_gradebook_detail', student_id=student.pk)
     else:
@@ -162,12 +175,18 @@ def staff_worksheet_edit(request, student_id, worksheet_id):
         instance = get_object_or_404(WorksheetGrade, pk=worksheet_id, gradebook=gb)
 
     if request.method == 'POST':
+        was_create = instance is None
+        old_score = instance.score if instance else ''
         form = WorksheetGradeForm(request.POST, instance=instance)
         if form.is_valid():
             obj = form.save(commit=False)
             obj.gradebook = gb
             obj.entered_by = request.user
             obj.save()
+            log_grade_change(
+                gb, request.user, 'create' if was_create else 'update', 'WorksheetGrade', obj.pk,
+                field_name='score', old_value=old_score, new_value=obj.score,
+            )
             messages.success(request, 'Worksheet grade saved.')
             return redirect('staff_gradebook_detail', student_id=student.pk)
     else:
@@ -191,12 +210,18 @@ def staff_skill_edit(request, student_id, skill_id):
         instance = get_object_or_404(SkillsGrade, pk=skill_id, gradebook=gb)
 
     if request.method == 'POST':
+        was_create = instance is None
+        old_score = instance.score if instance else ''
         form = SkillsGradeForm(request.POST, instance=instance)
         if form.is_valid():
             obj = form.save(commit=False)
             obj.gradebook = gb
             obj.entered_by = request.user
             obj.save()
+            log_grade_change(
+                gb, request.user, 'create' if was_create else 'update', 'SkillsGrade', obj.pk,
+                field_name='score', old_value=old_score, new_value=obj.score,
+            )
             messages.success(request, 'Skills grade saved.')
             return redirect('staff_gradebook_detail', student_id=student.pk)
     else:
@@ -218,10 +243,17 @@ def staff_participation_deduct(request, student_id):
     if request.method == 'POST':
         form = ParticipationDeductionForm(request.POST)
         if form.is_valid():
+            old_participation = gb.participation_score
             obj = form.save(commit=False)
             obj.gradebook = gb
             obj.recorded_by = request.user
             obj.save()
+            gb.refresh_from_db()
+            log_grade_change(
+                gb, request.user, 'create', 'ParticipationDeduction', obj.pk,
+                field_name='participation_score', old_value=old_participation, new_value=gb.participation_score,
+                notes=f'{obj.get_reason_display()} (-{obj.points})',
+            )
             messages.success(request, 'Deduction recorded.')
             return redirect('staff_gradebook_detail', student_id=student.pk)
     else:
@@ -241,9 +273,21 @@ def staff_fisdap_edit(request, student_id):
         return redirect('staff_gradebook_detail', student_id=student.pk)
 
     if request.method == 'POST':
+        old_values = {
+            'fisdap_attempt_1': gb.fisdap_attempt_1,
+            'fisdap_attempt_2': gb.fisdap_attempt_2,
+            'fisdap_passed': gb.fisdap_passed,
+        }
         form = FisdapForm(request.POST, instance=gb)
         if form.is_valid():
             form.save()
+            for field, old_val in old_values.items():
+                new_val = getattr(gb, field)
+                if old_val != new_val:
+                    log_grade_change(
+                        gb, request.user, 'update', 'GradeBook', gb.pk,
+                        field_name=field, old_value=old_val, new_value=new_val,
+                    )
             messages.success(request, 'FISDAP scores saved.')
             return redirect('staff_gradebook_detail', student_id=student.pk)
     else:

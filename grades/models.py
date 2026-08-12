@@ -291,3 +291,31 @@ class ParticipationDeduction(models.Model):
         total_deductions = sum(d.points for d in gb.participation_deductions.all())
         gb.participation_score = max(0, 100 - total_deductions)
         gb.save(update_fields=['participation_score', 'updated_at'])
+
+
+class GradeChangeLog(models.Model):
+    """Audit trail — every create/update/delete on a grade record."""
+
+    class ChangeType(models.TextChoices):
+        CREATE = 'create', 'Created'
+        UPDATE = 'update', 'Updated'
+        DELETE = 'delete', 'Deleted'
+
+    gradebook    = models.ForeignKey(GradeBook, on_delete=models.CASCADE, related_name='change_logs')
+    changed_by   = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name='grade_changes_made'
+    )
+    change_type  = models.CharField(max_length=10, choices=ChangeType.choices)
+    model_name   = models.CharField(max_length=50, help_text='Which model was changed e.g. QuizGrade')
+    record_id    = models.PositiveIntegerField(null=True, blank=True)
+    field_name   = models.CharField(max_length=100, blank=True)
+    old_value    = models.TextField(blank=True)
+    new_value    = models.TextField(blank=True)
+    notes        = models.TextField(blank=True)
+    changed_at   = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-changed_at']
+
+    def __str__(self):
+        return f'{self.model_name} {self.change_type} by {self.changed_by} at {self.changed_at:%Y-%m-%d %H:%M}'
