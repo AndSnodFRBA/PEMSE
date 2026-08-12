@@ -166,9 +166,10 @@ def dashboard_view(request):
 
     payment_history = student.payment_history.all()
     from decimal import Decimal
-    total_paid = sum(p.amount for p in payment_history)
-    total_owed = enrollment.total_tuition if enrollment else Decimal('0')
-    balance_due = max(Decimal('0'), total_owed - total_paid)
+    from .balance import compute_balance
+    _, total_paid, total_owed, balance_due = compute_balance(student)
+    tuition_owed = enrollment.total_tuition if enrollment else Decimal('0')
+    late_fee_total = total_owed - tuition_owed
 
     # Clinical rotations summary (no scores shown to student)
     from evaluations.models import ClinicalRotation, PreceptorEvaluation
@@ -204,6 +205,8 @@ def dashboard_view(request):
         'payment_history':        payment_history,
         'total_paid':             total_paid,
         'total_owed':             total_owed,
+        'tuition_owed':           tuition_owed,
+        'late_fee_total':         late_fee_total,
         'balance_due':            balance_due,
         'rotation_count':         rotations.count(),
         'pending_preceptor_evals': pending_preceptor_evals,

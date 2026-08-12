@@ -21,7 +21,7 @@ from students.emails import (
 )
 from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
-    CourseReportRecord, EntranceRequirementRecord,
+    CourseReportRecord, EntranceRequirementRecord, LatePaymentFee,
     PatientContactRecord, PaymentHistory, PaymentRecord, PsychomotorSkillRecord,
     ReminderLog, Student, StudentNote, StudentNotification,
 )
@@ -36,6 +36,7 @@ from .forms import (
     EditStudentInvitationForm,
     EntranceRequirementForm,
     InvitationForm,
+    LatePaymentFeeForm,
     PatientContactForm,
     PaymentHistoryForm,
     PsychomotorSkillForm,
@@ -47,6 +48,7 @@ from .forms import (
     StudentNoteForm,
     StaffInviteAcceptForm,
     StaffStudentEditForm,
+    WaiveLateFeeForm,
 )
 from .mixins import staff_required
 from .models import StaffInvitation, StudentInvitation
@@ -418,11 +420,17 @@ def student_detail(request, pk):
     expiring_docs = [d for d in docs if d.doc_type.required and d.expiration_warning]
     pending_docs_exist = docs.filter(status='pending').exists()
 
-    total_paid  = sum(p.amount for p in history)
-    total_owed  = enrollment.total_tuition if enrollment else Decimal('0')
-    balance_due = max(Decimal('0'), total_owed - total_paid)
+    from django.db.models import Sum
+    from students.balance import compute_balance
+    _, total_paid, total_owed, balance_due = compute_balance(student)
+    tuition_owed = enrollment.total_tuition if enrollment else Decimal('0')
+    late_fees = LatePaymentFee.objects.filter(student=student).order_by('-date_applied')
+    late_fee_total = late_fees.filter(waived=False).aggregate(
+        total=Sum('amount'))['total'] or Decimal('0')
 
-    add_payment_form = PaymentHistoryForm()
+    add_payment_form   = PaymentHistoryForm()
+    late_fee_form       = LatePaymentFeeForm()
+    waive_late_fee_form = WaiveLateFeeForm()
     notes            = StudentNote.objects.filter(student=student).select_related('created_by')
     note_form        = StudentNoteForm()
 
@@ -501,6 +509,11 @@ def student_detail(request, pk):
         'total_paid':         total_paid,
         'total_owed':         total_owed,
         'balance_due':        balance_due,
+        'tuition_owed':       tuition_owed,
+        'late_fees':          late_fees,
+        'late_fee_total':     late_fee_total,
+        'late_fee_form':      late_fee_form,
+        'waive_late_fee_form': waive_late_fee_form,
         'add_payment_form':   add_payment_form,
         'payment_form':       payment_form,
         'notes':              notes,
@@ -581,6 +594,39 @@ def add_payment(request, pk):
         else:
             messages.error(request, 'Please correct the errors below.')
     return redirect('staff_student_detail', pk=pk)
+
+
+@staff_required
+def add_late_fee(request, pk):
+    student = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
+    if request.method == 'POST':
+        form = LatePaymentFeeForm(request.POST)
+        if form.is_valid():
+            fee = form.save(commit=False)
+            fee.student = student
+            fee.recorded_by = request.user
+            fee.save()
+            messages.success(request, f'{fee.get_fee_type_display()} of ${fee.amount} added.')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    return redirect(f"{reverse('staff_student_detail', args=[pk])}#late-fees")
+
+
+@staff_required
+def waive_late_fee(request, pk, fee_id):
+    student = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
+    fee = get_object_or_404(LatePaymentFee, pk=fee_id, student=student)
+    if request.method == 'POST':
+        form = WaiveLateFeeForm(request.POST)
+        if form.is_valid():
+            fee.waived = True
+            fee.waived_by = request.user
+            fee.waived_reason = form.cleaned_data['waived_reason']
+            fee.save()
+            messages.success(request, f'{fee.get_fee_type_display()} waived.')
+        else:
+            messages.error(request, 'Please provide a reason for waiving this fee.')
+    return redirect(f"{reverse('staff_student_detail', args=[pk])}#late-fees")
 
 
 @staff_required

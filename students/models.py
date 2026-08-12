@@ -194,6 +194,46 @@ class PaymentHistory(models.Model):
         return f'{self.student} — ${self.amount} on {self.payment_date}'
 
 
+class LatePaymentFee(models.Model):
+    """Tracks late/collections fees per handbook policy ($25/month, $50 collections)."""
+
+    class FeeType(models.TextChoices):
+        MONTHLY_LATE  = 'monthly_late',  'Monthly late fee ($25)'
+        COLLECTIONS   = 'collections',   'Collections fee ($50)'
+        OTHER         = 'other',         'Other'
+
+    FEE_AMOUNTS = {
+        'monthly_late': 25,
+        'collections':  50,
+    }
+
+    student     = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='late_fees')
+    fee_type    = models.CharField(max_length=20, choices=FeeType.choices)
+    amount      = models.DecimalField(max_digits=8, decimal_places=2)
+    date_applied = models.DateField()
+    reason      = models.TextField(blank=True)
+    waived      = models.BooleanField(default=False)
+    waived_by   = models.ForeignKey(
+        Student, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='fees_waived'
+    )
+    waived_reason = models.TextField(blank=True)
+    recorded_by = models.ForeignKey(
+        Student, null=True, on_delete=models.SET_NULL, related_name='fees_recorded'
+    )
+    created_at  = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_applied']
+
+    def __str__(self):
+        return f'{self.student} — {self.get_fee_type_display()} ({self.date_applied})'
+
+    @property
+    def is_active(self):
+        return not self.waived
+
+
 class ReminderLog(models.Model):
     """One row per reminder email actually sent — powers cooldown checks and staff-visible history."""
 

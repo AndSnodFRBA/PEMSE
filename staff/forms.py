@@ -4,7 +4,7 @@ from courses.models import Course, CourseEnrollment
 from documents.models import StudentDocument
 from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
-    CourseReportRecord, EntranceRequirementRecord,
+    CourseReportRecord, EntranceRequirementRecord, LatePaymentFee,
     PatientContactRecord, PaymentHistory, PaymentRecord, PsychomotorSkillRecord,
     Student, StudentNote,
 )
@@ -196,6 +196,39 @@ class PaymentHistoryForm(forms.ModelForm):
             'check_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Check #'}),
             'notes':        forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Optional notes…'}),
         }
+
+
+class LatePaymentFeeForm(forms.ModelForm):
+    class Meta:
+        model  = LatePaymentFee
+        fields = ['fee_type', 'amount', 'date_applied', 'reason']
+        widgets = {
+            'fee_type':     forms.Select(attrs={'class': 'form-select'}),
+            'amount':       forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
+            'date_applied': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'reason':       forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Optional reason…'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['amount'].required = False
+
+    def clean(self):
+        cleaned = super().clean()
+        fee_type = cleaned.get('fee_type')
+        amount = cleaned.get('amount')
+        if fee_type and fee_type != LatePaymentFee.FeeType.OTHER:
+            cleaned['amount'] = LatePaymentFee.FEE_AMOUNTS.get(fee_type, 0)
+        elif fee_type == LatePaymentFee.FeeType.OTHER and not amount:
+            raise forms.ValidationError('Enter a custom amount for "Other".')
+        return cleaned
+
+
+class WaiveLateFeeForm(forms.Form):
+    waived_reason = forms.CharField(
+        label='Reason for waiving', required=True,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+    )
 
 
 class StaffPaymentRecordForm(forms.ModelForm):

@@ -193,18 +193,26 @@
     <div class="portal-card-sub">Payments recorded by PEMSE staff against your tuition balance.</div>
 
     <!-- Totals bar -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
       <div style="background:var(--light);border-radius:10px;padding:12px 14px;text-align:center;">
-        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Total Tuition</div>
-        <div style="font-size:20px;font-weight:700;color:#0a2540;">${{ total_owed|floatformat:2 }}</div>
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Tuition</div>
+        <div style="font-size:18px;font-weight:700;color:#0a2540;">${{ tuition_owed|floatformat:2 }}</div>
+      </div>
+      <div style="background:var(--light);border-radius:10px;padding:12px 14px;text-align:center;">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Late Fees</div>
+        <div style="font-size:18px;font-weight:700;color:{% if late_fee_total %}var(--red){% else %}#0a2540{% endif %};">${{ late_fee_total|floatformat:2 }}</div>
+      </div>
+      <div style="background:var(--light);border-radius:10px;padding:12px 14px;text-align:center;">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Total Owed</div>
+        <div style="font-size:18px;font-weight:700;color:#0a2540;">${{ total_owed|floatformat:2 }}</div>
       </div>
       <div style="background:var(--light);border-radius:10px;padding:12px 14px;text-align:center;">
         <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Paid</div>
-        <div style="font-size:20px;font-weight:700;color:var(--green);">${{ total_paid|floatformat:2 }}</div>
+        <div style="font-size:18px;font-weight:700;color:var(--green);">${{ total_paid|floatformat:2 }}</div>
       </div>
       <div style="background:var(--light);border-radius:10px;padding:12px 14px;text-align:center;">
         <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Balance Due</div>
-        <div style="font-size:20px;font-weight:700;color:{% if balance_due %}var(--red){% else %}var(--green){% endif %};">${{ balance_due|floatformat:2 }}</div>
+        <div style="font-size:18px;font-weight:700;color:{% if balance_due %}var(--red){% else %}var(--green){% endif %};">${{ balance_due|floatformat:2 }}</div>
       </div>
     </div>
 
