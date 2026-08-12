@@ -1,7 +1,8 @@
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.urls import reverse
+from django.utils import timezone
 
 from staff.mixins import staff_required
 from instructor.mixins import instructor_required
@@ -68,10 +69,12 @@ def staff_grade_overview(request):
 def staff_gradebook_detail(request, student_id):
     student = get_object_or_404(Student, pk=student_id, role=Student.Role.STUDENT)
     gb, course = _get_or_none_gradebook(student)
+    course_ended = bool(course and course.end_date and course.end_date < timezone.now().date())
     return render(request, 'grades/staff_gradebook_detail.html', {
         'student': student,
         'course': course,
         'gb': gb,
+        'course_ended': course_ended,
     })
 
 
@@ -100,6 +103,8 @@ def staff_quiz_edit(request, student_id, quiz_number):
     instance = QuizGrade.objects.filter(gradebook=gb, quiz_number=quiz_number).first()
 
     if request.method == 'POST':
+        if gb.is_finalized:
+            return HttpResponseForbidden('Gradebook is finalized')
         was_create = instance is None
         old_score = instance.score if instance else ''
         form = QuizGradeForm(request.POST, instance=instance)
@@ -138,6 +143,8 @@ def staff_exam_edit(request, student_id, exam_id):
         instance = get_object_or_404(SectionExamGrade, pk=exam_id, gradebook=gb)
 
     if request.method == 'POST':
+        if gb.is_finalized:
+            return HttpResponseForbidden('Gradebook is finalized')
         was_create = instance is None
         old_score = instance.score if instance else ''
         form = SectionExamGradeForm(request.POST, instance=instance)
@@ -175,6 +182,8 @@ def staff_worksheet_edit(request, student_id, worksheet_id):
         instance = get_object_or_404(WorksheetGrade, pk=worksheet_id, gradebook=gb)
 
     if request.method == 'POST':
+        if gb.is_finalized:
+            return HttpResponseForbidden('Gradebook is finalized')
         was_create = instance is None
         old_score = instance.score if instance else ''
         form = WorksheetGradeForm(request.POST, instance=instance)
@@ -210,6 +219,8 @@ def staff_skill_edit(request, student_id, skill_id):
         instance = get_object_or_404(SkillsGrade, pk=skill_id, gradebook=gb)
 
     if request.method == 'POST':
+        if gb.is_finalized:
+            return HttpResponseForbidden('Gradebook is finalized')
         was_create = instance is None
         old_score = instance.score if instance else ''
         form = SkillsGradeForm(request.POST, instance=instance)
@@ -241,6 +252,8 @@ def staff_participation_deduct(request, student_id):
         return redirect('staff_gradebook_detail', student_id=student.pk)
 
     if request.method == 'POST':
+        if gb.is_finalized:
+            return HttpResponseForbidden('Gradebook is finalized')
         form = ParticipationDeductionForm(request.POST)
         if form.is_valid():
             old_participation = gb.participation_score
@@ -273,6 +286,8 @@ def staff_fisdap_edit(request, student_id):
         return redirect('staff_gradebook_detail', student_id=student.pk)
 
     if request.method == 'POST':
+        if gb.is_finalized:
+            return HttpResponseForbidden('Gradebook is finalized')
         old_values = {
             'fisdap_attempt_1': gb.fisdap_attempt_1,
             'fisdap_attempt_2': gb.fisdap_attempt_2,
@@ -296,6 +311,45 @@ def staff_fisdap_edit(request, student_id):
     return render(request, 'grades/staff_fisdap_form.html', {
         'student': student, 'gb': gb, 'form': form,
     })
+
+
+@staff_required
+def finalize_gradebook(request, student_id):
+    gradebook = get_object_or_404(GradeBook, student_id=student_id)
+    if request.method == 'POST':
+        gradebook.is_finalized = True
+        gradebook.finalized_at = timezone.now()
+        gradebook.finalized_by = request.user
+        gradebook.finalized_notes = request.POST.get('notes', '')
+        gradebook.save()
+        log_grade_change(
+            gradebook, request.user, 'update', 'GradeBook', gradebook.pk,
+            field_name='is_finalized', old_value=False, new_value=True, notes='Gradebook finalized',
+        )
+        messages.success(request, f'Gradebook finalized for {gradebook.student.get_full_name()}.')
+        return redirect('staff_gradebook_detail', student_id=student_id)
+    return render(request, 'grades/finalize_confirm.html', {'gradebook': gradebook})
+
+
+@staff_required
+def unfinalize_gradebook(request, student_id):
+    gradebook = get_object_or_404(GradeBook, student_id=student_id)
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '').strip()
+        if not reason:
+            messages.error(request, 'A reason is required to unlock a finalized gradebook.')
+            return redirect('staff_gradebook_detail', student_id=student_id)
+        gradebook.is_finalized = False
+        gradebook.finalized_at = None
+        gradebook.finalized_by = None
+        gradebook.finalized_notes = ''
+        gradebook.save()
+        log_grade_change(
+            gradebook, request.user, 'update', 'GradeBook', gradebook.pk,
+            field_name='is_finalized', old_value=True, new_value=False, notes=f'Unlocked: {reason}',
+        )
+        messages.success(request, 'Gradebook unlocked.')
+    return redirect('staff_gradebook_detail', student_id=student_id)
 
 
 @staff_required

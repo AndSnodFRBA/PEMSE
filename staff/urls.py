@@ -105,4 +105,6 @@ urlpatterns = [
     path('grades/<int:student_id>/skill/<str:skill_id>/',   grade_views.staff_skill_edit,       name='staff_skill_edit'),
     path('grades/<int:student_id>/participation/deduct/',   grade_views.staff_participation_deduct, name='staff_participation_deduct'),
     path('grades/<int:student_id>/fisdap/',                 grade_views.staff_fisdap_edit,      name='staff_fisdap_edit'),
+    path('grades/<int:student_id>/finalize/',                grade_views.finalize_gradebook,    name='staff_finalize_gradebook'),
+    path('grades/<int:student_id>/unfinalize/',               grade_views.unfinalize_gradebook,  name='staff_unfinalize_gradebook'),
 ]
