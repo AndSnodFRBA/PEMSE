@@ -107,6 +107,14 @@ def staff_quiz_edit(request, student_id, quiz_number):
             return HttpResponseForbidden('Gradebook is finalized')
         was_create = instance is None
         old_score = instance.score if instance else ''
+        was_reset_before = instance.was_reset if instance else False
+        is_new_reset = bool(request.POST.get('was_reset')) and not was_reset_before
+        if is_new_reset and gb.quiz_resets_remaining <= 0:
+            messages.error(request, 'This student has used all 5 quiz resets allowed per the handbook')
+            form = QuizGradeForm(request.POST, instance=instance)
+            return render(request, 'grades/staff_quiz_form.html', {
+                'student': student, 'gb': gb, 'form': form, 'quiz_number': quiz_number, 'instance': instance,
+            })
         form = QuizGradeForm(request.POST, instance=instance)
         if form.is_valid():
             obj = form.save(commit=False)
@@ -119,6 +127,8 @@ def staff_quiz_edit(request, student_id, quiz_number):
                 gb, request.user, 'create' if was_create else 'update', 'QuizGrade', obj.pk,
                 field_name='score', old_value=old_score, new_value=obj.score,
             )
+            if is_new_reset and gb.quiz_resets_remaining == 1:
+                messages.warning(request, 'This student has 1 quiz reset remaining')
             messages.success(request, f'Quiz {quiz_number} grade saved.')
             return redirect('staff_gradebook_detail', student_id=student.pk)
     else:
@@ -147,6 +157,16 @@ def staff_exam_edit(request, student_id, exam_id):
             return HttpResponseForbidden('Gradebook is finalized')
         was_create = instance is None
         old_score = instance.score if instance else ''
+        was_reset_before = instance.was_reset if instance else False
+        is_final = bool(request.POST.get('is_final_exam'))
+        is_new_reset = bool(request.POST.get('was_reset')) and not was_reset_before and not is_final
+        if is_new_reset and gb.exam_resets_remaining <= 0:
+            messages.error(request, 'This student has used both section exam resets allowed per the handbook')
+            form = SectionExamGradeForm(request.POST, instance=instance)
+            reset_warning = instance and instance.reset_count >= 2
+            return render(request, 'grades/staff_exam_form.html', {
+                'student': student, 'gb': gb, 'form': form, 'instance': instance, 'reset_warning': reset_warning,
+            })
         form = SectionExamGradeForm(request.POST, instance=instance)
         if form.is_valid():
             obj = form.save(commit=False)

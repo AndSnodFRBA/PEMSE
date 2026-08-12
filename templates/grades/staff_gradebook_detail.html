@@ -120,6 +120,22 @@
     </div>
 
     <div class="card p-3 mb-3">
+      <div class="portal-card-title mb-2" style="font-size:14px;">Reset Counters</div>
+      <div class="grade-summary-row">
+        <span>Quiz resets used</span>
+        <span style="font-weight:700;color:{% if gb.quiz_resets_used == 0 %}#065f46{% elif gb.quiz_resets_remaining == 0 %}#991b1b{% else %}#92600a{% endif %};">
+          {{ gb.quiz_resets_used }} of 5
+        </span>
+      </div>
+      <div class="grade-summary-row">
+        <span>Section exam resets used</span>
+        <span style="font-weight:700;color:{% if gb.exam_resets_used == 0 %}#065f46{% elif gb.exam_resets_remaining == 0 %}#991b1b{% else %}#92600a{% endif %};">
+          {{ gb.exam_resets_used }} of 2
+        </span>
+      </div>
+    </div>
+
+    <div class="card p-3 mb-3">
       <div class="portal-card-title mb-2" style="font-size:14px;">Meets Completion Requirements</div>
       <div class="mb-2">
         {% if gb.meets_completion_requirements %}
