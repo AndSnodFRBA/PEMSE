@@ -107,6 +107,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'pemse.middleware.SessionTimeoutWarningMiddleware',
 ]
 
 ROOT_URLCONF = 'pemse.urls'
@@ -144,6 +145,11 @@ AUTH_USER_MODEL = 'students.Student'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/login/'
+
+# ── Session timeout — 2 hours of inactivity ──────────────────────────────────
+SESSION_COOKIE_AGE = 7200        # 2 hours in seconds
+SESSION_SAVE_EVERY_REQUEST = True # Reset timer on every request
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Persist across browser restarts
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

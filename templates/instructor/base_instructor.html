@@ -157,6 +157,27 @@
   sidebar.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
 })();
 </script>
+<script>
+// Session timeout warning — 5 min before 2 hour expiry
+(function () {
+  const SESSION_TIMEOUT_MS = (2 * 60 * 60 - 5 * 60) * 1000;
+  let timeoutWarning;
+
+  function resetSessionTimer() {
+    clearTimeout(timeoutWarning);
+    timeoutWarning = setTimeout(() => {
+      if (confirm('Your session will expire in 5 minutes due to inactivity. Click OK to stay logged in.')) {
+        fetch('/health/').then(() => resetSessionTimer());
+      }
+    }, SESSION_TIMEOUT_MS);
+  }
+
+  document.addEventListener('mousemove', resetSessionTimer);
+  document.addEventListener('keypress', resetSessionTimer);
+  document.addEventListener('click', resetSessionTimer);
+  resetSessionTimer();
+})();
+</script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>
