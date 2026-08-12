@@ -1,6 +1,7 @@
 import io
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.core.files.storage import default_storage
@@ -624,6 +625,26 @@ def add_late_fee(request, pk):
         else:
             messages.error(request, 'Please correct the errors below.')
     return redirect(f"{reverse('staff_student_detail', args=[pk])}#late-fees")
+
+
+@staff_required
+def axes_lockouts(request):
+    from axes.models import AccessAttempt
+    from axes.utils import reset
+
+    if request.method == 'POST':
+        ip = request.POST.get('ip_address')
+        username = request.POST.get('username')
+        if ip:
+            reset(ip=ip)
+            messages.success(request, f'Lockout reset for IP {ip}.')
+        return redirect('staff_axes_lockouts')
+
+    attempts = AccessAttempt.objects.order_by('-attempt_time')[:100]
+    return render(request, 'staff/axes_lockouts.html', {
+        'attempts': attempts,
+        'failure_limit': settings.AXES_FAILURE_LIMIT,
+    })
 
 
 @staff_required

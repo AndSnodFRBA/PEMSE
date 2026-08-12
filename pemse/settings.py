@@ -69,6 +69,7 @@ if not DEBUG:
 
 # ── AUTHENTICATION ────────────────────────────────────────────────────────────
 AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
     'students.backends.EmailBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
@@ -86,6 +87,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'django_extensions',
+    'axes',
     # PEMSE apps
     'students',
     'courses',
@@ -105,10 +107,19 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'axes.middleware.AxesMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'pemse.middleware.SessionTimeoutWarningMiddleware',
 ]
+
+# ── django-axes: brute-force login protection ─────────────────────────────────
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 1
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_PARAMETERS = ['ip_address']
+AXES_VERBOSE = False
+AXES_LOCKOUT_TEMPLATE = 'auth/lockout.html'
 
 ROOT_URLCONF = 'pemse.urls'
 WSGI_APPLICATION = 'pemse.wsgi.application'

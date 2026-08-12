@@ -150,6 +150,14 @@
     </a>
   </nav>
 
+  <div class="sidebar-section-label mt-3">Settings</div>
+  <nav class="sidebar-nav">
+    <a href="{% url 'staff_axes_lockouts' %}"
+       class="nav-item {% if request.resolver_match.url_name == 'staff_axes_lockouts' %}active{% endif %}">
+      <i class="bi bi-shield-lock-fill"></i> Login Lockouts
+    </a>
+  </nav>
+
   <div class="sidebar-user">
     <div class="user-avatar">{{ request.user.initials }}</div>
     <div class="user-info">

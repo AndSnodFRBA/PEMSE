@@ -1,0 +1,65 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}Login Lockouts — PEMSE Staff{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">Login Lockouts</h1>
+</div>
+
+<p style="font-size:13px;color:#6b7280;margin-bottom:16px;">
+  Recent failed login attempts. An IP address is locked out for one hour after
+  {{ failure_limit }} failed attempts within that window.
+</p>
+
+{% if attempts %}
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0" style="font-size:13px;">
+      <thead style="background:#f8fafc;border-bottom:2px solid #dde4ef;">
+        <tr>
+          <th class="ps-4 py-3" style="color:#1a2e4a;font-weight:600;">IP Address</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Username</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Attempts</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Last Attempt</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Status</th>
+          <th class="py-3 pe-4"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in attempts %}
+        <tr>
+          <td class="ps-4 py-2" style="font-family:monospace;color:#374151;">{{ a.ip_address }}</td>
+          <td class="py-2" style="color:#374151;">{{ a.username|default:"—" }}</td>
+          <td class="py-2" style="color:#374151;">{{ a.failures_since_start }}</td>
+          <td class="py-2" style="color:#6b7280;">{{ a.attempt_time|date:"M j, Y g:i A" }}</td>
+          <td class="py-2">
+            {% if a.failures_since_start >= failure_limit %}
+              <span style="background:#fee2e2;color:#991b1b;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;">Locked</span>
+            {% else %}
+              <span style="background:#f3f4f6;color:#374151;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;">Below limit</span>
+            {% endif %}
+          </td>
+          <td class="py-2 pe-4">
+            <form method="post" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="ip_address" value="{{ a.ip_address }}">
+              <button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:11px;border-radius:6px;">
+                Reset Lockout
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5" style="color:#9ca3af;">
+    <i class="bi bi-shield-check" style="font-size:32px;"></i>
+    <div class="mt-2" style="font-size:14px;">No failed login attempts on record.</div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

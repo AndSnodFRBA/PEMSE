@@ -66,6 +66,8 @@ urlpatterns = [
     path('pass-rates/quick-update/<int:record_id>/',                views.pass_rates_quick_update,   name='staff_pass_rates_quick_update'),
     # Backups
     path('backups/',                                                views.backup_list,             name='staff_backup_list'),
+    # Login lockouts (django-axes)
+    path('axes/',                                                   views.axes_lockouts,           name='staff_axes_lockouts'),
     # Reminders
     path('reminders/',                                              views.reminder_dashboard,       name='staff_reminder_dashboard'),
     path('reminders/send/',                                         views.reminder_bulk_send,       name='staff_reminder_send'),
