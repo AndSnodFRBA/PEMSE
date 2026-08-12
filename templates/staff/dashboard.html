@@ -500,6 +500,28 @@
 
 {% endif %}
 
+<!-- System -->
+<div class="card p-3 mb-3">
+  <div style="font-weight:600;color:#1a2e4a;font-size:13px;margin-bottom:8px;">
+    <i class="bi bi-hdd-network-fill me-1"></i>System
+  </div>
+  {% if last_webhook_run %}
+  <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
+    <span style="width:10px;height:10px;border-radius:50%;display:inline-block;
+      background:{% if webhook_status == 'green' %}#16a34a{% elif webhook_status == 'yellow' %}#d97706{% else %}#dc2626{% endif %};"></span>
+    <span style="color:#374151;">
+      Daily tasks webhook last ran {{ last_webhook_run.triggered_at|date:"M j, Y g:i A" }}
+      — {% if last_webhook_run.success %}<span style="color:#065f46;">succeeded</span>{% else %}<span style="color:#991b1b;">had errors</span>{% endif %}
+    </span>
+  </div>
+  {% else %}
+  <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
+    <span style="width:10px;height:10px;border-radius:50%;display:inline-block;background:#dc2626;"></span>
+    <span style="color:#374151;">Daily tasks webhook has never run.</span>
+  </div>
+  {% endif %}
+</div>
+
 {% block extra_css %}
 <style>
   .chevron { transition: transform .2s; }

@@ -589,3 +589,18 @@ class CourseReportRecord(models.Model):
         from django.utils import timezone
         from datetime import timedelta
         return timezone.now().date() >= self.submission_deadline - timedelta(days=7)
+
+
+class WebhookLog(models.Model):
+    """Records each run of the /webhooks/daily-tasks/ endpoint."""
+
+    triggered_at = models.DateTimeField(auto_now_add=True)
+    results      = models.JSONField(default=dict)
+    success      = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-triggered_at']
+
+    def __str__(self):
+        status = 'OK' if self.success else 'FAILED'
+        return f'Webhook run {self.triggered_at:%Y-%m-%d %H:%M} — {status}'

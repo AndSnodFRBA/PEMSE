@@ -2,15 +2,20 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.utils import timezone
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.core.management import call_command
+import hmac
+import os
 import uuid
 
 from .models import (
     Student, PaymentRecord, Announcement, PaymentHistory,
     CognitiveExamRecord, PsychomotorSkillRecord, PatientContactRecord,
-    StudentNotification, CourseCompletionRecord,
+    StudentNotification, CourseCompletionRecord, WebhookLog,
 )
 from .forms import StudentRegistrationForm, StudentLoginForm, ProfileForm, PaymentForm
 from .emails import send_instructor_registration_notifications, send_registration_confirmation
@@ -501,3 +506,35 @@ def completion_certificate_pdf(request, student_id=None):
     safe_name = student.get_full_name().replace(' ', '_')
     response['Content-Disposition'] = f'inline; filename="PEMSE_Certificate_{safe_name}.pdf"'
     return response
+
+
+DAILY_TASK_COMMANDS = [
+    'send_deadline_notifications',
+    'check_retention_flags',
+    'sync_instructor_license_events',
+    'check_late_fees',
+]
+
+
+@csrf_exempt
+@require_POST
+def daily_tasks_webhook(request):
+    secret = os.environ.get('WEBHOOK_SECRET', '')
+    provided = request.headers.get('X-Webhook-Secret', '')
+    if not secret or not hmac.compare_digest(secret, provided):
+        return JsonResponse({'error': 'unauthorized'}, status=403)
+
+    import io
+    results = {}
+    success = True
+    for command_name in DAILY_TASK_COMMANDS:
+        out = io.StringIO()
+        try:
+            call_command(command_name, stdout=out)
+            results[command_name] = out.getvalue().strip() or 'ok'
+        except Exception as exc:
+            results[command_name] = f'error: {exc}'
+            success = False
+
+    WebhookLog.objects.create(results=results, success=success)
+    return JsonResponse({'success': success, 'results': results})

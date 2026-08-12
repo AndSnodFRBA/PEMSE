@@ -5,6 +5,8 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.conf.urls.static import static
 
+from students.views import daily_tasks_webhook
+
 
 def health(request):
     return HttpResponse('ok', status=200)
@@ -13,6 +15,7 @@ def health(request):
 urlpatterns = [
     path('', include('students.urls')),          # landing_view is registered at '' inside students.urls
     path('health/', health),
+    path('webhooks/daily-tasks/', daily_tasks_webhook, name='daily_tasks_webhook'),
     path('admin/', admin.site.urls),
     path('courses/', include('courses.urls')),
     path('documents/', include('documents.urls')),

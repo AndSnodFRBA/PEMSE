@@ -365,6 +365,18 @@ def staff_dashboard(request):
     overdue_reports = [r for r in report_records if r.is_overdue]
     soon_reports    = [r for r in report_records if not r.is_overdue and r.deadline_soon]
 
+    from students.models import WebhookLog
+    last_webhook_run = WebhookLog.objects.first()
+    webhook_status = 'none'
+    if last_webhook_run:
+        days_ago = (timezone.now() - last_webhook_run.triggered_at).days
+        if days_ago == 0:
+            webhook_status = 'green'
+        elif days_ago == 1:
+            webhook_status = 'yellow'
+        else:
+            webhook_status = 'red'
+
     return render(request, 'staff/dashboard.html', {
         'active_groups':   active_groups,
         'archived_groups': archived_groups,
@@ -401,6 +413,8 @@ def staff_dashboard(request):
         'invite_expired_count':   invite_expired_count,
         'overdue_reports': overdue_reports,
         'soon_reports':    soon_reports,
+        'last_webhook_run': last_webhook_run,
+        'webhook_status':   webhook_status,
     })
 
 
