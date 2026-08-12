@@ -337,6 +337,25 @@ def staff_dashboard(request):
         records_flagged_for_review=True
     ).select_related('student', 'course')
 
+    # At-risk students (overall_grade/is_finalized are Python properties, not
+    # DB fields, so filter candidates in Python rather than via queryset).
+    from grades.models import GradeBook
+    at_risk_students = []
+    candidates = GradeBook.objects.filter(
+        course__is_active=True, is_finalized=False,
+    ).select_related('student', 'course')
+    for gb in candidates:
+        reasons = []
+        if gb.needs_intervention:
+            reasons.append(f'Overall grade below 75% ({gb.overall_grade}%)')
+        failed_exam = gb.section_exam_grades.filter(is_final_exam=False, score__lt=75).first()
+        if failed_exam:
+            reasons.append(f'Failed section exam: {failed_exam.exam_name}')
+        if gb.participation_score < 75:
+            reasons.append('Participation below 75%')
+        if reasons:
+            at_risk_students.append({'gradebook': gb, 'reasons': reasons})
+
     # Department report deadline warnings (172 NAC 13-004(D))
     report_records = CourseReportRecord.objects.filter(
         report_submitted_to_department=False
@@ -374,6 +393,7 @@ def staff_dashboard(request):
         'meeting_compliance': meeting_compliance,
         'license_warnings': license_warnings,
         'retention_flagged': retention_flagged,
+        'at_risk_students': at_risk_students,
         'invite_completed_count': invite_completed_count,
         'invite_pending_count':   invite_pending_count,
         'invite_expired_count':   invite_expired_count,

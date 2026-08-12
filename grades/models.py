@@ -165,6 +165,17 @@ class GradeBook(models.Model):
     def exam_resets_remaining(self):
         return max(0, 2 - self.exam_resets_used)
 
+    @property
+    def needs_intervention(self):
+        g = self.overall_grade
+        return g is not None and g < 75
+
+    @property
+    def has_failed_section_exam(self):
+        return self.section_exam_grades.filter(
+            is_final_exam=False, score__lt=75
+        ).exists()
+
 
 class QuizGrade(models.Model):
     """Individual quiz score — per handbook: 2 attempts, max 5 resets, missed excused = max 75%, missed unexcused = 0"""

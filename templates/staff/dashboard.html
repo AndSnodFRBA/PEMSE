@@ -446,6 +446,58 @@
   </div>
 </div>
 {% endif %}
+
+<div class="mt-4">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <h2 style="font-size:15px;font-weight:600;color:#1a2e4a;margin:0;">
+      <i class="bi bi-exclamation-diamond-fill me-1" style="color:#dc2626;"></i>
+      At-Risk Students
+    </h2>
+  </div>
+  {% if at_risk_students %}
+  <div class="card">
+    <div class="card-body p-0">
+      <table class="table mb-0" style="font-size:13px;">
+        <thead style="background:#fef2f2;border-bottom:2px solid #fecaca;">
+          <tr>
+            <th class="ps-4 py-2" style="color:#991b1b;font-weight:600;">Student</th>
+            <th class="py-2" style="color:#991b1b;font-weight:600;">Course</th>
+            <th class="py-2 text-center" style="color:#991b1b;font-weight:600;">Overall Grade</th>
+            <th class="py-2" style="color:#991b1b;font-weight:600;">Trigger</th>
+            <th class="py-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in at_risk_students %}
+          <tr>
+            <td class="ps-4 py-2" style="font-weight:600;color:#1a2e4a;">{{ item.gradebook.student.get_full_name }}</td>
+            <td class="py-2">{{ item.gradebook.course.name }}</td>
+            <td class="py-2 text-center fw-semibold">
+              {% if item.gradebook.overall_grade is not None %}{{ item.gradebook.overall_grade }}%{% else %}—{% endif %}
+            </td>
+            <td class="py-2">
+              {% for reason in item.reasons %}
+                <span style="background:#fee2e2;color:#991b1b;border-radius:12px;font-size:11px;padding:2px 8px;display:inline-block;margin:1px 0;">{{ reason }}</span>{% if not forloop.last %}<br>{% endif %}
+              {% endfor %}
+            </td>
+            <td class="py-2 pe-3">
+              <a href="{% url 'staff_gradebook_detail' item.gradebook.student_id %}" style="font-size:12px;color:#2B5EA7;">View Gradebook →</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="card p-3" style="background:#d1fae5;border:1px solid #a7f3d0;">
+    <span style="color:#065f46;font-weight:600;font-size:13px;">
+      <i class="bi bi-check-circle-fill me-1"></i> All students currently passing
+    </span>
+  </div>
+  {% endif %}
+</div>
+
 {% endif %}
 
 {% block extra_css %}

@@ -35,6 +35,29 @@ def _get_or_none_gradebook(student):
     return gb, course
 
 
+def _notify_staff_if_at_risk(gradebook):
+    """Notify staff when a grade drops a student below passing.
+    Skips a staff member who already has an unread notification for this
+    student — otherwise every subsequent grade edit while they remain below
+    75% would re-spam the whole staff list."""
+    if gradebook.overall_grade is None or gradebook.overall_grade >= 75:
+        return
+    from students.models import Student, StudentNotification
+    title = f'{gradebook.student.get_full_name()} grade dropped below passing'
+    for staff_user in Student.objects.filter(role__in=[Student.Role.STAFF, Student.Role.ADMIN]):
+        already_notified = StudentNotification.objects.filter(
+            student=staff_user, notif_type='general', title=title, is_read=False,
+        ).exists()
+        if not already_notified:
+            StudentNotification.create(
+                student=staff_user,
+                notif_type='general',
+                title=title,
+                body=f'Current overall grade: {gradebook.overall_grade}%',
+                link=f'/staff/grades/{gradebook.student_id}/',
+            )
+
+
 # ── Staff views ─────────────────────────────────────────────────────────────
 
 @staff_required
@@ -129,6 +152,7 @@ def staff_quiz_edit(request, student_id, quiz_number):
             )
             if is_new_reset and gb.quiz_resets_remaining == 1:
                 messages.warning(request, 'This student has 1 quiz reset remaining')
+            _notify_staff_if_at_risk(gb)
             messages.success(request, f'Quiz {quiz_number} grade saved.')
             return redirect('staff_gradebook_detail', student_id=student.pk)
     else:
@@ -178,6 +202,7 @@ def staff_exam_edit(request, student_id, exam_id):
                 gb, request.user, 'create' if was_create else 'update', 'SectionExamGrade', obj.pk,
                 field_name='score', old_value=old_score, new_value=obj.score,
             )
+            _notify_staff_if_at_risk(gb)
             messages.success(request, 'Exam grade saved.')
             return redirect('staff_gradebook_detail', student_id=student.pk)
     else:
@@ -216,6 +241,7 @@ def staff_worksheet_edit(request, student_id, worksheet_id):
                 gb, request.user, 'create' if was_create else 'update', 'WorksheetGrade', obj.pk,
                 field_name='score', old_value=old_score, new_value=obj.score,
             )
+            _notify_staff_if_at_risk(gb)
             messages.success(request, 'Worksheet grade saved.')
             return redirect('staff_gradebook_detail', student_id=student.pk)
     else:
@@ -253,6 +279,7 @@ def staff_skill_edit(request, student_id, skill_id):
                 gb, request.user, 'create' if was_create else 'update', 'SkillsGrade', obj.pk,
                 field_name='score', old_value=old_score, new_value=obj.score,
             )
+            _notify_staff_if_at_risk(gb)
             messages.success(request, 'Skills grade saved.')
             return redirect('staff_gradebook_detail', student_id=student.pk)
     else:
@@ -287,6 +314,7 @@ def staff_participation_deduct(request, student_id):
                 field_name='participation_score', old_value=old_participation, new_value=gb.participation_score,
                 notes=f'{obj.get_reason_display()} (-{obj.points})',
             )
+            _notify_staff_if_at_risk(gb)
             messages.success(request, 'Deduction recorded.')
             return redirect('staff_gradebook_detail', student_id=student.pk)
     else:
