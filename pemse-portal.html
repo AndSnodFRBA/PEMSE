@@ -388,7 +388,7 @@ select{cursor:pointer;}
             <div style="font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Payment policy</div>
             <div style="font-size:13px;line-height:1.7;color:#444;">
               Payment due before first night of class<br>
-              Full tuition required before FISDAP &amp; final testing<br>
+              Full tuition required before final testing<br>
               <strong style="color:var(--red);">No refunds on PEMSE courses</strong><br>
               CE hours not granted on incomplete courses
             </div>
@@ -586,7 +586,7 @@ select{cursor:pointer;}
           <div class="card-section">Payment schedule</div>
           <div class="notice warn">
             <span class="ni">⚠️</span>
-            <div class="nt">Minimum down payment is due before the first night of class. Full tuition must be paid before FISDAP and final testing. <strong>There are no refunds on PEMSE courses.</strong></div>
+            <div class="nt">Minimum down payment is due before the first night of class. Full tuition must be paid before final testing. <strong>There are no refunds on PEMSE courses.</strong></div>
           </div>
 
           <div id="payment-schedule-wrap" style="margin-top:14px;">
@@ -669,7 +669,7 @@ select{cursor:pointer;}
           <div style="background:var(--light);border-radius:10px;padding:20px;font-size:13px;line-height:1.8;color:#333;margin-bottom:20px;border:1px solid var(--border);">
             <p>I, <strong id="contract-name" style="color:var(--navy);">[Student Name]</strong>, agree to the terms and conditions of <strong>Panhandle EMS Education, LLC</strong>, including (but not limited to) providing tuition paid in full <em>OR</em> making scheduled payments agreed to by myself and the Director of PEMSE, <strong>prior to the first night of scheduled class.</strong></p>
             <br>
-            <p>Full tuition will be paid prior to FISDAP and final testing. I understand that PEMSE has the right to and will legally pursue any unpaid tuition under my name.</p>
+            <p>Full tuition will be paid prior to final testing. I understand that PEMSE has the right to and will legally pursue any unpaid tuition under my name.</p>
             <br>
             <p style="color:var(--red);font-weight:500;">I understand there are no refunds on PEMSE courses. CE hours will NOT be granted on incomplete courses.</p>
             <br>
@@ -812,8 +812,6 @@ select{cursor:pointer;}
             <div class="hb-body">
               <h3>Passing Requirements</h3>
               <p>Students must achieve a minimum score of <strong>75%</strong> on all written examinations. Skills stations require a passing demonstration on each attempt or as specified by the course rubric.</p>
-              <h3>FISDAP</h3>
-              <p>EMT and AEMT students are required to maintain a FISDAP account for clinical documentation. Full tuition must be paid in full before FISDAP access and final testing will be granted.</p>
               <h3>National Registry Exams</h3>
               <p>PEMSE prepares students to sit for the National Registry of Emergency Medical Technicians (NREMT) cognitive and psychomotor exams. Passing the NREMT is required to obtain Nebraska licensure.</p>
               <h3>Remediation</h3>
@@ -841,7 +839,7 @@ select{cursor:pointer;}
               <p>Students represent Panhandle EMS Education at all clinical sites. Professional behavior, appropriate uniform, and respect for patients and staff are mandatory at all times.</p>
               <div class="warning">⚠️ Students asked to leave a clinical site due to conduct issues may be dismissed from the program without a refund.</div>
               <h3>Documentation</h3>
-              <p>All clinical hours and patient contacts must be documented in FISDAP. Hours not documented may not count toward program requirements.</p>
+              <p>All clinical hours and patient contacts must be documented. Hours not documented may not count toward program requirements.</p>
             </div>
           </div>
           <!-- Chapter 5 -->
@@ -860,7 +858,7 @@ select{cursor:pointer;}
                 <li>Option 7 — EMT IV Therapy: <strong>$200</strong></li>
               </ul>
               <h3>Payment Schedule</h3>
-              <p>Minimum down payments must be paid before the first night of class. Students choosing a payment schedule must work directly with PEMSE to create a plan. Payments are due at 30, 60, 90, and 120-day intervals from the date of the signed registration form, with the final balance due before FISDAP and final testing.</p>
+              <p>Minimum down payments must be paid before the first night of class. Students choosing a payment schedule must work directly with PEMSE to create a plan. Payments are due at 30, 60, 90, and 120-day intervals from the date of the signed registration form, with the final balance due before final testing.</p>
               <div class="warning">⚠️ <strong>There are no refunds on PEMSE courses.</strong> CE hours will NOT be granted on incomplete courses. PEMSE reserves the right to legally pursue any unpaid tuition.</div>
               <h3>2XL+ Polo Shirt</h3>
               <p>AEMT course students receive a polo shirt. Sizes 2XL and larger add $5 to tuition.</p>
@@ -1016,7 +1014,7 @@ select{cursor:pointer;}
               <div style="font-size:14px;font-weight:500;color:var(--navy);">When is tuition due?</div>
               <div class="faq-arrow" style="font-size:18px;color:var(--muted);">+</div>
             </div>
-            <div class="faq-body" style="display:none;font-size:13px;color:#555;line-height:1.7;margin-top:10px;">Tuition (or the minimum down payment) must be paid in full before the first night of class. If you are on a payment schedule, the final balance must be paid before FISDAP access and final testing are granted. Contact Robin or Andrew to set up a payment plan.</div>
+            <div class="faq-body" style="display:none;font-size:13px;color:#555;line-height:1.7;margin-top:10px;">Tuition (or the minimum down payment) must be paid in full before the first night of class. If you are on a payment schedule, the final balance must be paid before final testing. Contact Robin or Andrew to set up a payment plan.</div>
           </div>
           <div class="faq-item" onclick="toggleFaq(this)" style="padding:16px 0;border-bottom:1px solid var(--border);cursor:pointer;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -1158,7 +1156,7 @@ function updatePaymentSchedule(){
     '<div class="ps-row"><span class="ps-label">2nd payment — due 60 days from signing</span><span class="ps-val">'+addDays(60)+'</span></div>'+
     '<div class="ps-row"><span class="ps-label">3rd payment — due 90 days from signing</span><span class="ps-val">'+addDays(90)+'</span></div>'+
     '<div class="ps-row"><span class="ps-label">4th payment — due 120 days from signing</span><span class="ps-val">'+addDays(120)+'</span></div>'+
-    '<div class="ps-row"><span class="ps-label">Final balance (before FISDAP &amp; final testing)</span><span class="ps-val">$'+remain.toLocaleString()+'</span></div>'+
+    '<div class="ps-row"><span class="ps-label">Final balance (before final testing)</span><span class="ps-val">$'+remain.toLocaleString()+'</span></div>'+
     '<div class="ps-row"><span class="ps-label">Total tuition</span><span class="ps-val">$'+selPrice.toLocaleString()+'</span></div>';
 }
 

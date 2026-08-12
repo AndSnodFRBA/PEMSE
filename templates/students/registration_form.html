@@ -263,7 +263,7 @@
     {% if enrollment %}
     <div class="section-divider">Payment schedule — Option {{ enrollment.course.option_number }}: {{ enrollment.course.name }}</div>
     <div style="background:#fff8e1;border:1px solid #f0d060;border-radius:10px;padding:12px 14px;font-size:12px;color:#7a5c00;margin-bottom:14px;">
-      ⚠️ Minimum down payment due before first night of class. Full tuition required before FISDAP &amp; final testing. <strong>No refunds.</strong>
+      ⚠️ Minimum down payment due before first night of class. Full tuition required before final testing. <strong>No refunds.</strong>
     </div>
     <div class="pay-schedule" style="margin-bottom:16px;">
       <div class="pay-row"><span class="pay-label">Minimum down payment (before first class)</span><span>${{ enrollment.course.min_down|floatformat:0 }}</span></div>
@@ -271,7 +271,7 @@
       <div class="pay-row"><span class="pay-label">2nd payment — 60 days from signature</span><span>Per schedule</span></div>
       <div class="pay-row"><span class="pay-label">3rd payment — 90 days from signature</span><span>Per schedule</span></div>
       <div class="pay-row"><span class="pay-label">4th payment — 120 days from signature</span><span>Per schedule</span></div>
-      <div class="pay-row"><span class="pay-label">Final balance (before FISDAP &amp; final testing)</span><span>${{ enrollment.remaining_balance|floatformat:0 }}</span></div>
+      <div class="pay-row"><span class="pay-label">Final balance (before final testing)</span><span>${{ enrollment.remaining_balance|floatformat:0 }}</span></div>
       {% if enrollment.course.has_book_option %}
       <div class="pay-row"><span class="pay-label">Textbook</span><span>{% if enrollment.book_included %}Included{% else %}Not included{% endif %}</span></div>
       {% endif %}
@@ -302,7 +302,7 @@
   <div style="background:var(--light);border:1px solid var(--border);border-radius:10px;padding:20px;font-size:13px;line-height:1.8;color:#333;margin-bottom:20px;">
     <p>I, <strong style="color:#0a2540;">{{ user.get_full_name }}</strong>, agree to the terms and conditions of <strong>Panhandle EMS Education, LLC</strong>, including (but not limited to) providing tuition paid in full <em>OR</em> making scheduled payments agreed to by myself and the Director of PEMSE, prior to the first night of scheduled class.</p>
     <br>
-    <p>Full tuition will be paid prior to FISDAP and final testing. I understand that PEMSE has the right to and will legally pursue any unpaid tuition under my name.</p>
+    <p>Full tuition will be paid prior to final testing. I understand that PEMSE has the right to and will legally pursue any unpaid tuition under my name.</p>
     <br>
     <p style="color:var(--red);font-weight:500;">I understand there are no refunds on PEMSE courses. CE hours will NOT be granted on incomplete courses.</p>
     {% if enrollment %}

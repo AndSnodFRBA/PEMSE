@@ -53,10 +53,6 @@ Late submissions may result in a grade of zero for that module.</p>
 <p>Students must achieve a minimum score of <strong>75%</strong> on all written examinations.
 Skills stations require a passing demonstration on each attempt or as specified by the course rubric.</p>
 
-<h4>FISDAP</h4>
-<p>EMT and AEMT students are required to maintain a FISDAP account for clinical documentation.
-Full tuition must be paid in full before FISDAP access and final testing will be granted.</p>
-
 <h4>National Registry Exams</h4>
 <p>PEMSE prepares students to sit for the National Registry of Emergency Medical Technicians (NREMT)
 cognitive and psychomotor exams. Passing the NREMT is required to obtain Nebraska licensure.</p>
@@ -86,7 +82,7 @@ appropriate uniform, and respect for patients and staff are mandatory at all tim
 </div>
 
 <h4>Documentation</h4>
-<p>All clinical hours and patient contacts must be documented in FISDAP.
+<p>All clinical hours and patient contacts must be documented.
 Hours not documented may not count toward program requirements.</p>
 """),
     (5, "Tuition & Refund Policy", """
@@ -104,7 +100,7 @@ Hours not documented may not count toward program requirements.</p>
 <h4>Payment Schedule</h4>
 <p>Minimum down payments must be paid before the first night of class. Students choosing a payment schedule
 must work directly with PEMSE. Payments are due at 30, 60, 90, and 120-day intervals from the signed registration date.
-The final balance is due before FISDAP and final testing.</p>
+The final balance is due before final testing.</p>
 
 <div class="handbook-warning">
   ⚠️ <strong>There are no refunds on PEMSE courses.</strong> CE hours will NOT be granted on incomplete courses.

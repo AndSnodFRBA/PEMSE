@@ -1,5 +1,5 @@
 from django import forms
-from .models import QuizGrade, SectionExamGrade, WorksheetGrade, SkillsGrade, ParticipationDeduction, GradeBook
+from .models import QuizGrade, SectionExamGrade, WorksheetGrade, SkillsGrade, ParticipationDeduction
 
 
 class BootstrapFormMixin:
@@ -107,9 +107,3 @@ class ParticipationDeductionForm(BootstrapFormMixin, forms.ModelForm):
         elif reason == ParticipationDeduction.Reason.OTHER and not points:
             raise forms.ValidationError('Enter a custom point value for "Other".')
         return cleaned
-
-
-class FisdapForm(BootstrapFormMixin, forms.ModelForm):
-    class Meta:
-        model = GradeBook
-        fields = ['fisdap_attempt_1', 'fisdap_attempt_2', 'fisdap_passed']

@@ -70,11 +70,10 @@ SESSIONS = [
                       'LECTURE: CH 36: Geriatric Emergencies; CH 37: Patients with Special Challenges; '
                       'CH 38: Transport Operations\n'
                       'SKILLS: Hands On Skills; Face & Neck Injuries; Head & Spine Injuries'),
-    dict(date=date(2026, 11, 2), title='Week 14: CH 39-41; FISDAP Access Opens',
+    dict(date=date(2026, 11, 2), title='Week 14: CH 39-41',
          description='LECTURE: CH 39: Extrication / Hazardous Materials; CH 40: Incident Management; '
                       'CH 41: Terrorism Response\n'
-                      'SKILLS: Hands On Skills; Chest Injuries; Abdominal / Orthopedic\n'
-                      'ACTION: OPEN FISDAP access for all students this week'),
+                      'SKILLS: Hands On Skills; Chest Injuries; Abdominal / Orthopedic'),
     dict(date=date(2026, 11, 9), title='Week 15: Final Written Exam + Skills Lab',
          description='LECTURE: FINAL WRITTEN EXAM\n'
                       'SKILLS: Hands On Skills; Environmental Emergencies'),

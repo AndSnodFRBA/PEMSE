@@ -17,7 +17,7 @@ from .models import (
 )
 from .forms import (
     QuizGradeForm, SectionExamGradeForm, WorksheetGradeForm, SkillsGradeForm,
-    ParticipationDeductionForm, FisdapForm,
+    ParticipationDeductionForm,
 )
 from .audit import log_grade_change
 
@@ -321,42 +321,6 @@ def staff_participation_deduct(request, student_id):
         form = ParticipationDeductionForm()
 
     return render(request, 'grades/staff_participation_form.html', {
-        'student': student, 'gb': gb, 'form': form,
-    })
-
-
-@staff_required
-def staff_fisdap_edit(request, student_id):
-    student = get_object_or_404(Student, pk=student_id, role=Student.Role.STUDENT)
-    gb, course = _get_or_none_gradebook(student)
-    if not gb:
-        messages.error(request, 'Create a gradebook for this student first.')
-        return redirect('staff_gradebook_detail', student_id=student.pk)
-
-    if request.method == 'POST':
-        if gb.is_finalized:
-            return HttpResponseForbidden('Gradebook is finalized')
-        old_values = {
-            'fisdap_attempt_1': gb.fisdap_attempt_1,
-            'fisdap_attempt_2': gb.fisdap_attempt_2,
-            'fisdap_passed': gb.fisdap_passed,
-        }
-        form = FisdapForm(request.POST, instance=gb)
-        if form.is_valid():
-            form.save()
-            for field, old_val in old_values.items():
-                new_val = getattr(gb, field)
-                if old_val != new_val:
-                    log_grade_change(
-                        gb, request.user, 'update', 'GradeBook', gb.pk,
-                        field_name=field, old_value=old_val, new_value=new_val,
-                    )
-            messages.success(request, 'FISDAP scores saved.')
-            return redirect('staff_gradebook_detail', student_id=student.pk)
-    else:
-        form = FisdapForm(instance=gb)
-
-    return render(request, 'grades/staff_fisdap_form.html', {
         'student': student, 'gb': gb, 'form': form,
     })
 

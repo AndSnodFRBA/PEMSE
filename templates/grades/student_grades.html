@@ -67,7 +67,6 @@
       <div class="req-item">{% if gb.is_passing %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle text-muted"></i>{% endif %} Overall grade 75%+</div>
       <div class="req-item">{% if gb.section_exams_all_passing %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle text-muted"></i>{% endif %} All section exams 75%+ individually</div>
       <div class="req-item">{% if gb.final_exam_score is not None and gb.final_exam_score >= 75 %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle text-muted"></i>{% endif %} Final exam 75%+</div>
-      <div class="req-item">{% if gb.fisdap_passed %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle text-muted"></i>{% endif %} FISDAP passed</div>
       <div class="mt-2">
         {% if gb.meets_completion_requirements %}
           <span style="background:#d1fae5;color:#065f46;border-radius:12px;font-size:12px;font-weight:700;padding:3px 10px;">All requirements met</span>
@@ -142,21 +141,6 @@
     <div class="text-muted" style="font-size:13px;">Not yet recorded.</div>
   {% endif %}
   {% endwith %}
-</div>
-
-<div class="portal-card">
-  <div class="portal-card-title">FISDAP</div>
-  <div class="grade-summary-row"><span>Best score</span><span class="fw-semibold">{{ gb.fisdap_best_score|default:"Not yet recorded" }}</span></div>
-  <div class="grade-summary-row">
-    <span>Status</span>
-    <span>
-      {% if gb.fisdap_passed %}
-        <span style="background:#d1fae5;color:#065f46;border-radius:12px;font-size:11px;padding:2px 8px;">Passed</span>
-      {% else %}
-        <span class="text-muted">Not yet passed</span>
-      {% endif %}
-    </span>
-  </div>
 </div>
 
 {% endif %}

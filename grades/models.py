@@ -21,11 +21,6 @@ class GradeBook(models.Model):
         help_text='Starts at 100. Staff deduct points per handbook policy.'
     )
 
-    # FISDAP
-    fisdap_attempt_1 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    fisdap_attempt_2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    fisdap_passed = models.BooleanField(default=False)
-
     # Finalization / lock
     is_finalized    = models.BooleanField(default=False)
     finalized_at    = models.DateTimeField(null=True, blank=True)
@@ -45,11 +40,6 @@ class GradeBook(models.Model):
 
     def __str__(self):
         return f'{self.student.get_full_name()} — {self.course.name}'
-
-    @property
-    def fisdap_best_score(self):
-        scores = [s for s in [self.fisdap_attempt_1, self.fisdap_attempt_2] if s is not None]
-        return max(scores) if scores else None
 
     @property
     def quiz_average(self):
@@ -145,8 +135,7 @@ class GradeBook(models.Model):
         return (
             self.is_passing and
             self.section_exams_all_passing and
-            self.fisdap_passed and
-            (self.final_exam_score is not None and self.final_exam_score >= 75)
+            self.final_exam_score is not None and self.final_exam_score >= 75
         )
 
     @property

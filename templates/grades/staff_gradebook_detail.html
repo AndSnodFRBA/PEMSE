@@ -160,30 +160,6 @@
         {% if gb.final_exam_score is not None and gb.final_exam_score >= 75 %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle text-muted"></i>{% endif %}
         Final exam 75%+
       </div>
-      <div class="req-item">
-        {% if gb.fisdap_passed %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle text-muted"></i>{% endif %}
-        FISDAP passed
-      </div>
-    </div>
-
-    <div class="card p-3">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="portal-card-title" style="font-size:14px;">FISDAP</div>
-        <a href="{% url 'staff_fisdap_edit' student.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
-      </div>
-      <div class="grade-summary-row"><span>Attempt 1</span><span>{{ gb.fisdap_attempt_1|default:"Not yet recorded" }}</span></div>
-      <div class="grade-summary-row"><span>Attempt 2</span><span>{{ gb.fisdap_attempt_2|default:"Not yet recorded" }}</span></div>
-      <div class="grade-summary-row"><span>Best score</span><span class="fw-semibold">{{ gb.fisdap_best_score|default:"—" }}</span></div>
-      <div class="grade-summary-row">
-        <span>Passed (71% threshold)</span>
-        <span>
-          {% if gb.fisdap_passed %}
-            <span style="background:#d1fae5;color:#065f46;border-radius:12px;font-size:11px;padding:2px 8px;">Passed</span>
-          {% else %}
-            <span style="background:#fee2e2;color:#991b1b;border-radius:12px;font-size:11px;padding:2px 8px;">Not Passed</span>
-          {% endif %}
-        </span>
-      </div>
     </div>
   </div>
 

@@ -28,7 +28,7 @@ CONTRACT_INTRO_TEMPLATE = (
     'by myself and the Director of PEMSE, prior to the first night of scheduled class.'
 )
 CONTRACT_PARAGRAPHS = [
-    ('Full tuition will be paid prior to FISDAP and final testing. I understand that PEMSE has '
+    ('Full tuition will be paid prior to final testing. I understand that PEMSE has '
      'the right to and will legally pursue any unpaid tuition under my name.'),
     ('I understand there are no refunds on PEMSE courses. CE hours will NOT be granted on '
      'incomplete courses.'),
