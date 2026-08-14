@@ -5,6 +5,13 @@ Railway project, separate database, generic branding, and fictional sample
 data. It's used to show prospective EMS training agencies what the product
 looks like without touching the real Panhandle EMS Education site or data.
 
+This portal is built and maintained by
+[Four Line Software LLC](https://www.fourlinesoftware.com). The demo
+instance's "DEMO MODE" banner and footer credit both identify Four Line
+Software as the vendor — that's intentional, and separate from the
+`AGENCY_*` branding, which represents whichever prospective customer is
+being demoed.
+
 ## Deploy to Railway
 
 1. Create a new Railway project
@@ -34,6 +41,13 @@ number, or person's name. Keep it that way: don't fill in a real address or
 director name here, even a placeholder-sounding one, since this project's
 whole purpose is to demo the product without revealing (or being confused
 with) any specific customer's identity.
+
+`SOFTWARE_COMPANY` and `SOFTWARE_COMPANY_URL` are **not** environment
+variables — they're fixed in `pemse/settings.py` ("Four Line Software LLC" /
+`https://www.fourlinesoftware.com`), the same on every deployment. That's
+deliberate: the software vendor is the same company regardless of which
+agency is being demoed, so there's nothing to configure per-deployment.
+Setting them as Railway variables has no effect on the running app.
 
 `CSRF_TRUSTED_ORIGINS` is derived automatically from `ALLOWED_HOSTS` at
 startup — there's no separate variable to set.
