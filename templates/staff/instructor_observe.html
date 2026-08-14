@@ -33,13 +33,6 @@
           <h6 class="mt-2" style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">
             Ratings (1 = Needs Development, 5 = Exceptional)
           </h6>
-          <div class="row g-2">
-            {% for field_name in 'preparation,content_knowledge,delivery,student_engagement,time_management,professionalism,overall_rating'|split:',' %}
-              <div class="col-6 col-md-4">
-                <label class="form-label" style="font-size:12px;">{{ form|getitem:field_name|default:field_name }}</label>
-              </div>
-            {% endfor %}
-          </div>
           <div class="row g-2 mt-1">
             <div class="col-6 col-md-4">
               <label class="form-label" style="font-size:12px;">Preparation</label>

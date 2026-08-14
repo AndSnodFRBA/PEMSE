@@ -2470,7 +2470,7 @@ def staff_instructor_observe(request, pk):
         obs.observed_by = request.user
         obs.save()
         messages.success(request, 'Observation recorded.')
-        return redirect('staff_instructor_detail', pk=f'{pk}?tab=observations')
+        return redirect(f"{reverse('staff_instructor_detail', args=[pk])}?tab=observations")
     return render(request, 'staff/instructor_observe.html', {
         'form': form, 'instructor': instructor,
     })
@@ -2487,7 +2487,7 @@ def staff_instructor_meeting(request, pk):
         meeting.conducted_by = request.user
         meeting.save()
         messages.success(request, 'Meeting record saved.')
-        return redirect('staff_instructor_detail', pk=f'{pk}?tab=meetings')
+        return redirect(f"{reverse('staff_instructor_detail', args=[pk])}?tab=meetings")
     return render(request, 'staff/instructor_meeting.html', {
         'form': form, 'instructor': instructor,
     })
@@ -2508,7 +2508,7 @@ def staff_instructor_remediation(request, pk):
             plan.retain_until = timezone.now().date() + timedelta(days=5*365)
         plan.save()
         messages.success(request, 'Remediation plan created.')
-        return redirect('staff_instructor_detail', pk=f'{pk}?tab=remediation')
+        return redirect(f"{reverse('staff_instructor_detail', args=[pk])}?tab=remediation")
     return render(request, 'staff/instructor_remediation.html', {
         'form': form, 'instructor': instructor,
     })
