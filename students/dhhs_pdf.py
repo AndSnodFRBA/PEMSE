@@ -119,7 +119,8 @@ def generate_dhhs_report(report):
 
     story.append(Spacer(1, 20))
     story.append(Paragraph(f'Report generated {timezone.now().strftime("%B %d, %Y")}', small_gray))
-    story.append(Paragraph(f'PEMSE portal reference: DEPTRPT-{report.pk:06d}', small_gray))
+    from django.conf import settings as dj_settings
+    story.append(Paragraph(f'{dj_settings.AGENCY_SHORT_NAME} portal reference: DEPTRPT-{report.pk:06d}', small_gray))
 
     doc.build(story, onFirstPage=_footer, onLaterPages=_footer)
     buf.seek(0)

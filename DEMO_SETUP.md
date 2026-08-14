@@ -19,15 +19,21 @@ looks like without touching the real Panhandle EMS Education site or data.
 | DEMO_MODE | True |
 | AGENCY_NAME | EMS Training Portal |
 | AGENCY_SHORT_NAME | EMS Portal |
-| AGENCY_ADDRESS | Your Agency Address Here |
-| AGENCY_PHONE | Your Phone Number |
-| AGENCY_EMAIL | your@email.com |
-| AGENCY_DIRECTOR | Agency Director |
-| AGENCY_TAGLINE | EMS Training Portal — Student Portal |
+| AGENCY_ADDRESS | 123 Main Street, Anytown, USA |
+| AGENCY_PHONE | Available upon request |
+| AGENCY_EMAIL | info@emstrainingportal.com |
+| AGENCY_DIRECTOR | Portal Administrator |
+| AGENCY_TAGLINE | EMS Training Portal — Student Management System |
 | AGENCY_NAVY | #2B5EA7 |
 | AGENCY_ACCENT | #5B9BC8 |
 | ALLOWED_HOSTS | your-demo-app.up.railway.app |
 | DATABASE_URL | (auto-injected by Railway PostgreSQL) |
+
+These values are intentionally generic — no real agency name, city, phone
+number, or person's name. Keep it that way: don't fill in a real address or
+director name here, even a placeholder-sounding one, since this project's
+whole purpose is to demo the product without revealing (or being confused
+with) any specific customer's identity.
 
 `CSRF_TRUSTED_ORIGINS` is derived automatically from `ALLOWED_HOSTS` at
 startup — there's no separate variable to set.
@@ -55,12 +61,14 @@ or the demo course will show no attendance history.)
 
 | Role | Email | Password |
 |---|---|---|
-| Staff | director@demo-ems.com | demo1234 |
-| Instructor | instructor@demo-ems.com | demo1234 |
-| Student | james.anderson@demo-ems.com | demo1234 |
+| Staff | director@emstrainingportal.com | demo1234 |
+| Instructor | instructor@emstrainingportal.com | demo1234 |
+| Student | james.anderson@emstrainingportal.com | demo1234 |
 
 Seven other demo students exist, all following the pattern
-`firstname.lastname@demo-ems.com` with the same password.
+`firstname.lastname@emstrainingportal.com` with the same password. Demo
+students live in a rotating set of generic Nebraska cities (Norfolk,
+Kearney, North Platte, Columbus, Fremont) — none of them Scottsbluff.
 
 ## Resetting demo data between demos
 
@@ -92,3 +100,17 @@ With `DEMO_MODE=True`:
 - All generated PDFs (certificates, receipts, reports, rosters) get a
   diagonal "SAMPLE" watermark.
 - A "DEMO MODE" banner appears on every page.
+- `SiteSettings.get()` — the source PDFs pull agency name/address/phone/email
+  /director from — returns a value built live from the `AGENCY_*` variables
+  instead of the database-backed singleton, and is never persisted. This
+  means changing an `AGENCY_*` variable and restarting the service is enough
+  to rebrand every PDF; nobody needs to visit `/staff/settings/` on the demo
+  project.
+
+## Known limitation: the logo image itself
+
+The `AGENCY_LOGO_URL` variable (optional) lets you swap the logo image for a
+prospect. If it's left unset, the site falls back to the bundled
+`static/images/PEMSE.jpg` file — which is the real PEMSE logo. All *text*
+branding is fully generic by default, but the logo graphic is not unless you
+set `AGENCY_LOGO_URL` to a neutral image.

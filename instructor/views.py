@@ -293,6 +293,9 @@ def instructor_hours_pdf(request):
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
     import io
 
+    from students.models import SiteSettings
+    site = SiteSettings.get()
+
     instructor = request.user
     start_str = request.GET.get('start')
     end_str   = request.GET.get('end')
@@ -317,7 +320,7 @@ def instructor_hours_pdf(request):
     navy = colors.HexColor('#1a2e4a')
     elems = []
 
-    elems.append(Paragraph('Panhandle EMS Education', styles['Title']))
+    elems.append(Paragraph(site.agency_name, styles['Title']))
     elems.append(Paragraph(f'Instructor Hour Log — {instructor.get_full_name()}', styles['Heading2']))
     elems.append(Spacer(1, 12))
 

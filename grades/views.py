@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseForbidden
@@ -615,7 +616,8 @@ def progress_report_pdf(request):
     pdf_bytes = watermark_if_demo(pdf_bytes)
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     safe_name = request.user.get_full_name().replace(' ', '_')
-    response['Content-Disposition'] = f'inline; filename="PEMSE_Progress_Report_{safe_name}.pdf"'
+    file_prefix = settings.AGENCY_SHORT_NAME.replace(' ', '')
+    response['Content-Disposition'] = f'inline; filename="{file_prefix}_Progress_Report_{safe_name}.pdf"'
     return response
 
 
@@ -630,5 +632,6 @@ def staff_progress_report_pdf(request, student_id):
     pdf_bytes = watermark_if_demo(pdf_bytes)
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     safe_name = student.get_full_name().replace(' ', '_')
-    response['Content-Disposition'] = f'inline; filename="PEMSE_Progress_Report_{safe_name}.pdf"'
+    file_prefix = settings.AGENCY_SHORT_NAME.replace(' ', '')
+    response['Content-Disposition'] = f'inline; filename="{file_prefix}_Progress_Report_{safe_name}.pdf"'
     return response

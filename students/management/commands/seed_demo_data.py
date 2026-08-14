@@ -23,9 +23,9 @@ class Command(BaseCommand):
 
         # ── Demo agency staff ──────────────────────────────────────────────
         staff, _ = Student.objects.get_or_create(
-            email='director@demo-ems.com',
+            email='director@emstrainingportal.com',
             defaults={
-                'username': 'director@demo-ems.com',
+                'username': 'director@emstrainingportal.com',
                 'first_name': 'Demo',
                 'last_name': 'Director',
                 'role': 'staff',
@@ -35,13 +35,13 @@ class Command(BaseCommand):
         )
         staff.set_password('demo1234')
         staff.save()
-        self.stdout.write('Created staff: director@demo-ems.com / demo1234')
+        self.stdout.write('Created staff: director@emstrainingportal.com / demo1234')
 
         # ── Demo instructor ────────────────────────────────────────────────
         instructor, _ = Student.objects.get_or_create(
-            email='instructor@demo-ems.com',
+            email='instructor@emstrainingportal.com',
             defaults={
-                'username': 'instructor@demo-ems.com',
+                'username': 'instructor@emstrainingportal.com',
                 'first_name': 'Demo',
                 'last_name': 'Instructor',
                 'role': 'instructor',
@@ -53,7 +53,7 @@ class Command(BaseCommand):
         )
         instructor.set_password('demo1234')
         instructor.save()
-        self.stdout.write('Created instructor: instructor@demo-ems.com / demo1234')
+        self.stdout.write('Created instructor: instructor@emstrainingportal.com / demo1234')
 
         # ── Get the EMT course ─────────────────────────────────────────────
         course = Course.objects.filter(is_active=True).first()
@@ -71,14 +71,14 @@ class Command(BaseCommand):
 
         # ── Demo students ──────────────────────────────────────────────────
         demo_students = [
-            ('James', 'Anderson', 'james.anderson@demo-ems.com', 92, 'active'),
-            ('Maria', 'Rodriguez', 'maria.rodriguez@demo-ems.com', 87, 'active'),
-            ('Tyler', 'Johnson', 'tyler.johnson@demo-ems.com', 78, 'active'),
-            ('Sarah', 'Williams', 'sarah.williams@demo-ems.com', 95, 'active'),
-            ('Michael', 'Brown', 'michael.brown@demo-ems.com', 65, 'active'),
-            ('Jessica', 'Davis', 'jessica.davis@demo-ems.com', 82, 'active'),
-            ('Chris', 'Miller', 'chris.miller@demo-ems.com', 91, 'active'),
-            ('Amanda', 'Wilson', 'amanda.wilson@demo-ems.com', 73, 'active'),
+            ('James', 'Anderson', 'james.anderson@emstrainingportal.com', 92, 'active'),
+            ('Maria', 'Rodriguez', 'maria.rodriguez@emstrainingportal.com', 87, 'active'),
+            ('Tyler', 'Johnson', 'tyler.johnson@emstrainingportal.com', 78, 'active'),
+            ('Sarah', 'Williams', 'sarah.williams@emstrainingportal.com', 95, 'active'),
+            ('Michael', 'Brown', 'michael.brown@emstrainingportal.com', 65, 'active'),
+            ('Jessica', 'Davis', 'jessica.davis@emstrainingportal.com', 82, 'active'),
+            ('Chris', 'Miller', 'chris.miller@emstrainingportal.com', 91, 'active'),
+            ('Amanda', 'Wilson', 'amanda.wilson@emstrainingportal.com', 73, 'active'),
         ]
 
         for first, last, email, grade_level, status in demo_students:
@@ -91,7 +91,7 @@ class Command(BaseCommand):
                     'role': 'student',
                     'phone': f'308.{random.randint(100,999)}.{random.randint(1000,9999)}',
                     'address': f'{random.randint(100,999)} Main St',
-                    'city': random.choice(["Scottsbluff", "Gering", "Torrington", "Alliance", "Chadron"]),
+                    'city': random.choice(["Norfolk", "Kearney", "North Platte", "Columbus", "Fremont"]),
                     'state': "NE",
                     'enroll_status': status,
                     'reg_submitted': True,
@@ -173,7 +173,7 @@ class Command(BaseCommand):
                 self.stdout.write(f'Created student: {email} / demo1234 (grade ~{grade_level}%)')
 
         # ── Attendance records for first 3 sessions ────────────────────────
-        students_list = Student.objects.filter(role='student', email__endswith='@demo-ems.com')
+        students_list = Student.objects.filter(role='student', email__endswith='@emstrainingportal.com')
         from schedule.models import CalendarEvent
         sessions = CalendarEvent.objects.filter(
             event_type='session',
@@ -203,8 +203,8 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             '\nDemo data seeded successfully!'
             '\n\nDemo login credentials:'
-            '\n  Staff:      director@demo-ems.com / demo1234'
-            '\n  Instructor: instructor@demo-ems.com / demo1234'
-            '\n  Students:   james.anderson@demo-ems.com / demo1234 (and 7 others)'
-            '\n\nAll student emails follow the pattern: firstname.lastname@demo-ems.com'
+            '\n  Staff:      director@emstrainingportal.com / demo1234'
+            '\n  Instructor: instructor@emstrainingportal.com / demo1234'
+            '\n  Students:   james.anderson@emstrainingportal.com / demo1234 (and 7 others)'
+            '\n\nAll student emails follow the pattern: firstname.lastname@emstrainingportal.com'
         ))

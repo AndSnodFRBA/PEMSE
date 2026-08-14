@@ -22,17 +22,21 @@ BORDER = colors.HexColor('#d1dae8')
 RED    = colors.HexColor('#c0392b')
 GRAY   = colors.HexColor('#888888')
 
-CONTRACT_INTRO_TEMPLATE = (
-    'I, {name}, agree to the terms and conditions of Panhandle EMS Education, LLC, including '
-    '(but not limited to) providing tuition paid in full OR making scheduled payments agreed to '
-    'by myself and the Director of PEMSE, prior to the first night of scheduled class.'
-)
-CONTRACT_PARAGRAPHS = [
-    ('Full tuition will be paid prior to final testing. I understand that PEMSE has '
-     'the right to and will legally pursue any unpaid tuition under my name.'),
-    ('I understand there are no refunds on PEMSE courses. CE hours will NOT be granted on '
-     'incomplete courses.'),
-]
+def _contract_intro(name, site):
+    return (
+        f'I, {name}, agree to the terms and conditions of {site.agency_name}, including '
+        '(but not limited to) providing tuition paid in full OR making scheduled payments agreed to '
+        f'by myself and the {site.agency_director_title}, prior to the first night of scheduled class.'
+    )
+
+
+def _contract_paragraphs(site):
+    return [
+        (f'Full tuition will be paid prior to final testing. I understand that {site.agency_name} has '
+         'the right to and will legally pursue any unpaid tuition under my name.'),
+        (f'I understand there are no refunds on {site.agency_name} courses. CE hours will NOT be granted on '
+         'incomplete courses.'),
+    ]
 
 
 def _footer(canvas, doc):
@@ -218,11 +222,12 @@ def generate_registration_pdf(student):
 
     # ── Payment contract text ─────────────────────────────────────────────
     story += section('Payment Contract')
-    story.append(Paragraph(CONTRACT_INTRO_TEMPLATE.format(name=student.get_full_name()), body))
+    contract_paragraphs = _contract_paragraphs(site)
+    story.append(Paragraph(_contract_intro(student.get_full_name(), site), body))
     story.append(Spacer(1, 6))
-    story.append(Paragraph(CONTRACT_PARAGRAPHS[0], body))
+    story.append(Paragraph(contract_paragraphs[0], body))
     story.append(Spacer(1, 6))
-    story.append(Paragraph(CONTRACT_PARAGRAPHS[1], warn))
+    story.append(Paragraph(contract_paragraphs[1], warn))
 
     # ── Signature ──────────────────────────────────────────────────────────
     story += section('Signature')

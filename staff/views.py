@@ -751,7 +751,7 @@ def review_document(request, doc_id):
                 student=doc.student,
                 notif_type=StudentNotification.NotificationType.DOCUMENT_APPROVED,
                 title=f'Your {doc.doc_type.label} has been approved',
-                body='Your document has been reviewed and approved by PEMSE staff.',
+                body=f'Your document has been reviewed and approved by {settings.AGENCY_SHORT_NAME} staff.',
                 link='/documents/',
             )
         elif doc.status == StudentDocument.Status.REJECTED:
@@ -787,7 +787,7 @@ def bulk_approve_documents(request):
             student=doc.student,
             notif_type=StudentNotification.NotificationType.DOCUMENT_APPROVED,
             title=f'Your {doc.doc_type.label} has been approved',
-            body='Your document has been reviewed and approved by PEMSE staff.',
+            body=f'Your document has been reviewed and approved by {settings.AGENCY_SHORT_NAME} staff.',
             link='/documents/',
         )
     messages.success(request, f'{updated} document(s) approved successfully.')
@@ -855,7 +855,8 @@ def export_students_csv(request):
         (writer.writerow(row) for row in generate_rows()),
         content_type='text/csv'
     )
-    filename = f'PEMSE_Students_{timezone.now().strftime("%Y%m%d")}.csv'
+    file_prefix = settings.AGENCY_SHORT_NAME.replace(' ', '')
+    filename = f'{file_prefix}_Students_{timezone.now().strftime("%Y%m%d")}.csv'
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
 
@@ -1117,6 +1118,9 @@ def invoice_pdf(request, pk):
         Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle,
     )
 
+    from students.models import SiteSettings
+    site = SiteSettings.get()
+
     student    = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
     enrollment = CourseEnrollment.objects.filter(student=student).first()
     payment    = getattr(student, 'payment', None)
@@ -1161,7 +1165,7 @@ def invoice_pdf(request, pk):
         return t
 
     story = [
-        Paragraph('Panhandle EMS Education', h1),
+        Paragraph(site.agency_name, h1),
         Paragraph('Invoice', ParagraphStyle('sub', parent=body, textColor=colors.HexColor('#5a7a9a'), fontSize=10)),
         Spacer(1, 10),
     ]
@@ -1240,11 +1244,11 @@ def invoice_pdf(request, pk):
 
     story.append(Spacer(1, 16))
     story.append(Paragraph(
-        'No refunds on PEMSE courses.',
+        f'No refunds on {site.agency_name} courses.',
         ParagraphStyle('note', parent=body, textColor=colors.HexColor('#7a5c00'), fontSize=8),
     ))
     story.append(Paragraph(
-        f'Generated {timezone.now().strftime("%B %d, %Y %I:%M %p")} — PEMSE Student Portal',
+        f'Generated {timezone.now().strftime("%B %d, %Y %I:%M %p")} — {settings.AGENCY_TAGLINE}',
         ParagraphStyle('footer', parent=body, textColor=colors.HexColor('#999999'), fontSize=8),
     ))
 
@@ -1254,8 +1258,9 @@ def invoice_pdf(request, pk):
     pdf_bytes = watermark_if_demo(buf.getvalue())
 
     safe_name = ''.join(c if c.isalnum() or c in '-_ ' else '' for c in student.get_full_name()).strip()
+    file_prefix = settings.AGENCY_SHORT_NAME.replace(' ', '')
     response  = HttpResponse(pdf_bytes, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="PEMSE-{safe_name}-invoice.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="{file_prefix}-{safe_name}-invoice.pdf"'
     return response
 
 
@@ -1454,6 +1459,9 @@ def verification_pdf(request, pk):
         HRFlowable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle,
     )
 
+    from students.models import SiteSettings
+    site = SiteSettings.get()
+
     student    = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
     enrollment = CourseEnrollment.objects.filter(student=student).first()
     rec        = CourseCompletionRecord.objects.filter(student=student).first()
@@ -1480,7 +1488,7 @@ def verification_pdf(request, pk):
     is_aemt = course and course.licensure in ('AEMT', 'PARA') if course else False
 
     story = [
-        Paragraph('PANHANDLE EMS EDUCATION', h1),
+        Paragraph(site.agency_name.upper(), h1),
         Paragraph('Official Verification of Course Completion', ParagraphStyle('sub', parent=center, textColor=blue, fontSize=12)),
         Paragraph('172 NAC Chapter 13-004(A)', ParagraphStyle('reg', parent=center, textColor=colors.HexColor('#9ca3af'), fontSize=9)),
         Spacer(1, 14),
@@ -1504,8 +1512,8 @@ def verification_pdf(request, pk):
 
     story += [
         Paragraph('Training Agency', h2),
-        kv('Agency Name',     'Panhandle EMS Education'),
-        kv('Agency Location', course.location_display if course and course.location_display else 'Scottsbluff, NE'),
+        kv('Agency Name',     site.agency_name),
+        kv('Agency Location', course.location_display if course and course.location_display else site.agency_address),
         Spacer(1, 8),
         Paragraph('Student Information', h2),
         kv('Student Full Name', student.get_full_name()),
@@ -1527,7 +1535,7 @@ def verification_pdf(request, pk):
         Paragraph('Official Attestation', h2),
         Paragraph(
             f'This is to certify that the above-named student has successfully completed the '
-            f'<b>{course.name if course else "EMS"}</b> course offered by Panhandle EMS Education '
+            f'<b>{course.name if course else "EMS"}</b> course offered by {site.agency_name} '
             f'in accordance with Nebraska Department of Health and Human Services regulations '
             f'(172 NAC Chapter 13).',
             body,
@@ -1562,7 +1570,7 @@ def verification_pdf(request, pk):
         HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#d1d5db')),
         Spacer(1, 6),
         Paragraph(
-            f'Generated {timezone.now().strftime("%B %d, %Y")} — Panhandle EMS Education — '
+            f'Generated {timezone.now().strftime("%B %d, %Y")} — {site.agency_name} — '
             f'This document constitutes official verification per 172 NAC 13-004(A).',
             small,
         ),
@@ -1573,8 +1581,9 @@ def verification_pdf(request, pk):
     from students.pdf_utils import watermark_if_demo
     pdf_bytes = watermark_if_demo(buf.getvalue())
     safe = ''.join(c if c.isalnum() or c in '-_ ' else '' for c in student.get_full_name()).strip()
+    file_prefix = settings.AGENCY_SHORT_NAME.replace(' ', '')
     resp = HttpResponse(pdf_bytes, content_type='application/pdf')
-    resp['Content-Disposition'] = f'attachment; filename="PEMSE-{safe}-verification.pdf"'
+    resp['Content-Disposition'] = f'attachment; filename="{file_prefix}-{safe}-verification.pdf"'
     return resp
 
 
@@ -1650,6 +1659,9 @@ def department_report_pdf(request, course_pk):
         HRFlowable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle,
     )
 
+    from students.models import SiteSettings
+    site = SiteSettings.get()
+
     course  = get_object_or_404(Course, pk=course_pk)
     report  = getattr(course, 'department_report', None)
 
@@ -1688,14 +1700,14 @@ def department_report_pdf(request, course_pk):
         )
 
     story = [
-        Paragraph('PANHANDLE EMS EDUCATION', h1),
+        Paragraph(site.agency_name.upper(), h1),
         Paragraph('Course Completion Report — Nebraska DHHS', ParagraphStyle('sub', parent=styles['Normal'], alignment=1, fontSize=11, textColor=blue)),
         Paragraph('172 NAC Chapter 13-004(D)', ParagraphStyle('reg', parent=styles['Normal'], alignment=1, fontSize=9, textColor=colors.HexColor('#9ca3af'))),
         Spacer(1, 12),
         HRFlowable(width='100%', thickness=2, color=blue),
         Spacer(1, 12),
         Paragraph('Course Information', h2),
-        kv('Training Agency',    report.training_agency_name if report else 'Panhandle EMS Education'),
+        kv('Training Agency',    report.training_agency_name if report else site.agency_name),
         kv('Course Location',    report.course_location if report else course.location_display or '—'),
         kv('Course Name',        course.name),
         kv('Instructor(s)',      report.instructor_names if report else '—'),
@@ -1728,7 +1740,7 @@ def department_report_pdf(request, course_pk):
         HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#d1d5db')),
         Spacer(1, 6),
         Paragraph(
-            f'Generated {timezone.now().strftime("%B %d, %Y")} — Panhandle EMS Education — '
+            f'Generated {timezone.now().strftime("%B %d, %Y")} — {site.agency_name} — '
             f'172 NAC Chapter 13-004(D) Department Report',
             small,
         ),
@@ -1739,8 +1751,9 @@ def department_report_pdf(request, course_pk):
     from students.pdf_utils import watermark_if_demo
     pdf_bytes = watermark_if_demo(buf.getvalue())
     safe = ''.join(c if c.isalnum() or c in '-_ ' else '' for c in course.name).strip()
+    file_prefix = settings.AGENCY_SHORT_NAME.replace(' ', '')
     resp = HttpResponse(pdf_bytes, content_type='application/pdf')
-    resp['Content-Disposition'] = f'attachment; filename="PEMSE-dept-report-{safe}.pdf"'
+    resp['Content-Disposition'] = f'attachment; filename="{file_prefix}-dept-report-{safe}.pdf"'
     return resp
 
 
@@ -2148,7 +2161,8 @@ def course_eval_results_csv(request, course_pk):
 
     resp = HttpResponse(content_type='text/csv')
     safe = ''.join(c if c.isalnum() or c in '-_' else '' for c in course.name)
-    resp['Content-Disposition'] = f'attachment; filename="PEMSE-{safe}-evals.csv"'
+    file_prefix = settings.AGENCY_SHORT_NAME.replace(' ', '')
+    resp['Content-Disposition'] = f'attachment; filename="{file_prefix}-{safe}-evals.csv"'
 
     w = _csv.writer(resp)
     headers = [
@@ -2188,6 +2202,9 @@ def course_eval_results_pdf(request, course_pk):
     from reportlab.lib.units import inch
     from reportlab.platypus import HRFlowable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+    from students.models import SiteSettings
+    site = SiteSettings.get()
+
     course    = get_object_or_404(Course, pk=course_pk)
     completed = list(CourseEvaluation.objects.filter(course=course, status='completed'))
     total_sent = CourseEvaluation.objects.filter(course=course).count()
@@ -2211,7 +2228,7 @@ def course_eval_results_pdf(request, course_pk):
     overall_avg    = round(sum(overall_scores) / len(overall_scores), 1) if overall_scores else None
 
     story = [
-        Paragraph('PANHANDLE EMS EDUCATION', h1),
+        Paragraph(site.agency_name.upper(), h1),
         Paragraph('Course Evaluation Results', ParagraphStyle('sub', parent=body, alignment=1, fontSize=11, textColor=blue)),
         Spacer(1, 8),
         HRFlowable(width='100%', thickness=2, color=blue),
@@ -2292,7 +2309,7 @@ def course_eval_results_pdf(request, course_pk):
         Spacer(1, 16),
         HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#d1d5db')),
         Spacer(1, 4),
-        Paragraph(f'Generated {timezone.now().strftime("%B %d, %Y")} — Panhandle EMS Education', small),
+        Paragraph(f'Generated {timezone.now().strftime("%B %d, %Y")} — {site.agency_name}', small),
     ]
 
     doc.build(story)
@@ -2300,8 +2317,9 @@ def course_eval_results_pdf(request, course_pk):
     from students.pdf_utils import watermark_if_demo
     pdf_bytes = watermark_if_demo(buf.getvalue())
     safe = ''.join(c if c.isalnum() or c in '-_' else '' for c in course.name)
+    file_prefix = settings.AGENCY_SHORT_NAME.replace(' ', '')
     resp = HttpResponse(pdf_bytes, content_type='application/pdf')
-    resp['Content-Disposition'] = f'attachment; filename="PEMSE-{safe}-eval-results.pdf"'
+    resp['Content-Disposition'] = f'attachment; filename="{file_prefix}-{safe}-eval-results.pdf"'
     return resp
 
 

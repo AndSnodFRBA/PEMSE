@@ -12,19 +12,21 @@ from django.core.mail import send_mail
 logger = logging.getLogger(__name__)
 
 
-AUTOMATED_NOTICE = (
-    'This is an automated message sent by the PEMSE Student Portal. '
-    'Please do not reply directly to this email — contact PEMSE at emseducation19@gmail.com instead.'
-)
+def _automated_notice():
+    return (
+        f'This is an automated message sent by the {settings.AGENCY_SHORT_NAME} Student Portal. '
+        f'Please do not reply directly to this email — contact {settings.AGENCY_SHORT_NAME} at '
+        f'{settings.AGENCY_EMAIL} instead.'
+    )
 
 
 def _send(subject, body, to_email):
     if not to_email:
         return
-    full_body = f'{body}\n\n---\n{AUTOMATED_NOTICE}'
+    full_body = f'{body}\n\n---\n{_automated_notice()}'
     try:
         send_mail(
-            subject=f'PEMSE — {subject}',
+            subject=f'{settings.AGENCY_SHORT_NAME} — {subject}',
             message=full_body,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[to_email],
@@ -39,7 +41,7 @@ def send_registration_confirmation(student, enrollment, conf_number):
     lines = [
         f'Hi {student.first_name or student.get_full_name()},',
         '',
-        'Your PEMSE registration has been submitted successfully.',
+        f'Your {settings.AGENCY_SHORT_NAME} registration has been submitted successfully.',
         '',
         f'Confirmation number: {conf_number}',
     ]
@@ -51,9 +53,9 @@ def send_registration_confirmation(student, enrollment, conf_number):
         ]
     lines += [
         '',
-        'If you have any questions, contact PEMSE at emseducation19@gmail.com.',
+        f'If you have any questions, contact {settings.AGENCY_SHORT_NAME} at {settings.AGENCY_EMAIL}.',
         '',
-        '— Panhandle EMS Education',
+        f'— {settings.AGENCY_NAME}',
     ]
     _send('Registration confirmed', '\n'.join(lines), student.email)
 
@@ -81,14 +83,14 @@ def send_instructor_registration_notifications(student, enrollment, conf_number)
             f'Email: {student.email}',
             f'Phone: {student.phone or "—"}',
             '',
-            '— Panhandle EMS Education',
+            f'— {settings.AGENCY_NAME}',
         ]
         _send('Student registration completed', '\n'.join(lines), instructor.email)
 
 
 def send_invitation_email(invitation, invite_link):
     lines = [
-        "You've been invited to register for a course with Panhandle EMS Education.",
+        f"You've been invited to register for a course with {settings.AGENCY_NAME}.",
     ]
     if invitation.course:
         c = invitation.course
@@ -105,14 +107,14 @@ def send_invitation_email(invitation, invite_link):
         '',
         'If you weren\'t expecting this invitation, you can ignore this email.',
         '',
-        '— Panhandle EMS Education',
+        f'— {settings.AGENCY_NAME}',
     ]
     _send("You're invited to register", '\n'.join(lines), invitation.email)
 
 
 def send_staff_invitation_email(invitation, invite_link):
     lines = [
-        "You've been invited to set up an office staff account with Panhandle EMS Education.",
+        f"You've been invited to set up an office staff account with {settings.AGENCY_NAME}.",
         '',
         f'Set up your account here: {invite_link}',
         '',
@@ -120,7 +122,7 @@ def send_staff_invitation_email(invitation, invite_link):
         '',
         'If you weren\'t expecting this invitation, you can ignore this email.',
         '',
-        '— Panhandle EMS Education',
+        f'— {settings.AGENCY_NAME}',
     ]
     _send("You're invited to join the staff portal", '\n'.join(lines), invitation.email)
 
@@ -145,7 +147,7 @@ def send_document_review_notification(doc):
         '',
         'Log in to your student portal to view details or re-upload if needed.',
         '',
-        '— Panhandle EMS Education',
+        f'— {settings.AGENCY_NAME}',
     ]
     _send('Document review update', '\n'.join(lines), student.email)
 
@@ -155,29 +157,29 @@ def registration_incomplete_reminder_content(student):
     lines = [
         f'Hi {student.first_name or student.get_full_name()},',
         '',
-        "We noticed your PEMSE registration isn't complete yet. Please log in to your student "
+        f"We noticed your {settings.AGENCY_SHORT_NAME} registration isn't complete yet. Please log in to your student "
         'portal and finish up the remaining steps (course selection, payment contract, handbook, '
         'and required documents) as soon as you can.',
         '',
-        'Questions? Contact PEMSE at emseducation19@gmail.com.',
+        f'Questions? Contact {settings.AGENCY_SHORT_NAME} at {settings.AGENCY_EMAIL}.',
         '',
-        '— Panhandle EMS Education',
+        f'— {settings.AGENCY_NAME}',
     ]
     return subject, '\n'.join(lines)
 
 
 def balance_due_reminder_content(student, balance_due):
-    subject = 'Balance due on your PEMSE tuition'
+    subject = f'Balance due on your {settings.AGENCY_SHORT_NAME} tuition'
     lines = [
         f'Hi {student.first_name or student.get_full_name()},',
         '',
-        f'This is a reminder that you have an outstanding balance of ${balance_due:,.2f} on your PEMSE tuition.',
+        f'This is a reminder that you have an outstanding balance of ${balance_due:,.2f} on your {settings.AGENCY_SHORT_NAME} tuition.',
         '',
-        'Please contact PEMSE to arrange payment or if you have questions about your payment schedule.',
+        f'Please contact {settings.AGENCY_SHORT_NAME} to arrange payment or if you have questions about your payment schedule.',
         '',
-        'emseducation19@gmail.com',
+        settings.AGENCY_EMAIL,
         '',
-        '— Panhandle EMS Education',
+        f'— {settings.AGENCY_NAME}',
     ]
     return subject, '\n'.join(lines)
 
@@ -197,9 +199,9 @@ def course_start_reminder_content(student, course, days_before):
         '',
         'Make sure your registration, payment, and required documents are all up to date before class begins.',
         '',
-        'Questions? Contact PEMSE at emseducation19@gmail.com.',
+        f'Questions? Contact {settings.AGENCY_SHORT_NAME} at {settings.AGENCY_EMAIL}.',
         '',
-        '— Panhandle EMS Education',
+        f'— {settings.AGENCY_NAME}',
     ]
     return subject, '\n'.join(lines)
 
@@ -221,8 +223,8 @@ def send_payment_receipt(payment_record):
         lines.append(f'Remaining balance: ${balance:,.2f}')
     lines += [
         '',
-        'Questions about your balance? Contact PEMSE at emseducation19@gmail.com.',
+        f'Questions about your balance? Contact {settings.AGENCY_SHORT_NAME} at {settings.AGENCY_EMAIL}.',
         '',
-        '— Panhandle EMS Education',
+        f'— {settings.AGENCY_NAME}',
     ]
     _send('Payment received', '\n'.join(lines), student.email)

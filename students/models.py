@@ -639,5 +639,21 @@ class SiteSettings(models.Model):
 
     @classmethod
     def get(cls):
+        from django.conf import settings
+        if settings.DEMO_MODE:
+            # Never persist demo branding to the DB — always reflect whatever
+            # AGENCY_* env vars are currently set, with no agency-specific
+            # defaults bleeding into demo PDFs.
+            return cls(
+                medical_director_name=settings.AGENCY_DIRECTOR,
+                medical_director_phone=settings.AGENCY_PHONE,
+                medical_director_title='Program Administrator',
+                agency_name=settings.AGENCY_NAME,
+                agency_address=settings.AGENCY_ADDRESS,
+                agency_phone=settings.AGENCY_PHONE,
+                agency_email=settings.AGENCY_EMAIL,
+                agency_director=settings.AGENCY_DIRECTOR,
+                agency_director_title='Program Administrator',
+            )
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj

@@ -432,7 +432,8 @@ def registration_form_view(request):
             elif not enrollment:
                 messages.error(request, 'Please select a course first.')
             else:
-                conf = f'PEMSE-{timezone.now().year}-{str(uuid.uuid4())[:8].upper()}'
+                conf_prefix = settings.AGENCY_SHORT_NAME.replace(' ', '')
+                conf = f'{conf_prefix}-{timezone.now().year}-{str(uuid.uuid4())[:8].upper()}'
                 student.reg_submitted = True
                 student.reg_submitted_at = timezone.now()
                 student.reg_conf_number = conf
@@ -468,7 +469,8 @@ def registration_pdf_view(request, student_id=None):
     pdf_bytes = watermark_if_demo(generate_registration_pdf(student))
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     safe_name = student.get_full_name().replace(' ', '_')
-    response['Content-Disposition'] = f'inline; filename="PEMSE_Registration_{safe_name}.pdf"'
+    file_prefix = settings.AGENCY_SHORT_NAME.replace(' ', '')
+    response['Content-Disposition'] = f'inline; filename="{file_prefix}_Registration_{safe_name}.pdf"'
     return response
 
 
@@ -507,7 +509,8 @@ def completion_certificate_pdf(request, student_id=None):
     pdf_bytes = watermark_if_demo(generate_completion_certificate(student, enrollment, gradebook, completion_record))
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     safe_name = student.get_full_name().replace(' ', '_')
-    response['Content-Disposition'] = f'inline; filename="PEMSE_Certificate_{safe_name}.pdf"'
+    file_prefix = settings.AGENCY_SHORT_NAME.replace(' ', '')
+    response['Content-Disposition'] = f'inline; filename="{file_prefix}_Certificate_{safe_name}.pdf"'
     return response
 
 
