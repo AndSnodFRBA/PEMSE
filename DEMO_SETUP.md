@@ -27,8 +27,10 @@ looks like without touching the real Panhandle EMS Education site or data.
 | AGENCY_NAVY | #2B5EA7 |
 | AGENCY_ACCENT | #5B9BC8 |
 | ALLOWED_HOSTS | your-demo-app.up.railway.app |
-| CSRF_TRUSTED_ORIGINS | https://your-demo-app.up.railway.app |
 | DATABASE_URL | (auto-injected by Railway PostgreSQL) |
+
+`CSRF_TRUSTED_ORIGINS` is derived automatically from `ALLOWED_HOSTS` at
+startup — there's no separate variable to set.
 
 Do **not** set `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` on the demo
 project — with `DEMO_MODE=True`, file uploads always use local storage
