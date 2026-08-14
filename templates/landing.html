@@ -191,6 +191,10 @@
     .landing-footer a { color: rgba(255,255,255,.6); text-decoration: none; }
     .landing-footer a:hover { color: #fff; }
 
+    .landing-software-credit { margin-top: 14px; font-size: 11px; }
+    .landing-software-credit a { color: rgba(255,255,255,.35); text-decoration: none; }
+    .landing-software-credit a:hover { color: rgba(255,255,255,.7); }
+
     .beta-badge {
       position: fixed;
       top: 16px;
@@ -304,6 +308,11 @@
       <a href="mailto:{{ AGENCY_EMAIL }}">{{ AGENCY_EMAIL }}</a>
     </div>
     <div style="margin-top:8px;">&copy; {% now "Y" %} {{ AGENCY_NAME }}. All rights reserved.</div>
+    <div class="landing-software-credit">
+      <a href="{{ SOFTWARE_COMPANY_URL }}" target="_blank">
+        Powered by {{ SOFTWARE_COMPANY }}
+      </a>
+    </div>
   </div>
 
 <!-- Discrete admin access -->

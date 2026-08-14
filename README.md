@@ -1,8 +1,10 @@
-# Panhandle EMS Education — Student Portal
+# PEMSE Student Portal
 
-Full-stack Django web portal for PEMSE student registration, document management, handbook signing, and enrollment tracking.
+EMS training agency management portal for Panhandle EMS Education, LLC.
 
-**Stack:** Django 4.2 · PostgreSQL (Railway) · AWS S3 (file storage) · WhiteNoise (static files) · Gunicorn · GitHub Actions CI/CD
+Built and maintained by [Four Line Software LLC](https://www.fourlinesoftware.com)
+
+**Stack:** Django 5.1 · PostgreSQL · AWS S3 · Railway · WhiteNoise · Gunicorn
 
 ---
 
@@ -258,3 +260,10 @@ The admin panel at `/admin/` gives Robin and Andrew full control:
 **Payment tracking** — Add a `Payment` model with amount/date/receipt fields and link it to `PaymentRecord`.
 
 **PDF generation** — Add `reportlab` or `weasyprint` to generate a printable registration confirmation PDF on submission.
+
+---
+
+## License
+
+Proprietary software. All rights reserved.
+© 2026 Four Line Software LLC. Unauthorized copying or distribution is prohibited.

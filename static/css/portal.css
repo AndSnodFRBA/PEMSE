@@ -481,3 +481,31 @@ textarea.form-control { resize: vertical; }
     text-decoration: underline;
     margin-left: 8px;
 }
+
+/* SOFTWARE FOOTER — colors adapted for this app's light page background
+   (the requested rgba(255,255,255,...) values assume a dark background
+   and would be invisible here) */
+.software-footer {
+    text-align: center;
+    padding: 12px;
+    font-size: 11px;
+    color: rgba(26,46,74,0.35);
+    border-top: 1px solid rgba(26,46,74,0.08);
+    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+}
+.software-footer a {
+    color: rgba(26,46,74,0.55);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.software-footer a:hover {
+    color: rgba(26,46,74,0.85);
+}
+.software-version {
+    font-size: 10px;
+    opacity: 0.6;
+}

@@ -22,4 +22,7 @@ def agency_branding(request):
         'AGENCY_ACCENT':     settings.AGENCY_ACCENT,
         'AGENCY_LOGO_URL':   settings.AGENCY_LOGO_URL,
         'DEMO_MODE':         settings.DEMO_MODE,
+        'SOFTWARE_COMPANY':     settings.SOFTWARE_COMPANY,
+        'SOFTWARE_COMPANY_URL': settings.SOFTWARE_COMPANY_URL,
+        'SOFTWARE_VERSION':     settings.SOFTWARE_VERSION,
     }

@@ -33,6 +33,11 @@ AGENCY_ACCENT       = os.environ.get('AGENCY_ACCENT', '#5B9BC8')
 AGENCY_LOGO_URL     = os.environ.get('AGENCY_LOGO_URL', '')
 DEMO_MODE           = os.environ.get('DEMO_MODE', 'False') == 'True'
 
+# ── SOFTWARE VENDOR — fixed identity, not agency-specific ──────────────────
+SOFTWARE_COMPANY     = 'Four Line Software LLC'
+SOFTWARE_COMPANY_URL = 'https://www.fourlinesoftware.com'
+SOFTWARE_VERSION     = '1.0.0'
+
 # ── ERROR TRACKING — Sentry ──────────────────────────────────────────────────
 SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
 if SENTRY_DSN and not DEBUG:
