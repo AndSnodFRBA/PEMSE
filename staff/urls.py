@@ -105,6 +105,7 @@ urlpatterns = [
     path('grades/report/<int:course_id>/',           grade_views.staff_grade_report,           name='staff_grade_report'),
     path('grades/report/<int:course_id>/csv/',       grade_views.staff_grade_report_csv,       name='staff_grade_report_csv'),
     path('grades/<int:student_id>/',                 grade_views.staff_gradebook_detail,       name='staff_gradebook_detail'),
+    path('grades/<int:student_id>/progress-report/', grade_views.staff_progress_report_pdf,    name='staff_progress_report_pdf'),
     path('grades/<int:student_id>/create/',          grade_views.staff_gradebook_create,       name='staff_gradebook_create'),
     path('grades/<int:student_id>/quiz/<int:quiz_number>/', grade_views.staff_quiz_edit,        name='staff_quiz_edit'),
     path('grades/<int:student_id>/exam/<str:exam_id>/',     grade_views.staff_exam_edit,        name='staff_exam_edit'),

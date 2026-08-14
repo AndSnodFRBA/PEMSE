@@ -541,3 +541,46 @@ def student_grades_view(request):
     return render(request, 'grades/student_grades.html', {
         'course': course, 'gb': gb,
     })
+
+
+def _build_progress_report(student):
+    from students.models import CourseCompletionRecord
+
+    gb, course = _get_or_none_gradebook(student)
+    if not gb or not course:
+        return None
+    enrollment = CourseEnrollment.objects.filter(student=student, course=course).first()
+    if not enrollment:
+        return None
+    completion_record = CourseCompletionRecord.objects.filter(student=student, course=course).first()
+    checklist = None
+    if completion_record:
+        checklist, _ = certificate_requirements_checklist(student, enrollment, gb, completion_record)
+
+    from .progress_pdf import generate_progress_report
+    return generate_progress_report(student, enrollment, gb, completion_record, checklist)
+
+
+@login_required
+def progress_report_pdf(request):
+    pdf_bytes = _build_progress_report(request.user)
+    if pdf_bytes is None:
+        messages.error(request, 'You must be enrolled in a course with a gradebook to generate a progress report.')
+        return redirect('student_grades')
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    safe_name = request.user.get_full_name().replace(' ', '_')
+    response['Content-Disposition'] = f'inline; filename="PEMSE_Progress_Report_{safe_name}.pdf"'
+    return response
+
+
+@staff_required
+def staff_progress_report_pdf(request, student_id):
+    student = get_object_or_404(Student, pk=student_id, role=Student.Role.STUDENT)
+    pdf_bytes = _build_progress_report(student)
+    if pdf_bytes is None:
+        messages.error(request, f'{student.get_full_name()} does not have a gradebook for their current course yet.')
+        return redirect('staff_gradebook_detail', student_id=student_id)
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    safe_name = student.get_full_name().replace(' ', '_')
+    response['Content-Disposition'] = f'inline; filename="PEMSE_Progress_Report_{safe_name}.pdf"'
+    return response

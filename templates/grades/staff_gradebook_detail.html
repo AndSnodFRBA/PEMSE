@@ -15,9 +15,16 @@
     <h1 class="staff-page-title">{{ student.get_full_name }} — Grade Book</h1>
     {% if course %}<div style="font-size:13px;color:#6b7280;">{{ course.name }}</div>{% endif %}
   </div>
-  <a href="{% url 'staff_grade_overview' %}" class="btn btn-sm btn-outline-secondary">
-    <i class="bi bi-arrow-left me-1"></i> Back to Grade Book
-  </a>
+  <div class="d-flex gap-2">
+    {% if gb %}
+    <a href="{% url 'staff_progress_report_pdf' student.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-file-earmark-pdf me-1"></i> Generate Progress Report
+    </a>
+    {% endif %}
+    <a href="{% url 'staff_grade_overview' %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Grade Book
+    </a>
+  </div>
 </div>
 
 {% if not course %}
