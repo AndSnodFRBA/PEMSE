@@ -16,6 +16,7 @@
             <th class="py-2">Course</th>
             <th class="py-2 text-center">Overall Grade</th>
             <th class="py-2 text-center">Letter</th>
+            <th class="py-2 text-center">Access</th>
             <th class="py-2"></th>
           </tr>
         </thead>
@@ -30,8 +31,17 @@
             <td class="py-2 text-center fw-semibold">
               {% if row.gradebook %}{{ row.gradebook.letter_grade }}{% else %}—{% endif %}
             </td>
+            <td class="py-2 text-center">
+              {% if row.can_enter_grades %}
+                <span style="background:#d1fae5;color:#065f46;border-radius:10px;font-size:11px;font-weight:600;padding:2px 8px;">Grade Entry</span>
+              {% else %}
+                <span style="background:#f3f4f6;color:#6b7280;border-radius:10px;font-size:11px;font-weight:600;padding:2px 8px;">View Only</span>
+              {% endif %}
+            </td>
             <td class="py-2 pe-3 text-end">
-              <a href="{% url 'instructor_gradebook_detail' row.student.pk %}" class="btn btn-sm btn-outline-primary" style="font-size:12px;">View</a>
+              <a href="{% url 'instructor_gradebook_detail' row.student.pk %}" class="btn btn-sm btn-outline-primary" style="font-size:12px;">
+                {% if row.can_enter_grades %}Enter Grades{% else %}View{% endif %}
+              </a>
             </td>
           </tr>
           {% endfor %}

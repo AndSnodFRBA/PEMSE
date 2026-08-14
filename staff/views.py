@@ -2411,6 +2411,19 @@ def staff_instructor_assign_course(request, pk):
 
 
 @staff_required
+def staff_instructor_toggle_grade_entry(request, pk, assignment_id):
+    from instructor.models import InstructorCourseAssignment
+    instructor = get_object_or_404(Student, pk=pk, role=Student.Role.INSTRUCTOR)
+    assignment = get_object_or_404(InstructorCourseAssignment, pk=assignment_id, instructor=instructor)
+    if request.method == 'POST':
+        assignment.can_enter_grades = not assignment.can_enter_grades
+        assignment.save(update_fields=['can_enter_grades'])
+        status = 'enabled' if assignment.can_enter_grades else 'disabled'
+        messages.success(request, f'Grade entry {status} for {instructor.get_full_name()} — {assignment.course}.')
+    return redirect(f"{reverse('staff_instructor_detail', args=[pk])}?tab=courses")
+
+
+@staff_required
 def staff_instructor_verify_hours(request, pk):
     from instructor.models import InstructionalHourLog
     instructor = get_object_or_404(Student, pk=pk, role=Student.Role.INSTRUCTOR)

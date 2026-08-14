@@ -35,6 +35,18 @@ def _get_or_none_gradebook(student):
     return gb, course
 
 
+def _can_enter_grades(user, course):
+    """Staff can always enter grades. Instructors need an active course
+    assignment with can_enter_grades=True — grants quiz/skills entry only."""
+    if user.is_office_staff:
+        return True
+    if not course:
+        return False
+    return InstructorCourseAssignment.objects.filter(
+        instructor=user, course=course, is_active=True, can_enter_grades=True,
+    ).exists()
+
+
 def certificate_requirements_checklist(student, enrollment, gradebook, completion_record):
     """The 6 conditions gating certificate generation — broader than
     GradeBook.meets_completion_requirements, which only covers the 3
@@ -184,13 +196,25 @@ def staff_gradebook_create(request, student_id):
     return redirect('staff_gradebook_detail', student_id=student.pk)
 
 
-@staff_required
+@login_required
 def staff_quiz_edit(request, student_id, quiz_number):
     student = get_object_or_404(Student, pk=student_id, role=Student.Role.STUDENT)
     gb, course = _get_or_none_gradebook(student)
+    if not _can_enter_grades(request.user, course):
+        return HttpResponseForbidden('You do not have permission to enter grades for this course.')
+
+    is_staff = request.user.is_office_staff
+    detail_url_name = 'staff_gradebook_detail' if is_staff else 'instructor_gradebook_detail'
+    template_ctx = {
+        'base_template': 'staff/base_staff.html' if is_staff else 'instructor/base_instructor.html',
+        'topbar_class':  'staff-topbar' if is_staff else 'inst-topbar',
+        'title_class':   'staff-page-title' if is_staff else 'inst-page-title',
+        'detail_url_name': detail_url_name,
+    }
+
     if not gb:
         messages.error(request, 'Create a gradebook for this student first.')
-        return redirect('staff_gradebook_detail', student_id=student.pk)
+        return redirect(detail_url_name, student_id=student.pk)
 
     quiz_number = int(quiz_number)
     instance = QuizGrade.objects.filter(gradebook=gb, quiz_number=quiz_number).first()
@@ -207,6 +231,7 @@ def staff_quiz_edit(request, student_id, quiz_number):
             form = QuizGradeForm(request.POST, instance=instance)
             return render(request, 'grades/staff_quiz_form.html', {
                 'student': student, 'gb': gb, 'form': form, 'quiz_number': quiz_number, 'instance': instance,
+                **template_ctx,
             })
         form = QuizGradeForm(request.POST, instance=instance)
         if form.is_valid():
@@ -224,13 +249,14 @@ def staff_quiz_edit(request, student_id, quiz_number):
                 messages.warning(request, 'This student has 1 quiz reset remaining')
             _notify_staff_if_at_risk(gb)
             messages.success(request, f'Quiz {quiz_number} grade saved.')
-            return redirect('staff_gradebook_detail', student_id=student.pk)
+            return redirect(detail_url_name, student_id=student.pk)
     else:
         initial = {'quiz_name': f'Quiz {quiz_number}'} if not instance else None
         form = QuizGradeForm(instance=instance, initial=initial)
 
     return render(request, 'grades/staff_quiz_form.html', {
         'student': student, 'gb': gb, 'form': form, 'quiz_number': quiz_number, 'instance': instance,
+        **template_ctx,
     })
 
 
@@ -322,13 +348,25 @@ def staff_worksheet_edit(request, student_id, worksheet_id):
     })
 
 
-@staff_required
+@login_required
 def staff_skill_edit(request, student_id, skill_id):
     student = get_object_or_404(Student, pk=student_id, role=Student.Role.STUDENT)
     gb, course = _get_or_none_gradebook(student)
+    if not _can_enter_grades(request.user, course):
+        return HttpResponseForbidden('You do not have permission to enter grades for this course.')
+
+    is_staff = request.user.is_office_staff
+    detail_url_name = 'staff_gradebook_detail' if is_staff else 'instructor_gradebook_detail'
+    template_ctx = {
+        'base_template': 'staff/base_staff.html' if is_staff else 'instructor/base_instructor.html',
+        'topbar_class':  'staff-topbar' if is_staff else 'inst-topbar',
+        'title_class':   'staff-page-title' if is_staff else 'inst-page-title',
+        'detail_url_name': detail_url_name,
+    }
+
     if not gb:
         messages.error(request, 'Create a gradebook for this student first.')
-        return redirect('staff_gradebook_detail', student_id=student.pk)
+        return redirect(detail_url_name, student_id=student.pk)
 
     instance = None
     if skill_id != 'new':
@@ -351,12 +389,13 @@ def staff_skill_edit(request, student_id, skill_id):
             )
             _notify_staff_if_at_risk(gb)
             messages.success(request, 'Skills grade saved.')
-            return redirect('staff_gradebook_detail', student_id=student.pk)
+            return redirect(detail_url_name, student_id=student.pk)
     else:
         form = SkillsGradeForm(instance=instance)
 
     return render(request, 'grades/staff_skill_form.html', {
         'student': student, 'gb': gb, 'form': form, 'instance': instance,
+        **template_ctx,
     })
 
 
@@ -497,9 +536,9 @@ def staff_grade_report_csv(request, course_id):
 @instructor_required
 def instructor_grade_overview(request):
     instructor = request.user
-    course_ids = InstructorCourseAssignment.objects.filter(
-        instructor=instructor, is_active=True
-    ).values_list('course_id', flat=True)
+    assignments = InstructorCourseAssignment.objects.filter(instructor=instructor, is_active=True)
+    course_ids = assignments.values_list('course_id', flat=True)
+    entry_course_ids = set(assignments.filter(can_enter_grades=True).values_list('course_id', flat=True))
 
     rows = []
     for enrollment in CourseEnrollment.objects.filter(course_id__in=course_ids).select_related('student', 'course').order_by(
@@ -507,7 +546,10 @@ def instructor_grade_overview(request):
     ):
         student = enrollment.student
         gb = GradeBook.objects.filter(student=student, course=enrollment.course).first()
-        rows.append({'student': student, 'course': enrollment.course, 'gradebook': gb})
+        rows.append({
+            'student': student, 'course': enrollment.course, 'gradebook': gb,
+            'can_enter_grades': enrollment.course_id in entry_course_ids,
+        })
 
     return render(request, 'grades/instructor_overview.html', {'rows': rows})
 
@@ -519,16 +561,18 @@ def instructor_gradebook_detail(request, student_id):
     gb, course = _get_or_none_gradebook(student)
 
     # Only allow viewing students in this instructor's assigned courses
+    can_enter_grades = False
     if course:
-        is_assigned = InstructorCourseAssignment.objects.filter(
+        assignment = InstructorCourseAssignment.objects.filter(
             instructor=instructor, course=course, is_active=True
-        ).exists()
-        if not is_assigned:
+        ).first()
+        if not assignment:
             messages.error(request, 'You are not assigned to this student\'s course.')
             return redirect('instructor_grade_overview')
+        can_enter_grades = assignment.can_enter_grades
 
     return render(request, 'grades/instructor_gradebook_detail.html', {
-        'student': student, 'course': course, 'gb': gb,
+        'student': student, 'course': course, 'gb': gb, 'can_enter_grades': can_enter_grades,
     })
 
 

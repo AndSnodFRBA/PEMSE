@@ -494,7 +494,7 @@ class StaffInviteAcceptForm(forms.ModelForm):
 class InstructorCourseAssignmentForm(forms.ModelForm):
     class Meta:
         model  = InstructorCourseAssignment
-        fields = ['course', 'role', 'is_active']
+        fields = ['course', 'role', 'is_active', 'can_enter_grades']
         widgets = {
             'course': forms.Select(attrs=_fs),
             'role':   forms.Select(attrs=_fs),

@@ -85,6 +85,7 @@ urlpatterns = [
     path('instructors/add/',                          views.staff_instructor_add,          name='staff_instructor_add'),
     path('instructors/<int:pk>/',                     views.staff_instructor_detail,       name='staff_instructor_detail'),
     path('instructors/<int:pk>/assign-course/',       views.staff_instructor_assign_course, name='staff_instructor_assign_course'),
+    path('instructors/<int:pk>/assignments/<int:assignment_id>/toggle-grade-entry/', views.staff_instructor_toggle_grade_entry, name='staff_instructor_toggle_grade_entry'),
     path('instructors/<int:pk>/verify-hours/',        views.staff_instructor_verify_hours, name='staff_instructor_verify_hours'),
     path('instructors/<int:pk>/observe/',             views.staff_instructor_observe,      name='staff_instructor_observe'),
     path('instructors/<int:pk>/meeting/',             views.staff_instructor_meeting,      name='staff_instructor_meeting'),

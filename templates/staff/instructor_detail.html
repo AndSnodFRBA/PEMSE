@@ -89,6 +89,7 @@
             <th class="py-2">Assigned By</th>
             <th class="py-2">Assigned</th>
             <th class="py-2 text-center">Active</th>
+            <th class="py-2 text-center">Can Enter Grades</th>
           </tr>
         </thead>
         <tbody>
@@ -101,6 +102,14 @@
             <td class="py-2 text-center">
               {% if a.is_active %}<i class="bi bi-check-circle-fill text-success"></i>
               {% else %}<i class="bi bi-dash-circle text-muted"></i>{% endif %}
+            </td>
+            <td class="py-2 text-center">
+              <form method="post" action="{% url 'staff_instructor_toggle_grade_entry' instructor.pk a.pk %}" title="Grants instructor ability to enter quiz and skills grades only.">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm {% if a.can_enter_grades %}btn-success{% else %}btn-outline-secondary{% endif %}" style="font-size:11px;">
+                  {% if a.can_enter_grades %}<i class="bi bi-check-lg"></i> Enabled{% else %}Disabled{% endif %}
+                </button>
+              </form>
             </td>
           </tr>
           {% endfor %}

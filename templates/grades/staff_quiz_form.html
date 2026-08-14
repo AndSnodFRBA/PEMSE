@@ -1,10 +1,10 @@
-{% extends 'staff/base_staff.html' %}
-{% block title %}Quiz {{ quiz_number }} — {{ student.get_full_name }} — PEMSE Staff{% endblock %}
+{% extends base_template %}
+{% block title %}Quiz {{ quiz_number }} — {{ student.get_full_name }} — PEMSE{% endblock %}
 
 {% block content %}
-<div class="staff-topbar">
-  <h1 class="staff-page-title">Quiz {{ quiz_number }} — {{ student.get_full_name }}</h1>
-  <a href="{% url 'staff_gradebook_detail' student.pk %}" class="btn btn-sm btn-outline-secondary">
+<div class="{{ topbar_class }}">
+  <h1 class="{{ title_class }}">Quiz {{ quiz_number }} — {{ student.get_full_name }}</h1>
+  <a href="{% url detail_url_name student.pk %}" class="btn btn-sm btn-outline-secondary">
     <i class="bi bi-arrow-left me-1"></i> Back to Grade Book
   </a>
 </div>

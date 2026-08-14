@@ -21,9 +21,20 @@
         <label class="form-label fw-semibold" style="font-size:13px;">Role</label>
         {{ form.role }}
       </div>
-      <div class="mb-4">
+      <div class="mb-3">
         <label class="form-label fw-semibold" style="font-size:13px;">Active</label>
         <div>{{ form.is_active }}</div>
+      </div>
+      <div class="mb-4">
+        <div class="form-check">
+          {{ form.can_enter_grades }}
+          <label class="form-check-label fw-semibold" for="{{ form.can_enter_grades.id_for_label }}" style="font-size:13px;">
+            Can enter grades
+          </label>
+        </div>
+        <div style="font-size:11px;color:#6b7280;margin-top:2px;">
+          Grants instructor ability to enter quiz and skills grades only.
+        </div>
       </div>
       {% if form.non_field_errors %}
         <div class="alert alert-danger py-2 mb-3" style="font-size:13px;">{{ form.non_field_errors }}</div>

@@ -32,6 +32,10 @@ class InstructorCourseAssignment(models.Model):
     )
     assigned_at = models.DateTimeField(auto_now_add=True)
     is_active   = models.BooleanField(default=True)
+    can_enter_grades = models.BooleanField(
+        default=False,
+        help_text='Grants instructor ability to enter quiz and skills grades only.',
+    )
 
     class Meta:
         unique_together = [['instructor', 'course', 'role']]
