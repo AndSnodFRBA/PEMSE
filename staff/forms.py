@@ -136,9 +136,10 @@ class CourseForm(forms.ModelForm):
             'price', 'book_price', 'min_down', 'includes_shirt', 'is_active',
             'location_name', 'location_address', 'location_city', 'location_state',
             'start_date', 'end_date', 'registration_close_date',
-            'max_students', 'schedule_notes',
+            'max_students', 'schedule_notes', 'syllabus',
         ]
         widgets = {
+            'syllabus':               forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,application/pdf'}),
             'option_number':          forms.NumberInput(attrs={'class': 'form-control'}),
             'tag':                    forms.TextInput(attrs={'class': 'form-control'}),
             'name':                   forms.TextInput(attrs={'class': 'form-control'}),
@@ -157,6 +158,22 @@ class CourseForm(forms.ModelForm):
             'max_students':           forms.NumberInput(attrs={'class': 'form-control'}),
             'schedule_notes':         forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
+
+    def clean_syllabus(self):
+        syllabus = self.cleaned_data.get('syllabus')
+        if syllabus and hasattr(syllabus, 'content_type'):
+            if syllabus.content_type != 'application/pdf':
+                raise forms.ValidationError('Syllabus must be a PDF file.')
+        return syllabus
+
+    def save(self, commit=True):
+        course = super().save(commit=False)
+        if 'syllabus' in self.changed_data:
+            from django.utils import timezone
+            course.syllabus_updated_at = timezone.now() if course.syllabus else None
+        if commit:
+            course.save()
+        return course
 
 
 class StaffAssignCourseForm(forms.ModelForm):

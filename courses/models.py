@@ -4,6 +4,10 @@ from django.db import models
 from django.conf import settings
 
 
+def course_syllabus_path(instance, filename):
+    return f'syllabi/course_{instance.pk}/{filename}'
+
+
 class Course(models.Model):
     """PEMSE course offering — mirrors the 7 options on the 2025 registration form."""
 
@@ -58,6 +62,10 @@ class Course(models.Model):
     # ── Schedule ──────────────────────────────────────────────────────────────
     schedule_notes = models.TextField(blank=True, help_text='e.g. Mondays and Wednesdays 6-10pm')
 
+    # ── Syllabus ──────────────────────────────────────────────────────────────
+    syllabus            = models.FileField(upload_to=course_syllabus_path, blank=True, null=True)
+    syllabus_updated_at = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         ordering = ['order', 'option_number']
 
@@ -67,6 +75,11 @@ class Course(models.Model):
     @property
     def remaining_balance(self):
         return self.price - self.min_down
+
+    @property
+    def syllabus_filename(self):
+        import os
+        return os.path.basename(self.syllabus.name) if self.syllabus else ''
 
     @property
     def has_book_option(self):

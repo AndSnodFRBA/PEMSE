@@ -928,7 +928,7 @@ def course_detail(request, pk):
 
 @staff_required
 def course_add(request):
-    form = CourseForm(request.POST or None)
+    form = CourseForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, 'Course created.')
@@ -939,7 +939,7 @@ def course_add(request):
 @staff_required
 def course_edit(request, pk):
     course = get_object_or_404(Course, pk=pk)
-    form   = CourseForm(request.POST or None, instance=course)
+    form   = CourseForm(request.POST or None, request.FILES or None, instance=course)
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, f'Course "{course.name}" updated.')

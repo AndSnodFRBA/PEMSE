@@ -212,6 +212,11 @@
         {% endif %}
         <div class="course-check"><i class="bi bi-check-lg"></i></div>
       </button>
+      {% if course.syllabus %}
+      <a href="{{ course.syllabus.url }}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#2B5EA7;margin-top:6px;text-decoration:none;">
+        <i class="bi bi-file-earmark-pdf"></i> Download syllabus before you enroll
+      </a>
+      {% endif %}
     </form>
     {% endfor %}
   </div>

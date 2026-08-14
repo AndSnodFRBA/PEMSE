@@ -13,7 +13,7 @@
 
 <div class="card" style="max-width:760px;">
   <div class="card-body p-4">
-    <form method="post" novalidate>
+    <form method="post" enctype="multipart/form-data" novalidate>
       {% csrf_token %}
 
       {% if form.non_field_errors %}
@@ -129,6 +129,25 @@
       <div class="mb-4">
         <label class="form-label" style="font-size:12px;font-weight:600;">Schedule Notes <span style="font-weight:400;color:#6b7280;">{{ form.schedule_notes.help_text }}</span></label>
         {{ form.schedule_notes }}
+      </div>
+
+      <hr style="border-color:#e5e7eb;margin-bottom:20px;">
+
+      <!-- Syllabus -->
+      <h6 style="font-weight:700;color:#1a2e4a;font-size:12px;letter-spacing:.8px;text-transform:uppercase;margin-bottom:16px;">Syllabus</h6>
+      <div class="mb-4">
+        {% if course.syllabus %}
+        <div style="font-size:13px;color:#374151;margin-bottom:8px;">
+          <i class="bi bi-file-earmark-pdf-fill text-danger me-1"></i>
+          <a href="{{ course.syllabus.url }}" target="_blank">{{ course.syllabus_filename }}</a>
+          <span style="color:#6b7280;"> — uploaded {{ course.syllabus_updated_at|date:"M j, Y" }}</span>
+        </div>
+        <label class="form-label" style="font-size:12px;font-weight:600;">Replace Syllabus (PDF)</label>
+        {% else %}
+        <label class="form-label" style="font-size:12px;font-weight:600;">Upload Syllabus (PDF)</label>
+        {% endif %}
+        {{ form.syllabus }}
+        {% if form.syllabus.errors %}<div class="text-danger" style="font-size:11px;">{{ form.syllabus.errors }}</div>{% endif %}
       </div>
 
       <div class="d-flex gap-2">
