@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.core.files.storage import default_storage
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -178,6 +178,18 @@ def _course_group(course, status_filter=None, search=None, docs_filter=None, bal
             continue
         rows.append(row)
     return {'course': course, 'rows': rows, 'count': len(rows)}
+
+
+@staff_required
+def reset_demo(request):
+    if not settings.DEMO_MODE:
+        return HttpResponseForbidden('Not in demo mode')
+    if request.method == 'POST':
+        from django.core.management import call_command
+        call_command('reset_demo_data')
+        messages.success(request, 'Demo data has been reset successfully.')
+        return redirect('staff_dashboard')
+    return render(request, 'staff/reset_demo_confirm.html')
 
 
 @staff_required
@@ -680,7 +692,8 @@ def waive_late_fee(request, pk, fee_id):
 def payment_receipt_pdf(request, payment_id):
     payment = get_object_or_404(PaymentHistory, pk=payment_id)
     from students.payment_pdf import generate_payment_receipt
-    pdf_bytes = generate_payment_receipt(payment)
+    from students.pdf_utils import watermark_if_demo
+    pdf_bytes = watermark_if_demo(generate_payment_receipt(payment))
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="Receipt_{payment.pk}.pdf"'
     return response
@@ -690,7 +703,8 @@ def payment_receipt_pdf(request, payment_id):
 def staff_attendance_pdf(request, session_id):
     session = get_object_or_404(AttendanceRecord, pk=session_id)
     from instructor.attendance_pdf import generate_attendance_pdf
-    pdf_bytes = generate_attendance_pdf(session)
+    from students.pdf_utils import watermark_if_demo
+    pdf_bytes = watermark_if_demo(generate_attendance_pdf(session))
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="Attendance_{session.session_date}.pdf"'
     return response
@@ -1236,9 +1250,11 @@ def invoice_pdf(request, pk):
 
     doc.build(story)
     buf.seek(0)
+    from students.pdf_utils import watermark_if_demo
+    pdf_bytes = watermark_if_demo(buf.getvalue())
 
     safe_name = ''.join(c if c.isalnum() or c in '-_ ' else '' for c in student.get_full_name()).strip()
-    response  = HttpResponse(buf, content_type='application/pdf')
+    response  = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="PEMSE-{safe_name}-invoice.pdf"'
     return response
 
@@ -1554,8 +1570,10 @@ def verification_pdf(request, pk):
 
     doc.build(story)
     buf.seek(0)
+    from students.pdf_utils import watermark_if_demo
+    pdf_bytes = watermark_if_demo(buf.getvalue())
     safe = ''.join(c if c.isalnum() or c in '-_ ' else '' for c in student.get_full_name()).strip()
-    resp = HttpResponse(buf, content_type='application/pdf')
+    resp = HttpResponse(pdf_bytes, content_type='application/pdf')
     resp['Content-Disposition'] = f'attachment; filename="PEMSE-{safe}-verification.pdf"'
     return resp
 
@@ -1718,8 +1736,10 @@ def department_report_pdf(request, course_pk):
 
     doc.build(story)
     buf.seek(0)
+    from students.pdf_utils import watermark_if_demo
+    pdf_bytes = watermark_if_demo(buf.getvalue())
     safe = ''.join(c if c.isalnum() or c in '-_ ' else '' for c in course.name).strip()
-    resp = HttpResponse(buf, content_type='application/pdf')
+    resp = HttpResponse(pdf_bytes, content_type='application/pdf')
     resp['Content-Disposition'] = f'attachment; filename="PEMSE-dept-report-{safe}.pdf"'
     return resp
 
@@ -1728,8 +1748,9 @@ def department_report_pdf(request, course_pk):
 def dhhs_report_pdf(request, report_id):
     from students.models import CourseReportRecord
     from students.dhhs_pdf import generate_dhhs_report
+    from students.pdf_utils import watermark_if_demo
     report = get_object_or_404(CourseReportRecord, pk=report_id)
-    pdf_bytes = generate_dhhs_report(report)
+    pdf_bytes = watermark_if_demo(generate_dhhs_report(report))
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     course_name = report.course.name.replace(' ', '_')[:30]
     response['Content-Disposition'] = f'inline; filename="DHHS_Report_{course_name}.pdf"'
@@ -2276,8 +2297,10 @@ def course_eval_results_pdf(request, course_pk):
 
     doc.build(story)
     buf.seek(0)
+    from students.pdf_utils import watermark_if_demo
+    pdf_bytes = watermark_if_demo(buf.getvalue())
     safe = ''.join(c if c.isalnum() or c in '-_' else '' for c in course.name)
-    resp = HttpResponse(buf, content_type='application/pdf')
+    resp = HttpResponse(pdf_bytes, content_type='application/pdf')
     resp['Content-Disposition'] = f'attachment; filename="PEMSE-{safe}-eval-results.pdf"'
     return resp
 

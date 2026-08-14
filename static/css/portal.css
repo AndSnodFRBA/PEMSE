@@ -459,3 +459,25 @@ textarea.form-control { resize: vertical; }
     a { color: black; text-decoration: none; }
     .card { border: 1px solid #ccc; page-break-inside: avoid; }
 }
+
+/* DEMO MODE BANNER */
+.demo-banner {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    text-align: center;
+    padding: 10px 20px;
+    font-size: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+.demo-cta {
+    color: white;
+    font-weight: 700;
+    text-decoration: underline;
+    margin-left: 8px;
+}

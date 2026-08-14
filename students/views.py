@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
@@ -463,7 +464,8 @@ def registration_pdf_view(request, student_id=None):
         # Student accessing their own PDF
         student = request.user
     from .pdf import generate_registration_pdf
-    pdf_bytes = generate_registration_pdf(student)
+    from .pdf_utils import watermark_if_demo
+    pdf_bytes = watermark_if_demo(generate_registration_pdf(student))
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     safe_name = student.get_full_name().replace(' ', '_')
     response['Content-Disposition'] = f'inline; filename="PEMSE_Registration_{safe_name}.pdf"'
@@ -501,7 +503,8 @@ def completion_certificate_pdf(request, student_id=None):
         return redirect(error_redirect, *error_args)
 
     from students.certificate_pdf import generate_completion_certificate
-    pdf_bytes = generate_completion_certificate(student, enrollment, gradebook, completion_record)
+    from .pdf_utils import watermark_if_demo
+    pdf_bytes = watermark_if_demo(generate_completion_certificate(student, enrollment, gradebook, completion_record))
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     safe_name = student.get_full_name().replace(' ', '_')
     response['Content-Disposition'] = f'inline; filename="PEMSE_Certificate_{safe_name}.pdf"'
@@ -523,6 +526,9 @@ def daily_tasks_webhook(request):
     provided = request.headers.get('X-Webhook-Secret', '')
     if not secret or not hmac.compare_digest(secret, provided):
         return JsonResponse({'error': 'unauthorized'}, status=403)
+
+    if settings.DEMO_MODE:
+        return JsonResponse({'success': True, 'results': {}, 'note': 'Skipped — DEMO_MODE is active.'})
 
     import io
     results = {}

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Set Up Your Account — PEMSE Staff</title>
+  <title>Set Up Your Account — {{ AGENCY_SHORT_NAME }} Staff</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -11,21 +11,27 @@
   <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
   <link rel="apple-touch-icon" href="{% static 'images/favicon.ico' %}">
   <link rel="stylesheet" href="{% static 'css/portal.css' %}">
+  <style>
+    :root {
+      --navy: {{ AGENCY_NAVY }};
+      --accent: {{ AGENCY_ACCENT }};
+    }
+  </style>
 </head>
 <body>
   <div class="auth-wrap">
     <div>
       <div class="auth-logo">
-        <img src="{% static 'images/PEMSE.jpg' %}" alt="Panhandle EMS Education"
+        <img src="{% static 'images/PEMSE.jpg' %}" alt="{{ AGENCY_NAME }}"
              class="auth-logo-img"
              onerror="this.style.display='none';">
-        <div class="auth-logo-name">Panhandle EMS Education</div>
+        <div class="auth-logo-name">{{ AGENCY_NAME }}</div>
         <div class="auth-logo-sub">Staff Portal</div>
       </div>
 
       <div class="auth-card">
         <h2 style="font-size:20px;font-weight:600;color:#2B5EA7;margin-bottom:4px;">Set up your account</h2>
-        <p style="font-size:13px;color:#5a7a9a;margin-bottom:22px;">You've been invited to join the PEMSE staff portal as {{ invite_email }}.</p>
+        <p style="font-size:13px;color:#5a7a9a;margin-bottom:22px;">You've been invited to join the {{ AGENCY_SHORT_NAME }} staff portal as {{ invite_email }}.</p>
 
         {% if messages %}
           {% for msg in messages %}

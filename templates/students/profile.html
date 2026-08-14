@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}My Profile — PEMSE{% endblock %}
+{% block title %}My Profile — {{ AGENCY_SHORT_NAME }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -20,7 +20,7 @@
 <div class="page-hero">
   <div class="page-hero-badge">My Profile</div>
   <h1>Profile &amp; Contact Info</h1>
-  <p>Keep your contact details current so PEMSE staff can reach you.</p>
+  <p>Keep your contact details current so {{ AGENCY_SHORT_NAME }} staff can reach you.</p>
 </div>
 
 <div class="portal-card">

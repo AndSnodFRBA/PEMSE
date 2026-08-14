@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Registration — PEMSE Student Portal{% endblock %}
+{% block title %}Registration — {{ AGENCY_TAGLINE }}{% endblock %}
 
 {% block content %}
 {% load static %}
 <div class="auth-wrap">
   <div>
     <div class="auth-logo">
-      <img src="{% static 'images/PEMSE.jpg' %}" alt="Panhandle EMS Education"
+      <img src="{% static 'images/PEMSE.jpg' %}" alt="{{ AGENCY_NAME }}"
            class="auth-logo-img"
            onerror="this.style.display='none';">
-      <div class="auth-logo-name">Panhandle EMS Education</div>
+      <div class="auth-logo-name">{{ AGENCY_NAME }}</div>
       <div class="auth-logo-sub">Student Portal</div>
     </div>
 
@@ -17,13 +17,13 @@
       <h2 style="font-size:20px;font-weight:600;color:#2B5EA7;margin-bottom:4px;">Registration is by invitation only</h2>
       <p style="font-size:13px;color:#5a7a9a;margin-bottom:22px;">
         To keep enrollment controlled and course assignments accurate, new student accounts are set up by our staff.
-        Contact PEMSE and we'll send you a personal invite link with your course already assigned.
+        Contact {{ AGENCY_SHORT_NAME }} and we'll send you a personal invite link with your course already assigned.
       </p>
 
       <div class="mb-3 p-3" style="background:#f3f6fb;border:1px solid #dde4ef;border-radius:8px;font-size:13px;color:#374151;line-height:1.8;">
-        <div><i class="bi bi-envelope me-2"></i><a href="mailto:emseducation19@gmail.com" style="color:#2B5EA7;">emseducation19@gmail.com</a></div>
-        <div><i class="bi bi-telephone me-2"></i>Robin Darnall 308.631.2424</div>
-        <div><i class="bi bi-geo-alt me-2"></i>709 Rosedale Dr., Scottsbluff, NE 69361</div>
+        <div><i class="bi bi-envelope me-2"></i><a href="mailto:{{ AGENCY_EMAIL }}" style="color:#2B5EA7;">{{ AGENCY_EMAIL }}</a></div>
+        <div><i class="bi bi-telephone me-2"></i>{{ AGENCY_DIRECTOR }} {{ AGENCY_PHONE }}</div>
+        <div><i class="bi bi-geo-alt me-2"></i>{{ AGENCY_ADDRESS }}</div>
       </div>
 
       <div style="text-align:center;margin-top:18px;font-size:13px;color:#5a7a9a;">
@@ -34,7 +34,7 @@
       </div>
     </div>
 
-    <div class="auth-footer">709 Rosedale Dr., Scottsbluff, NE 69361 &nbsp;·&nbsp; Robin Darnall 308.631.2424</div>
+    <div class="auth-footer">{{ AGENCY_ADDRESS }} &nbsp;·&nbsp; {{ AGENCY_DIRECTOR }} {{ AGENCY_PHONE }}</div>
   </div>
 </div>
 {% endblock %}

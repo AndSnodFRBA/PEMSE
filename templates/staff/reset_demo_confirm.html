@@ -1,0 +1,28 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}Reset Demo Data — {{ AGENCY_SHORT_NAME }} Staff{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">Reset Demo Data</h1>
+</div>
+
+{% if not DEMO_MODE %}
+<div class="card p-4 text-center text-muted">This instance is not running in demo mode.</div>
+{% else %}
+<div class="card p-4" style="max-width:560px;">
+  <div class="alert alert-warning" style="font-size:13px;">
+    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+    This will delete ALL current demo students and grades and replace with fresh sample data.
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-warning">
+        <i class="bi bi-arrow-repeat me-1"></i> Reset Demo Data
+      </button>
+      <a href="{% url 'staff_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

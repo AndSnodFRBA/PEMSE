@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ eval.get_eval_type_display }} — Panhandle EMS Education</title>
+  <title>{{ eval.get_eval_type_display }} — {{ AGENCY_NAME }}</title>
   {% load static %}
   <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
   <link rel="apple-touch-icon" href="{% static 'images/favicon.ico' %}">
@@ -69,7 +69,7 @@
 
 <div class="eval-header">
   <div class="container">
-    <h1><i class="bi bi-journal-check me-2"></i>Panhandle EMS Education</h1>
+    <h1><i class="bi bi-journal-check me-2"></i>{{ AGENCY_NAME }}</h1>
     <p>{{ eval.get_eval_type_display }} &mdash; {{ eval.course.name }}</p>
   </div>
 </div>
@@ -200,18 +200,18 @@
           <span class="float-end text-muted" style="font-weight:500;text-transform:none;letter-spacing:normal;">Section 6 of 7</span>
         </div>
         {% include "evaluations/_rating_q.html" with field="eoc_registration_process" label="The registration process was smooth and straightforward" %}
-        {% include "evaluations/_rating_q.html" with field="eoc_staff_helpfulness"    label="PEMSE office staff were helpful and responsive" %}
+        {% include "evaluations/_rating_q.html" with field="eoc_staff_helpfulness"    label="{{ AGENCY_SHORT_NAME }} office staff were helpful and responsive" %}
         {% include "evaluations/_rating_q.html" with field="eoc_value_for_money"      label="This course was a good value for the cost" %}
 
         <div class="q-block">
-          <div class="rating-label">Would you take another PEMSE course in the future?</div>
+          <div class="rating-label">Would you take another {{ AGENCY_SHORT_NAME }} course in the future?</div>
           <input type="hidden" name="eoc_would_take_future_course" id="eoc_would_take_future_course">
           <button type="button" class="bool-btn" onclick="setBool('eoc_would_take_future_course', true, this)">Yes</button>
           <button type="button" class="bool-btn" onclick="setBool('eoc_would_take_future_course', false, this)">No</button>
         </div>
 
         <div class="q-block">
-          <label class="rating-label">How did you hear about PEMSE?</label>
+          <label class="rating-label">How did you hear about {{ AGENCY_SHORT_NAME }}?</label>
           <select name="eoc_how_did_you_hear" class="form-select" style="max-width:320px;font-size:13px;margin-top:4px;">
             <option value="">— Select —</option>
             <option value="word_of_mouth">Word of mouth</option>
@@ -260,7 +260,7 @@
   </form>
 
   <p style="font-size:11px;color:#9ca3af;text-align:center;margin-bottom:40px;">
-    Panhandle EMS Education &mdash; Your responses are kept confidential and used to improve the program.
+    {{ AGENCY_NAME }} &mdash; Your responses are kept confidential and used to improve the program.
   </p>
 </div>
 

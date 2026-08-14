@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panhandle EMS Education — Student Portal</title>
+  <title>{{ AGENCY_TAGLINE }}</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -239,12 +239,17 @@
   <!-- Brand -->
   <div class="brand-wrap">
     {% load static %}
-    <img src="{% static 'images/PEMSE.jpg' %}" alt="PEMSE Logo" class="brand-logo"
+    {% if AGENCY_LOGO_URL %}
+    <img src="{{ AGENCY_LOGO_URL }}" alt="{{ AGENCY_NAME }}" class="brand-logo"
          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+    {% else %}
+    <img src="{% static 'images/PEMSE.jpg' %}" alt="{{ AGENCY_NAME }}" class="brand-logo"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+    {% endif %}
     <div class="brand-logo-placeholder" style="display:none;">
       <i class="bi bi-heart-pulse-fill" style="font-size:36px;color:rgba(255,255,255,.7);"></i>
     </div>
-    <h1 class="brand-name">Panhandle EMS Education</h1>
+    <h1 class="brand-name">{{ AGENCY_NAME }}</h1>
     <div class="brand-tagline">Student Portal — Scottsbluff, Nebraska</div>
   </div>
 
@@ -261,7 +266,7 @@
         Access your enrollment, documents, handbook, clinical rotations, and course evaluations.
       </div>
       <a href="/login/" class="btn-portal">Student Sign In &rarr;</a>
-      <a href="/register/" class="btn-secondary-link">New student? Contact PEMSE to register</a>
+      <a href="/register/" class="btn-secondary-link">New student? Contact {{ AGENCY_SHORT_NAME }} to register</a>
     </div>
 
     <!-- Instructor -->
@@ -292,13 +297,13 @@
 
   <!-- Footer -->
   <div class="landing-footer">
-    <div>709 Rosedale Dr., Scottsbluff, NE 69361</div>
+    <div>{{ AGENCY_ADDRESS }}</div>
     <div>
-      Robin Darnall &nbsp;·&nbsp;
-      <a href="tel:3086312424">308.631.2424</a> &nbsp;·&nbsp;
-      <a href="mailto:emseducation19@gmail.com">emseducation19@gmail.com</a>
+      {{ AGENCY_DIRECTOR }} &nbsp;·&nbsp;
+      <a href="tel:3086312424">{{ AGENCY_PHONE }}</a> &nbsp;·&nbsp;
+      <a href="mailto:{{ AGENCY_EMAIL }}">{{ AGENCY_EMAIL }}</a>
     </div>
-    <div style="margin-top:8px;">&copy; {% now "Y" %} Panhandle EMS Education. All rights reserved.</div>
+    <div style="margin-top:8px;">&copy; {% now "Y" %} {{ AGENCY_NAME }}. All rights reserved.</div>
   </div>
 
 <!-- Discrete admin access -->

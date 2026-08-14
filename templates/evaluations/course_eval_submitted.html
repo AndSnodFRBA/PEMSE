@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Thank You — Panhandle EMS Education</title>
+  <title>Thank You — {{ AGENCY_NAME }}</title>
   {% load static %}
   <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
   <link rel="apple-touch-icon" href="{% static 'images/favicon.ico' %}">
@@ -26,14 +26,14 @@
       <strong>{{ eval.course.name }}</strong> has been submitted.
     </p>
     <p style="color:#9ca3af;font-size:12px;margin-bottom:28px;">
-      Your feedback helps Panhandle EMS Education improve the program for future students.
+      Your feedback helps {{ AGENCY_NAME }} improve the program for future students.
     </p>
     <a href="{% url 'course_eval_list' %}"
        style="background:#2B5EA7;color:#fff;border-radius:9px;padding:12px 24px;text-decoration:none;font-size:14px;font-weight:600;display:inline-block;">
       Back to Evaluations
     </a>
   </div>
-  <p style="font-size:11px;color:#9ca3af;text-align:center;margin-top:20px;">Panhandle EMS Education</p>
+  <p style="font-size:11px;color:#9ca3af;text-align:center;margin-top:20px;">{{ AGENCY_NAME }}</p>
 </div>
 </body>
 </html>

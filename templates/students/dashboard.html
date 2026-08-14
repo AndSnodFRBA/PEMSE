@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Dashboard — PEMSE Student Portal{% endblock %}
+{% block title %}Dashboard — {{ AGENCY_TAGLINE }}{% endblock %}
 
 {% block content %}
 {% if next_action %}
@@ -22,7 +22,7 @@
 <div class="page-hero">
   <div class="page-hero-badge">Welcome back</div>
   <h1>Hello, {{ user.first_name }} 👋</h1>
-  <p>Your PEMSE enrollment dashboard. Complete each task below to finalize your registration.</p>
+  <p>Your {{ AGENCY_SHORT_NAME }} enrollment dashboard. Complete each task below to finalize your registration.</p>
   <div class="hero-stats">
     <div class="hero-stat">
       <div class="hero-stat-val">{{ done_count }}/{{ total_tasks }}</div>
@@ -132,7 +132,7 @@
   <!-- Announcements -->
   <div class="portal-card">
     <div class="portal-card-title">Announcements</div>
-    <div class="portal-card-sub">Latest updates from Panhandle EMS Education.</div>
+    <div class="portal-card-sub">Latest updates from {{ AGENCY_NAME }}.</div>
     {% if announcements %}
       {% for ann in announcements %}
       <div class="announcement-item">
@@ -197,7 +197,7 @@
   <!-- Payment History -->
   <div class="portal-card" style="grid-column:1/-1;">
     <div class="portal-card-title">Payment history</div>
-    <div class="portal-card-sub">Payments recorded by PEMSE staff against your tuition balance.</div>
+    <div class="portal-card-sub">Payments recorded by {{ AGENCY_SHORT_NAME }} staff against your tuition balance.</div>
 
     <!-- Totals bar -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
@@ -247,7 +247,7 @@
       </table>
     </div>
     {% else %}
-    <p style="font-size:13px;color:#9ca3af;margin:0;">No payments recorded yet. Contact PEMSE staff with any questions about your balance.</p>
+    <p style="font-size:13px;color:#9ca3af;margin:0;">No payments recorded yet. Contact {{ AGENCY_SHORT_NAME }} staff with any questions about your balance.</p>
     {% endif %}
   </div>
 
@@ -269,7 +269,7 @@
         <div style="font-size:13px;line-height:1.8;color:#444;">
           Payment due before first night of class<br>
           Full tuition required before final testing<br>
-          <strong style="color:var(--red);">No refunds on PEMSE courses</strong><br>
+          <strong style="color:var(--red);">No refunds on {{ AGENCY_SHORT_NAME }} courses</strong><br>
           CE hours not granted on incomplete courses
         </div>
       </div>

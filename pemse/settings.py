@@ -19,6 +19,20 @@ load_dotenv(BASE_DIR / '.env')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 BETA_MODE = os.environ.get('BETA_MODE', 'True') == 'True'
 
+# ── AGENCY BRANDING — controlled by environment variables ─────────────────
+# Set these in Railway Variables to rebrand for any training agency
+AGENCY_NAME         = os.environ.get('AGENCY_NAME', 'Panhandle EMS Education')
+AGENCY_SHORT_NAME   = os.environ.get('AGENCY_SHORT_NAME', 'PEMSE')
+AGENCY_ADDRESS      = os.environ.get('AGENCY_ADDRESS', '709 Rosedale Dr., Scottsbluff, NE 69361')
+AGENCY_PHONE        = os.environ.get('AGENCY_PHONE', '308.631.2424')
+AGENCY_EMAIL        = os.environ.get('AGENCY_EMAIL', 'emseducation19@gmail.com')
+AGENCY_DIRECTOR     = os.environ.get('AGENCY_DIRECTOR', 'Robin Darnall')
+AGENCY_TAGLINE      = os.environ.get('AGENCY_TAGLINE', 'Panhandle EMS Education — Student Portal')
+AGENCY_NAVY         = os.environ.get('AGENCY_NAVY', '#2B5EA7')
+AGENCY_ACCENT       = os.environ.get('AGENCY_ACCENT', '#5B9BC8')
+AGENCY_LOGO_URL     = os.environ.get('AGENCY_LOGO_URL', '')
+DEMO_MODE           = os.environ.get('DEMO_MODE', 'False') == 'True'
+
 # ── ERROR TRACKING — Sentry ──────────────────────────────────────────────────
 SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
 if SENTRY_DSN and not DEBUG:
@@ -136,6 +150,7 @@ TEMPLATES = [{
             'django.contrib.messages.context_processors.messages',
             'evaluations.context_processors.eval_counts',
             'students.context_processors.notifications',
+            'students.context_processors.agency_branding',
             'pemse.context_processors.site_settings',
         ],
     },
@@ -185,7 +200,7 @@ AWS_QUERYSTRING_AUTH    = True   # signed URLs — students can only see their o
 AWS_QUERYSTRING_EXPIRE  = 300    # URL expires in 5 minutes
 AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
 
-if AWS_ACCESS_KEY_ID:
+if AWS_ACCESS_KEY_ID and not DEMO_MODE:
     DEFAULT_FILE_STORAGE_BACKEND = 'storages.backends.s3boto3.S3Boto3Storage'
     MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
 else:
@@ -217,6 +232,9 @@ EMAIL_HOST_USER    = os.environ.get('EMAIL_HOST_USER', 'emseducation19@gmail.com
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = 'PEMSE Student Portal <emseducation19@gmail.com>'
 ADMIN_EMAIL        = 'emseducation19@gmail.com'
+
+if DEMO_MODE:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # ── MISC ──────────────────────────────────────────────────────────────────────
 LANGUAGE_CODE = 'en-us'

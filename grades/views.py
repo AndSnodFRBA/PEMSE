@@ -611,6 +611,8 @@ def progress_report_pdf(request):
     if pdf_bytes is None:
         messages.error(request, 'You must be enrolled in a course with a gradebook to generate a progress report.')
         return redirect('student_grades')
+    from students.pdf_utils import watermark_if_demo
+    pdf_bytes = watermark_if_demo(pdf_bytes)
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     safe_name = request.user.get_full_name().replace(' ', '_')
     response['Content-Disposition'] = f'inline; filename="PEMSE_Progress_Report_{safe_name}.pdf"'
@@ -624,6 +626,8 @@ def staff_progress_report_pdf(request, student_id):
     if pdf_bytes is None:
         messages.error(request, f'{student.get_full_name()} does not have a gradebook for their current course yet.')
         return redirect('staff_gradebook_detail', student_id=student_id)
+    from students.pdf_utils import watermark_if_demo
+    pdf_bytes = watermark_if_demo(pdf_bytes)
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     safe_name = student.get_full_name().replace(' ', '_')
     response['Content-Disposition'] = f'inline; filename="PEMSE_Progress_Report_{safe_name}.pdf"'

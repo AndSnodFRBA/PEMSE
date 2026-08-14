@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Sign In — PEMSE Student Portal{% endblock %}
+{% block title %}Sign In — {{ AGENCY_TAGLINE }}{% endblock %}
 
 {% block content %}
 {% load static %}
 <div class="auth-wrap">
   <div>
     <div class="auth-logo">
-      <img src="{% static 'images/PEMSE.jpg' %}" alt="Panhandle EMS Education"
+      <img src="{% static 'images/PEMSE.jpg' %}" alt="{{ AGENCY_NAME }}"
            class="auth-logo-img"
            onerror="this.style.display='none';">
-      <div class="auth-logo-name">Panhandle EMS Education</div>
+      <div class="auth-logo-name">{{ AGENCY_NAME }}</div>
       <div class="auth-logo-sub">Student Portal</div>
     </div>
 
@@ -45,7 +45,7 @@
       </div>
     </div>
 
-    <div class="auth-footer">709 Rosedale Dr., Scottsbluff, NE 69361 &nbsp;·&nbsp; Robin Darnall 308.631.2424</div>
+    <div class="auth-footer">{{ AGENCY_ADDRESS }} &nbsp;·&nbsp; {{ AGENCY_DIRECTOR }} {{ AGENCY_PHONE }}</div>
   </div>
 </div>
 {% endblock %}

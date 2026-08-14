@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Link Expired — Panhandle EMS Education</title>
+  <title>Link Expired — {{ AGENCY_NAME }}</title>
   {% load static %}
   <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
   <link rel="apple-touch-icon" href="{% static 'images/favicon.ico' %}">
@@ -25,10 +25,10 @@
     <p style="color:#6b7280;font-size:13px;">
       Evaluation links expire after 14 days. If you still need to complete this evaluation,
       please contact the student and ask them to request a new link from
-      Panhandle EMS Education.
+      {{ AGENCY_NAME }}.
     </p>
     <hr style="border-color:#e5e7eb;">
-    <p style="font-size:12px;color:#9ca3af;">Panhandle EMS Education</p>
+    <p style="font-size:12px;color:#9ca3af;">{{ AGENCY_NAME }}</p>
   </div>
 </div>
 </body>

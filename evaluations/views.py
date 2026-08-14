@@ -435,12 +435,14 @@ def staff_eval_pdf(request, pk):
 
     doc.build(story)
     buf.seek(0)
+    from students.pdf_utils import watermark_if_demo
+    pdf_bytes = watermark_if_demo(buf.getvalue())
 
     safe_name = ''.join(
         c if c.isalnum() or c in '-_ ' else ''
         for c in rotation.student.get_full_name()
     ).strip()
-    response = HttpResponse(buf, content_type='application/pdf')
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = (
         f'attachment; filename="PEMSE-{safe_name}-preceptor-eval.pdf"'
     )

@@ -348,8 +348,10 @@ def instructor_hours_pdf(request):
 
     doc.build(elems)
     buf.seek(0)
+    from students.pdf_utils import watermark_if_demo
+    pdf_bytes = watermark_if_demo(buf.getvalue())
     name = instructor.get_full_name().replace(' ', '_')
-    response = HttpResponse(buf, content_type='application/pdf')
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'filename="hour_log_{name}.pdf"'
     return response
 
@@ -451,7 +453,8 @@ def instructor_attendance_detail(request, pk):
 def attendance_pdf(request, session_id):
     session = get_object_or_404(AttendanceRecord, pk=session_id, instructor=request.user)
     from instructor.attendance_pdf import generate_attendance_pdf
-    pdf_bytes = generate_attendance_pdf(session)
+    from students.pdf_utils import watermark_if_demo
+    pdf_bytes = watermark_if_demo(generate_attendance_pdf(session))
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="Attendance_{session.session_date}.pdf"'
     return response

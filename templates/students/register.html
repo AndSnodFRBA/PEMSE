@@ -1,21 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Create Account — PEMSE Student Portal{% endblock %}
+{% block title %}Create Account — {{ AGENCY_TAGLINE }}{% endblock %}
 
 {% block content %}
 {% load static %}
 <div class="auth-wrap">
   <div>
     <div class="auth-logo">
-      <img src="{% static 'images/PEMSE.jpg' %}" alt="Panhandle EMS Education"
+      <img src="{% static 'images/PEMSE.jpg' %}" alt="{{ AGENCY_NAME }}"
            class="auth-logo-img"
            onerror="this.style.display='none';">
-      <div class="auth-logo-name">Panhandle EMS Education</div>
+      <div class="auth-logo-name">{{ AGENCY_NAME }}</div>
       <div class="auth-logo-sub">Student Portal</div>
     </div>
 
     <div class="auth-card">
       <h2 style="font-size:20px;font-weight:600;color:#2B5EA7;margin-bottom:4px;">Create your account</h2>
-      <p style="font-size:13px;color:#5a7a9a;margin-bottom:22px;">Register to begin your PEMSE enrollment for 2025.</p>
+      <p style="font-size:13px;color:#5a7a9a;margin-bottom:22px;">Register to begin your {{ AGENCY_SHORT_NAME }} enrollment for 2025.</p>
 
       {% if invite_course %}
         <div class="mb-3 p-3" style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-size:12px;color:#166534;">
@@ -71,7 +71,7 @@
       </div>
     </div>
 
-    <div class="auth-footer">709 Rosedale Dr., Scottsbluff, NE 69361 &nbsp;·&nbsp; Robin Darnall 308.631.2424</div>
+    <div class="auth-footer">{{ AGENCY_ADDRESS }} &nbsp;·&nbsp; {{ AGENCY_DIRECTOR }} {{ AGENCY_PHONE }}</div>
   </div>
 </div>
 {% endblock %}

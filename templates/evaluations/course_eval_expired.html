@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Evaluation Unavailable — PEMSE</title>
+  <title>Evaluation Unavailable — {{ AGENCY_SHORT_NAME }}</title>
   {% load static %}
   <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
   <link rel="apple-touch-icon" href="{% static 'images/favicon.ico' %}">
@@ -19,7 +19,7 @@
     <i class="bi bi-clock-history" style="font-size:40px;color:#d97706;margin-bottom:16px;"></i>
     <h2 style="font-size:20px;font-weight:700;color:#1a2e4a;">Evaluation No Longer Available</h2>
     <p style="color:#6b7280;font-size:13px;line-height:1.65;">
-      This evaluation link has expired. Please contact PEMSE staff if you believe this is an error.
+      This evaluation link has expired. Please contact {{ AGENCY_SHORT_NAME }} staff if you believe this is an error.
     </p>
     <a href="{% url 'course_eval_list' %}"
        style="background:#2B5EA7;color:#fff;border-radius:9px;padding:11px 22px;text-decoration:none;font-size:13px;font-weight:600;display:inline-block;margin-top:8px;">

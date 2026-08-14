@@ -6,6 +6,7 @@ from students.views import registration_pdf_view, completion_certificate_pdf
 
 urlpatterns = [
     path('',                                   views.staff_dashboard,       name='staff_dashboard'),
+    path('reset-demo/',                        views.reset_demo,            name='staff_reset_demo'),
     path('login/',                             views.staff_login_view,      name='staff_login'),
     path('logout/',                            views.staff_logout_view,     name='staff_logout'),
     path('students/<int:pk>/',                 views.student_detail,        name='staff_student_detail'),

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Registration Form — PEMSE{% endblock %}
+{% block title %}Registration Form — {{ AGENCY_SHORT_NAME }}{% endblock %}
 
 {% block content %}
 <div class="page-hero">
-  <div class="page-hero-badge">PEMSE 2025</div>
+  <div class="page-hero-badge">{{ AGENCY_SHORT_NAME }} 2025</div>
   <h1>Student Registration Form</h1>
   <p>Complete all sections. Your progress is saved automatically. Unreadable or incomplete registrations will not be processed.</p>
 </div>
@@ -95,7 +95,7 @@
   <div class="portal-card-title">Course selection</div>
 
   {% if enrollment %}
-  <div class="portal-card-sub">Your course is assigned by PEMSE staff.{% if enrollment.course.has_book_option or enrollment.course.includes_shirt %} You can still choose your textbook{% if enrollment.course.includes_shirt %} and shirt size{% endif %} below.{% endif %}</div>
+  <div class="portal-card-sub">Your course is assigned by {{ AGENCY_SHORT_NAME }} staff.{% if enrollment.course.has_book_option or enrollment.course.includes_shirt %} You can still choose your textbook{% if enrollment.course.includes_shirt %} and shirt size{% endif %} below.{% endif %}</div>
 
   <div style="padding:16px;background:var(--light);border-radius:12px;border:1px solid var(--border);">
     <div class="course-tag" style="display:inline-block;background:{{ enrollment.course.tag_bg }};color:{{ enrollment.course.tag_color }};">
@@ -224,7 +224,7 @@
   <div style="text-align:center;padding:32px 16px;background:var(--light);border-radius:12px;border:1px solid var(--border);">
     <i class="bi bi-calendar-x" style="font-size:28px;color:var(--muted);"></i>
     <div style="margin-top:10px;font-size:14px;color:#374151;font-weight:500;">No courses are currently open for registration.</div>
-    <div style="font-size:13px;color:var(--muted);margin-top:4px;">Please check back soon or <a href="mailto:ems.edu911@gmail.com">contact PEMSE directly</a>.</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;">Please check back soon or <a href="mailto:{{ AGENCY_EMAIL }}">contact {{ AGENCY_SHORT_NAME }} directly</a>.</div>
   </div>
   {% endif %}
   {% endif %}
@@ -305,11 +305,11 @@
 
   <!-- Contract text -->
   <div style="background:var(--light);border:1px solid var(--border);border-radius:10px;padding:20px;font-size:13px;line-height:1.8;color:#333;margin-bottom:20px;">
-    <p>I, <strong style="color:#0a2540;">{{ user.get_full_name }}</strong>, agree to the terms and conditions of <strong>Panhandle EMS Education, LLC</strong>, including (but not limited to) providing tuition paid in full <em>OR</em> making scheduled payments agreed to by myself and the Director of PEMSE, prior to the first night of scheduled class.</p>
+    <p>I, <strong style="color:#0a2540;">{{ user.get_full_name }}</strong>, agree to the terms and conditions of <strong>{{ AGENCY_NAME }}, LLC</strong>, including (but not limited to) providing tuition paid in full <em>OR</em> making scheduled payments agreed to by myself and the Director of {{ AGENCY_SHORT_NAME }}, prior to the first night of scheduled class.</p>
     <br>
-    <p>Full tuition will be paid prior to final testing. I understand that PEMSE has the right to and will legally pursue any unpaid tuition under my name.</p>
+    <p>Full tuition will be paid prior to final testing. I understand that {{ AGENCY_SHORT_NAME }} has the right to and will legally pursue any unpaid tuition under my name.</p>
     <br>
-    <p style="color:var(--red);font-weight:500;">I understand there are no refunds on PEMSE courses. CE hours will NOT be granted on incomplete courses.</p>
+    <p style="color:var(--red);font-weight:500;">I understand there are no refunds on {{ AGENCY_SHORT_NAME }} courses. CE hours will NOT be granted on incomplete courses.</p>
     {% if enrollment %}
     <div style="margin-top:14px;background:#fff;border-radius:8px;padding:12px;border:1px solid var(--border);font-size:12px;color:#6b7280;">
       Course: <strong style="color:#0a2540;">Option {{ enrollment.course.option_number }} — {{ enrollment.course.name }}</strong> &nbsp;|&nbsp;
@@ -371,7 +371,7 @@
     </div>
     <p style="font-size:12px;color:#6b7280;text-align:center;margin-bottom:12px;">
       Submitted registrations will be reviewed and countersigned by<br>
-      <strong style="color:#0a2540;">R. Darnall or A. Snodgrass — Panhandle EMS Education</strong>
+      <strong style="color:#0a2540;">R. Darnall or A. Snodgrass — {{ AGENCY_NAME }}</strong>
     </p>
     <button type="submit" class="btn-red w-100" style="padding:12px;">Submit registration →</button>
   </form>
