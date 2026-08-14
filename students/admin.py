@@ -4,7 +4,7 @@ from .models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
     CourseReportRecord, EntranceRequirementRecord,
     PatientContactRecord, PaymentHistory, PaymentRecord,
-    PsychomotorSkillRecord, ReminderLog, Student, StudentNote,
+    PsychomotorSkillRecord, ReminderLog, SiteSettings, Student, StudentNote,
 )
 
 
@@ -148,3 +148,23 @@ class CourseReportRecordAdmin(admin.ModelAdmin):
                                       'submission_deadline', 'notes')}),
         ('Timestamps',    {'fields': ('created_at',)}),
     )
+
+
+@admin.register(SiteSettings)
+class SiteSettingsAdmin(admin.ModelAdmin):
+    fieldsets = (
+        ('Medical Director', {'fields': ('medical_director_name', 'medical_director_phone',
+                                          'medical_director_title')}),
+        ('Agency',            {'fields': ('agency_name', 'agency_address', 'agency_phone', 'agency_email',
+                                           'agency_director', 'agency_director_title',
+                                           'asst_director', 'asst_director_title')}),
+        ('Regulatory',        {'fields': ('ne_approval_number',)}),
+        ('Timestamps',        {'fields': ('updated_at',)}),
+    )
+    readonly_fields = ('updated_at',)
+
+    def has_add_permission(self, request):
+        return not SiteSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False

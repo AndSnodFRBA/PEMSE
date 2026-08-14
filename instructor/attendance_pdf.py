@@ -17,7 +17,9 @@ STATUS_ORDER = ['present', 'absent', 'late', 'excused', 'makeup']
 def generate_attendance_pdf(session):
     """session: an instructor.models.AttendanceRecord instance."""
     from reportlab.lib import colors
+    from students.models import SiteSettings
 
+    site = SiteSettings.get()
     attendances = session.student_attendance.select_related('student').order_by(
         'student__last_name', 'student__first_name'
     )
@@ -60,7 +62,7 @@ def generate_attendance_pdf(session):
     story = []
 
     # ── Header with logo ──────────────────────────────────────────────────
-    title_block = [Paragraph('Panhandle EMS Education', h1), Paragraph('Attendance Roster', sub)]
+    title_block = [Paragraph(site.agency_name, h1), Paragraph('Attendance Roster', sub)]
     logo_path = finders.find('images/PEMSE.jpg')
     if logo_path:
         header_table = Table(

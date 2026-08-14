@@ -17,7 +17,9 @@ from .pdf import BORDER, GRAY, LIGHT, NAVY, _footer
 def generate_payment_receipt(payment):
     """payment: a students.models.PaymentHistory instance."""
     from students.balance import compute_balance
+    from students.models import SiteSettings
 
+    site = SiteSettings.get()
     student = payment.student
     _, total_paid, total_owed, balance_due = compute_balance(student)
     history = student.payment_history.order_by('payment_date')
@@ -62,7 +64,7 @@ def generate_payment_receipt(payment):
     story = []
 
     # ── Header with logo ──────────────────────────────────────────────────
-    title_block = [Paragraph('Panhandle EMS Education', h1), Paragraph('Payment Receipt', sub)]
+    title_block = [Paragraph(site.agency_name, h1), Paragraph('Payment Receipt', sub)]
     logo_path = finders.find('images/PEMSE.jpg')
     if logo_path:
         header_table = Table(

@@ -68,6 +68,8 @@ urlpatterns = [
     path('backups/',                                                views.backup_list,             name='staff_backup_list'),
     # Login lockouts (django-axes)
     path('axes/',                                                   views.axes_lockouts,           name='staff_axes_lockouts'),
+    # Site settings
+    path('settings/',                                               views.site_settings,           name='staff_site_settings'),
     # Reminders
     path('reminders/',                                              views.reminder_dashboard,       name='staff_reminder_dashboard'),
     path('reminders/send/',                                         views.reminder_bulk_send,       name='staff_reminder_send'),

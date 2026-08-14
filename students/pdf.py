@@ -36,12 +36,14 @@ CONTRACT_PARAGRAPHS = [
 
 
 def _footer(canvas, doc):
+    from students.models import SiteSettings
+    site = SiteSettings.get()
     canvas.saveState()
     canvas.setFont('Helvetica', 7)
     canvas.setFillColor(GRAY)
     canvas.drawString(
         0.75 * inch, 0.5 * inch,
-        'Panhandle EMS Education — 709 Rosedale Dr., Scottsbluff, NE 69361 — emseducation19@gmail.com',
+        f'{site.agency_name} — {site.agency_address} — {site.agency_email}',
     )
     canvas.drawRightString(letter[0] - 0.75 * inch, 0.5 * inch, f'Page {doc.page}')
     canvas.restoreState()
@@ -50,7 +52,9 @@ def _footer(canvas, doc):
 def generate_registration_pdf(student):
     from courses.models import CourseEnrollment
     from documents.models import DocumentType, StudentDocument
+    from students.models import SiteSettings
 
+    site = SiteSettings.get()
     enrollment = CourseEnrollment.objects.filter(student=student).select_related('course').first()
     payment    = getattr(student, 'payment', None)
     history    = student.payment_history.order_by('payment_date')
@@ -117,7 +121,7 @@ def generate_registration_pdf(student):
     story = []
 
     # ── Header with logo ──────────────────────────────────────────────────
-    title_block = [Paragraph('Panhandle EMS Education', h1), Paragraph('Student Registration Form', sub)]
+    title_block = [Paragraph(site.agency_name, h1), Paragraph('Student Registration Form', sub)]
     logo_path = finders.find('images/PEMSE.jpg')
     if logo_path:
         header_table = Table(

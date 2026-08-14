@@ -18,6 +18,9 @@ PEMSE_GOLD = colors.HexColor('#C9A84C')
 
 
 def generate_completion_certificate(student, enrollment, gradebook, completion_record):
+    from students.models import SiteSettings
+
+    site = SiteSettings.get()
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -66,7 +69,7 @@ def generate_completion_certificate(student, enrollment, gradebook, completion_r
 
     story.append(Spacer(1, 0.1 * inch))
     story.append(Paragraph('Certificate of Completion', cert_title))
-    story.append(Paragraph('Panhandle EMS Education, LLC', cert_subtitle))
+    story.append(Paragraph(site.agency_name, cert_subtitle))
     story.append(HRFlowable(width='60%', thickness=1, color=PEMSE_GOLD, spaceAfter=16))
 
     story.append(Paragraph('This certifies that', cert_body))
@@ -104,9 +107,9 @@ def generate_completion_certificate(student, enrollment, gradebook, completion_r
     # Signature section
     sig_data = [
         ['_______________________________', '_______________________________'],
-        ['Robin Darnall, Director', 'Dr. Sheila Webb-Bowles, Medical Director'],
-        ['NREMT, EMSI; AHA BLS Instructor', '308.630.3711'],
-        ['Panhandle EMS Education, LLC', 'Medical Director, PEMSE'],
+        [f'{site.agency_director}, {site.agency_director_title}', site.medical_director_name],
+        ['NREMT, EMSI; AHA BLS Instructor', site.medical_director_phone],
+        [site.agency_name, site.medical_director_title],
     ]
     sig_table = Table(sig_data, colWidths=[3.5 * inch, 3.5 * inch])
     sig_table.setStyle(TableStyle([
@@ -125,7 +128,7 @@ def generate_completion_certificate(student, enrollment, gradebook, completion_r
     # Footer
     story.append(Spacer(1, 0.1 * inch))
     story.append(Paragraph(
-        '709 Rosedale Dr., Scottsbluff, NE 69361  |  emseducation19@gmail.com  |  308.631.2424',
+        f'{site.agency_address}  |  {site.agency_email}  |  {site.agency_phone}',
         cert_small
     ))
     story.append(Paragraph(

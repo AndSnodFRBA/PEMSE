@@ -1,0 +1,93 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}Settings — PEMSE Staff{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">Settings</h1>
+</div>
+
+<p style="font-size:13px;color:#6b7280;margin-bottom:16px;">
+  Medical director and agency contact info shown across all PDFs — certificates, DHHS reports,
+  receipts, and rosters.
+</p>
+
+<div class="card" style="max-width:700px;">
+  <div class="card-body p-4">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <h6 style="font-weight:700;color:#1a2e4a;font-size:12px;letter-spacing:.8px;text-transform:uppercase;margin-bottom:16px;">Medical Director</h6>
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Name</label>
+          {{ form.medical_director_name }}
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Phone</label>
+          {{ form.medical_director_phone }}
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Title</label>
+          {{ form.medical_director_title }}
+        </div>
+      </div>
+
+      <hr style="border-color:#e5e7eb;margin-bottom:20px;">
+
+      <h6 style="font-weight:700;color:#1a2e4a;font-size:12px;letter-spacing:.8px;text-transform:uppercase;margin-bottom:16px;">Agency</h6>
+      <div class="row g-3 mb-4">
+        <div class="col-12">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Agency Name</label>
+          {{ form.agency_name }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Address</label>
+          {{ form.agency_address }}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Phone</label>
+          {{ form.agency_phone }}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Email</label>
+          {{ form.agency_email }}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Director</label>
+          {{ form.agency_director }}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Director Title</label>
+          {{ form.agency_director_title }}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Assistant Director</label>
+          {{ form.asst_director }}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Assistant Director Title</label>
+          {{ form.asst_director_title }}
+        </div>
+      </div>
+
+      <hr style="border-color:#e5e7eb;margin-bottom:20px;">
+
+      <h6 style="font-weight:700;color:#1a2e4a;font-size:12px;letter-spacing:.8px;text-transform:uppercase;margin-bottom:16px;">Regulatory</h6>
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Nebraska DHHS Approval #</label>
+          {{ form.ne_approval_number }}
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-sm" style="background:#2B5EA7;color:#fff;border-radius:7px;font-size:13px;padding:7px 18px;">
+        Save Settings
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

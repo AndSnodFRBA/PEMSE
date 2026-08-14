@@ -24,7 +24,7 @@ from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
     CourseReportRecord, EntranceRequirementRecord, LatePaymentFee,
     PatientContactRecord, PaymentHistory, PaymentRecord, PsychomotorSkillRecord,
-    ReminderLog, Student, StudentNote, StudentNotification,
+    ReminderLog, SiteSettings, Student, StudentNote, StudentNotification,
 )
 from students.reminders import BalanceDueRule, RegistrationIncompleteRule
 from .forms import (
@@ -42,6 +42,7 @@ from .forms import (
     PaymentHistoryForm,
     PsychomotorSkillForm,
     ReminderBulkSendForm,
+    SiteSettingsForm,
     StaffAccountInviteForm,
     StaffAnnouncementForm,
     StaffAssignCourseForm,
@@ -625,6 +626,17 @@ def add_late_fee(request, pk):
         else:
             messages.error(request, 'Please correct the errors below.')
     return redirect(f"{reverse('staff_student_detail', args=[pk])}#late-fees")
+
+
+@staff_required
+def site_settings(request):
+    settings_obj = SiteSettings.get()
+    form = SiteSettingsForm(request.POST or None, instance=settings_obj)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Site settings updated.')
+        return redirect('staff_site_settings')
+    return render(request, 'staff/site_settings.html', {'form': form})
 
 
 @staff_required

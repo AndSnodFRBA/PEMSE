@@ -6,7 +6,7 @@ from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
     CourseReportRecord, EntranceRequirementRecord, LatePaymentFee,
     PatientContactRecord, PaymentHistory, PaymentRecord, PsychomotorSkillRecord,
-    Student, StudentNote,
+    SiteSettings, Student, StudentNote,
 )
 from instructor.models import (
     InstructorCourseAssignment, InstructorObservation,
@@ -581,3 +581,15 @@ class RemediationUpdateForm(forms.ModelForm):
             'completion_date':  forms.DateInput(attrs=_date),
             'completion_notes': forms.Textarea(attrs={**_fc, 'rows': 3}),
         }
+
+
+class SiteSettingsForm(forms.ModelForm):
+    class Meta:
+        model  = SiteSettings
+        fields = [
+            'medical_director_name', 'medical_director_phone', 'medical_director_title',
+            'agency_name', 'agency_address', 'agency_phone', 'agency_email',
+            'agency_director', 'agency_director_title', 'asst_director', 'asst_director_title',
+            'ne_approval_number',
+        ]
+        widgets = {field: forms.TextInput(attrs=_fc) for field in fields}

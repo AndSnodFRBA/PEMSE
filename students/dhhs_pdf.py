@@ -10,15 +10,12 @@ from reportlab.platypus import HRFlowable, Paragraph, SimpleDocTemplate, Spacer,
 
 from .pdf import BORDER, LIGHT, NAVY, _footer
 
-PEMSE_ADDRESS = '709 Rosedale Dr., Scottsbluff, NE 69361'
-PEMSE_PHONE   = '308.631.2424'
-PEMSE_EMAIL   = 'emseducation19@gmail.com'
-SIGNER_NAME   = 'Robin Darnall'
-SIGNER_TITLE  = 'Program Director'
-
 
 def generate_dhhs_report(report):
     """report: a students.models.CourseReportRecord instance."""
+    from students.models import SiteSettings
+
+    site = SiteSettings.get()
     course = report.course
 
     buf = io.BytesIO()
@@ -69,10 +66,12 @@ def generate_dhhs_report(report):
     # ── Section 1: Training Agency Information ────────────────────────────
     story += section('1. Training Agency Information')
     story.append(kv_table([
-        ['Agency Name', report.training_agency_name or 'Panhandle EMS Education'],
-        ['Address', PEMSE_ADDRESS],
-        ['Phone', PEMSE_PHONE],
-        ['Email', PEMSE_EMAIL],
+        ['Agency Name', report.training_agency_name or site.agency_name],
+        ['Address', site.agency_address],
+        ['Phone', site.agency_phone],
+        ['Email', site.agency_email],
+        ['Medical Director', f'{site.medical_director_name} — {site.medical_director_phone}'],
+        ['NE DHHS Approval #', site.ne_approval_number or '—'],
     ]))
 
     # ── Section 2: Course Information ──────────────────────────────────────
@@ -112,10 +111,10 @@ def generate_dhhs_report(report):
         body,
     ))
     story.append(Spacer(1, 30))
-    story.append(Paragraph(f'Signature: _________________________________  ({SIGNER_NAME})', body))
+    story.append(Paragraph(f'Signature: _________________________________  ({site.agency_director})', body))
     story.append(Spacer(1, 14))
-    story.append(Paragraph(f'Name: {SIGNER_NAME}', body))
-    story.append(Paragraph(f'Title: {SIGNER_TITLE}', body))
+    story.append(Paragraph(f'Name: {site.agency_director}', body))
+    story.append(Paragraph(f'Title: {site.agency_director_title}', body))
     story.append(Paragraph('Date: ______________', body))
 
     story.append(Spacer(1, 20))

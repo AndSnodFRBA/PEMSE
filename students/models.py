@@ -604,3 +604,40 @@ class WebhookLog(models.Model):
     def __str__(self):
         status = 'OK' if self.success else 'FAILED'
         return f'Webhook run {self.triggered_at:%Y-%m-%d %H:%M} — {status}'
+
+
+class SiteSettings(models.Model):
+    """Singleton — agency contact info and medical director details used across all PDFs."""
+
+    medical_director_name  = models.CharField(max_length=200, default='Dr. Sheila Webb-Bowles')
+    medical_director_phone = models.CharField(max_length=30, default='308.630.3711')
+    medical_director_title = models.CharField(max_length=200, default='Medical Director, PEMSE')
+
+    agency_name          = models.CharField(max_length=200, default='Panhandle EMS Education, LLC')
+    agency_address       = models.CharField(max_length=300, default='709 Rosedale Dr., Scottsbluff, NE 69361')
+    agency_phone         = models.CharField(max_length=30, default='308.631.2424')
+    agency_email         = models.CharField(max_length=200, default='emseducation19@gmail.com')
+    agency_director      = models.CharField(max_length=200, default='Robin Darnall')
+    agency_director_title = models.CharField(max_length=200, default='Program Director')
+    asst_director        = models.CharField(max_length=200, blank=True)
+    asst_director_title  = models.CharField(max_length=200, blank=True)
+
+    ne_approval_number = models.CharField(max_length=100, blank=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Site Settings'
+        verbose_name_plural = 'Site Settings'
+
+    def __str__(self):
+        return 'Site Settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
