@@ -120,6 +120,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'pemse.middleware.RealIPMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # static files on Railway
     'django.contrib.sessions.middleware.SessionMiddleware',
