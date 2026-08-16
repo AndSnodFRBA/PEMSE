@@ -17,4 +17,6 @@ urlpatterns = [
     path('notifications/mark-all-read/',      views.mark_all_notifications_read,  name='mark_all_notifications_read'),
     path('notifications/delete/<int:notif_id>/', views.delete_notification,          name='delete_notification'),
     path('certificate/', views.completion_certificate_pdf, name='completion_certificate_pdf'),
+    path('sandbox/',       views.sandbox_entry, name='sandbox_entry'),
+    path('sandbox/login/', views.sandbox_login, name='sandbox_login'),
 ]

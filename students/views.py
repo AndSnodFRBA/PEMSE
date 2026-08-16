@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.http import HttpResponse, HttpResponseForbidden, Http404, JsonResponse
 from django.utils import timezone
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
@@ -547,3 +547,68 @@ def daily_tasks_webhook(request):
 
     WebhookLog.objects.create(results=results, success=success)
     return JsonResponse({'success': success, 'results': results})
+
+
+SANDBOX_ROLES = [
+    {
+        'role': 'Staff',
+        'email': 'director@emstrainingportal.com',
+        'password': 'demo1234',
+        'description': 'Manage students, review documents, enter grades, post announcements',
+        'icon': '🏢',
+        'color': '#38bdf8',
+        'next_name': 'staff_dashboard',
+    },
+    {
+        'role': 'Instructor',
+        'email': 'instructor@emstrainingportal.com',
+        'password': 'demo1234',
+        'description': 'Take attendance, log hours, view student roster and progress',
+        'icon': '📋',
+        'color': '#a78bfa',
+        'next_name': 'instructor_dashboard',
+    },
+    {
+        'role': 'Student',
+        'email': 'james.anderson@emstrainingportal.com',
+        'password': 'demo1234',
+        'description': 'View dashboard, grades, calendar, documents, and evaluations',
+        'icon': '🎓',
+        'color': '#34d399',
+        'next_name': 'dashboard',
+    },
+    {
+        'role': 'Student (at risk)',
+        'email': 'michael.brown@emstrainingportal.com',
+        'password': 'demo1234',
+        'description': 'Student with failing grades — see how the at-risk alert system works',
+        'icon': '⚠️',
+        'color': '#fb923c',
+        'next_name': 'dashboard',
+    },
+]
+
+
+def sandbox_entry(request):
+    if not settings.DEMO_MODE:
+        raise Http404
+    return render(request, 'students/sandbox_entry.html', {'roles': SANDBOX_ROLES})
+
+
+@require_POST
+def sandbox_login(request):
+    if not settings.DEMO_MODE:
+        raise Http404
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    email = request.POST.get('email')
+    password = request.POST.get('password')
+    next_url = request.POST.get('next') or '/dashboard/'
+    if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        next_url = '/dashboard/'
+    user = authenticate(request, username=email, password=password)
+    if user is not None:
+        login(request, user, backend='students.backends.EmailBackend')
+        return redirect(next_url)
+    messages.error(request, 'Sandbox login failed.')
+    return redirect('sandbox_entry')

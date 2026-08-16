@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMS Training Portal — Sandbox</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, "Segoe UI", sans-serif;
+            background: linear-gradient(160deg, #0f172a, #1e293b);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 16px;
+        }
+        .sandbox-banner {
+            background: #f59e0b;
+            color: #0f172a;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+            letter-spacing: .5px;
+        }
+        .sandbox-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .sandbox-sub {
+            font-size: 14px;
+            color: rgba(255,255,255,.5);
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .sandbox-error {
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px 18px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+        .roles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            width: 100%;
+            max-width: 860px;
+            margin-bottom: 32px;
+        }
+        .role-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px 20px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: transform .15s, border-color .15s;
+        }
+        .role-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255,255,255,.3);
+        }
+        .role-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .role-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+        .role-desc {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .role-btn {
+            display: inline-block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            border-radius: 8px;
+            padding: 8px 20px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity .15s;
+        }
+        .role-btn:hover { opacity: .85; }
+        .sandbox-note {
+            font-size: 12px;
+            color: rgba(255,255,255,.3);
+            text-align: center;
+        }
+        .sandbox-note a { color: rgba(255,255,255,.4); }
+        .powered-by {
+            margin-top: 24px;
+            font-size: 11px;
+            color: rgba(255,255,255,.2);
+            text-align: center;
+        }
+        .powered-by a { color: rgba(255,255,255,.3); text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="sandbox-banner">🧪 SANDBOX — Demo environment</div>
+    <div class="sandbox-title">EMS Training Portal</div>
+    <div class="sandbox-sub">Choose a role to explore — no account needed</div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="sandbox-error">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="roles-grid">
+        {% for role in roles %}
+        <div class="role-card">
+            <span class="role-icon">{{ role.icon }}</span>
+            <div class="role-name">{{ role.role }}</div>
+            <div class="role-desc">{{ role.description }}</div>
+            <form method="post" action="{% url 'sandbox_login' %}">
+                {% csrf_token %}
+                <input type="hidden" name="email" value="{{ role.email }}">
+                <input type="hidden" name="password" value="{{ role.password }}">
+                <input type="hidden" name="next" value="{% url role.next_name %}">
+                <button type="submit" class="role-btn" style="background:{{ role.color }};">
+                    Enter as {{ role.role }} →
+                </button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="sandbox-note">
+        Changes in the sandbox do not affect the live PEMSE portal —
+        <a href="{% url 'staff_reset_demo' %}" onclick="return confirm('Reset all demo data to its original state?');">Reset demo data</a>
+    </div>
+    <div class="powered-by">Powered by <a href="https://www.fourlinesoftware.com">Four Line Software LLC</a></div>
+</body>
+</html>
