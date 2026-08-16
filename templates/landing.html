@@ -246,13 +246,20 @@
     {% if AGENCY_LOGO_URL %}
     <img src="{{ AGENCY_LOGO_URL }}" alt="{{ AGENCY_NAME }}" class="brand-logo"
          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-    {% else %}
-    <img src="{% static 'images/PEMSE.jpg' %}" alt="{{ AGENCY_NAME }}" class="brand-logo"
-         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-    {% endif %}
     <div class="brand-logo-placeholder" style="display:none;">
       <i class="bi bi-heart-pulse-fill" style="font-size:36px;color:rgba(255,255,255,.7);"></i>
     </div>
+    {% elif DEMO_MODE %}
+    <div class="brand-logo-placeholder">
+      <i class="bi bi-heart-pulse-fill" style="font-size:36px;color:rgba(255,255,255,.7);"></i>
+    </div>
+    {% else %}
+    <img src="{% static 'images/PEMSE.jpg' %}" alt="{{ AGENCY_NAME }}" class="brand-logo"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+    <div class="brand-logo-placeholder" style="display:none;">
+      <i class="bi bi-heart-pulse-fill" style="font-size:36px;color:rgba(255,255,255,.7);"></i>
+    </div>
+    {% endif %}
     <h1 class="brand-name">{{ AGENCY_NAME }}</h1>
     <div class="brand-tagline">Student Portal</div>
   </div>

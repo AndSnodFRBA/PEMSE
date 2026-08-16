@@ -52,11 +52,15 @@
 
 <aside class="sidebar" id="mainSidebar">
   <div class="sidebar-brand">
+    {% if DEMO_MODE %}
+    <span class="portal-logo-text">EMS Training Portal</span>
+    {% else %}
     <img src="{% static 'images/PEMSE.jpg' %}" alt="{{ AGENCY_SHORT_NAME }} Logo" class="brand-logo"
          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
     <div class="brand-logo-fallback" style="display:none;">
       <i class="bi bi-shield-fill" style="color:white;font-size:18px;"></i>
     </div>
+    {% endif %}
     <div>
       <div class="brand-name">{{ AGENCY_NAME }}</div>
       <div class="brand-sub">Staff Portal</div>

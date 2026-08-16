@@ -22,9 +22,11 @@
   <div class="auth-wrap">
     <div>
       <div class="auth-logo">
+        {% if not DEMO_MODE %}
         <img src="{% static 'images/PEMSE.jpg' %}" alt="{{ AGENCY_NAME }}"
              class="auth-logo-img"
              onerror="this.style.display='none';">
+        {% endif %}
         <div class="auth-logo-name">{{ AGENCY_NAME }}</div>
         <div class="auth-logo-sub">Staff Portal</div>
       </div>

@@ -121,10 +121,9 @@ With `DEMO_MODE=True`:
   to rebrand every PDF; nobody needs to visit `/staff/settings/` on the demo
   project.
 
-## Known limitation: the logo image itself
+## The logo image
 
 The `AGENCY_LOGO_URL` variable (optional) lets you swap the logo image for a
-prospect. If it's left unset, the site falls back to the bundled
-`static/images/PEMSE.jpg` file — which is the real PEMSE logo. All *text*
-branding is fully generic by default, but the logo graphic is not unless you
-set `AGENCY_LOGO_URL` to a neutral image.
+prospect. If it's left unset and `DEMO_MODE=True`, every page falls back to
+generic text/icon placeholders instead of the bundled `static/images/PEMSE.jpg`
+file (the real PEMSE logo), so the demo never shows that graphic.
