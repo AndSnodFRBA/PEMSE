@@ -21,7 +21,7 @@
 *, *::before, *::after { box-sizing: border-box; }
 body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
 
-.portal-body  { display: flex; min-height: 100vh; }
+.portal-body  { display: flex; flex-direction: column; min-height: 100vh; }
 .portal-main  { margin-left: var(--sidebar-w); flex: 1; padding: 28px 36px; min-width: 0; max-width: 960px; }
 .messages-wrap { margin-bottom: 16px; }
 
