@@ -1,3 +1,13 @@
+# This file is shared by every Railway service that deploys this repo
+# (production and the demo instance alike) — it is not where per-service
+# secrets like DATABASE_URL live. Each service must have its own
+# DATABASE_URL set in that service's Railway Variables, pointing at its
+# own Postgres addon (e.g. ${{Postgres.DATABASE_URL}}). Without it, Django
+# silently falls back to an ephemeral SQLite file inside the container
+# (see the DATABASE_URL default in pemse/settings.py), and all data is
+# lost on every redeploy. This happened to the demo instance's
+# pemse-demo-web service until DATABASE_URL was added there directly.
+
 [build]
 builder = "nixpacks"
 
