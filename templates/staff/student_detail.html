@@ -694,14 +694,42 @@
 </div>
 
 <!-- Clinical Rotations -->
-<div class="card mt-3">
+<div class="card mt-3" id="clinical-rotations">
   <div class="card-header py-3 d-flex align-items-center justify-content-between"
        style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
     <span><i class="bi bi-clipboard2-pulse me-2"></i>Clinical Rotations</span>
-    <a href="{% url 'staff_eval_list' %}?student={{ student.pk }}" class="btn btn-sm btn-outline-secondary" style="font-size:11px;border-radius:6px;">
-      View in Evaluations
-    </a>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#add-rotation-form" style="font-size:11px;border-radius:6px;">
+        <i class="bi bi-plus-lg me-1"></i>Add Rotation
+      </button>
+      <a href="{% url 'staff_eval_list' %}?student={{ student.pk }}" class="btn btn-sm btn-outline-secondary" style="font-size:11px;border-radius:6px;">
+        View in Evaluations
+      </a>
+    </div>
   </div>
+
+  <div class="collapse" id="add-rotation-form">
+    <div class="card-body border-bottom" style="background:#eff6ff;">
+      <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">Logs hours only — does not send a preceptor evaluation request. The student can still request one themselves if needed.</div>
+      <form method="post" action="{% url 'staff_add_rotation' student.pk %}">
+        {% csrf_token %}
+        <div class="row g-2">
+          <div class="col-md-2"><label class="form-label" style="font-size:11px;font-weight:600;">Date *</label>{{ rotation_form.rotation_date }}</div>
+          <div class="col-md-3"><label class="form-label" style="font-size:11px;font-weight:600;">Site Name *</label>{{ rotation_form.site_name }}</div>
+          <div class="col-md-2"><label class="form-label" style="font-size:11px;font-weight:600;">Site Type *</label>{{ rotation_form.site_type }}</div>
+          <div class="col-md-3"><label class="form-label" style="font-size:11px;font-weight:600;">Site City</label>{{ rotation_form.site_city }}</div>
+          <div class="col-md-2"><label class="form-label" style="font-size:11px;font-weight:600;">Course</label>{{ rotation_form.course }}</div>
+          <div class="col-md-4"><label class="form-label" style="font-size:11px;font-weight:600;">Site Address</label>{{ rotation_form.site_address }}</div>
+          <div class="col-md-2"><label class="form-label" style="font-size:11px;font-weight:600;">Shift Start</label>{{ rotation_form.shift_start }}</div>
+          <div class="col-md-2"><label class="form-label" style="font-size:11px;font-weight:600;">Shift End</label>{{ rotation_form.shift_end }}</div>
+          <div class="col-md-2"><label class="form-label" style="font-size:11px;font-weight:600;">Hours *</label>{{ rotation_form.hours_completed }}</div>
+          <div class="col-md-2"><label class="form-label" style="font-size:11px;font-weight:600;">Patient Contacts</label>{{ rotation_form.patient_contacts }}</div>
+        </div>
+        <button type="submit" class="btn btn-sm btn-primary mt-2" style="font-size:12px;border-radius:6px;">Save Rotation</button>
+      </form>
+    </div>
+  </div>
+
   <div class="card-body p-0">
     {% if student.rotations.all %}
     <table class="table table-sm mb-0" style="font-size:12px;">
@@ -743,8 +771,11 @@
               {% else %}—{% endif %}{% endwith %}
             {% else %}—{% endif %}{% endwith %}
           </td>
-          <td class="py-2 pe-3">
+          <td class="py-2 pe-3 d-flex gap-1">
             <a href="{% url 'staff_eval_detail' r.pk %}" class="btn btn-sm btn-outline-secondary" style="font-size:10px;border-radius:5px;">View</a>
+            <form method="post" action="{% url 'staff_delete_rotation' student.pk r.pk %}" onsubmit="return confirm('Delete this rotation record?')">
+              {% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:10px;border-radius:5px;padding:2px 7px;"><i class="bi bi-trash"></i></button>
+            </form>
           </td>
         </tr>
         {% endfor %}
@@ -835,6 +866,10 @@
       <li class="nav-item"><button class="nav-link {% if active_tab == 'contacts' %}active{% endif %}" id="contacts-tab" data-bs-toggle="tab" data-bs-target="#contacts" type="button">
         <i class="bi bi-person-heart me-1"></i>Patient Contacts
         <span class="badge ms-1" style="background:{% if patient_contacts %}#2B5EA7{% else %}#d1d5db{% endif %};color:#fff;font-size:10px;">{{ pc_totals.total }}</span>
+      </button></li>
+      <li class="nav-item"><button class="nav-link {% if active_tab == 'scenarios' %}active{% endif %}" id="scenarios-tab" data-bs-toggle="tab" data-bs-target="#scenarios" type="button">
+        <i class="bi bi-clipboard2-pulse me-1"></i>Scenarios
+        <span class="badge ms-1" style="background:{% if scenario_records %}#2B5EA7{% else %}#d1d5db{% endif %};color:#fff;font-size:10px;">{{ scenario_records|length }}</span>
       </button></li>
       <li class="nav-item"><button class="nav-link {% if active_tab == 'entrance' %}active{% endif %}" id="entrance-tab" data-bs-toggle="tab" data-bs-target="#entrance" type="button">
         <i class="bi bi-check2-circle me-1"></i>Entrance Requirements
@@ -1068,6 +1103,74 @@
         </div>
         {% else %}
         <p style="color:#9ca3af;font-size:13px;">No patient contact records yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- TAB: Scenarios -->
+    <div class="tab-pane fade {% if active_tab == 'scenarios' %}show active{% endif %}" id="scenarios" role="tabpanel">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div style="font-size:12px;color:#6b7280;">Documentation of in-class scenarios — student, date/time, category, and administering/sign-off instructor.</div>
+          <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#add-scenario-form" style="font-size:12px;border-radius:6px;">
+            <i class="bi bi-plus-lg me-1"></i>Add Scenario
+          </button>
+        </div>
+
+        <div class="collapse mb-3" id="add-scenario-form">
+          <div class="card border-primary">
+            <div class="card-header" style="background:#eff6ff;border-color:#dbeafe;font-size:12px;font-weight:600;color:#1e3a8a;">Add Scenario</div>
+            <div class="card-body">
+              <form method="post" action="{% url 'staff_add_scenario' student.pk %}">
+                {% csrf_token %}
+                <div class="row g-2">
+                  <div class="col-md-2"><label class="form-label" style="font-size:11px;font-weight:600;">Date *</label>{{ scenario_form.scenario_date }}</div>
+                  <div class="col-md-2"><label class="form-label" style="font-size:11px;font-weight:600;">Time</label>{{ scenario_form.scenario_time }}</div>
+                  <div class="col-md-3"><label class="form-label" style="font-size:11px;font-weight:600;">Category *</label>{{ scenario_form.scenario_category }}</div>
+                  <div class="col-md-5"><label class="form-label" style="font-size:11px;font-weight:600;">Scenario</label>{{ scenario_form.scenario_description }}</div>
+                  <div class="col-md-5"><label class="form-label" style="font-size:11px;font-weight:600;">Instructor (administered / signed off) *</label>{{ scenario_form.instructor }}</div>
+                  <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-check">{{ scenario_form.signed_off }}<label class="form-check-label" style="font-size:12px;">Signed off</label></div>
+                  </div>
+                  <div class="col-12"><label class="form-label" style="font-size:11px;font-weight:600;">Notes</label>{{ scenario_form.notes }}</div>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary mt-2" style="font-size:12px;border-radius:6px;">Save Scenario</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        {% if scenario_records %}
+        <div style="overflow-x:auto;">
+        <table class="table table-sm mb-0" style="font-size:12px;">
+          <thead style="background:#f8fafc;">
+            <tr>
+              <th class="py-2 ps-2">Date</th><th class="py-2">Category</th><th class="py-2">Scenario</th>
+              <th class="py-2">Instructor</th><th class="py-2">Signed Off</th><th class="py-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in scenario_records %}
+            <tr style="border-bottom:1px solid #f0f4f8;">
+              <td class="py-2 ps-2" style="white-space:nowrap;">{{ s.scenario_date|date:"M j, Y" }}{% if s.scenario_time %} <span style="color:#9ca3af;">{{ s.scenario_time|time:"g:i A" }}</span>{% endif %}</td>
+              <td class="py-2">{{ s.get_scenario_category_display }}</td>
+              <td class="py-2">{{ s.scenario_description|default:"—" }}</td>
+              <td class="py-2">{{ s.instructor.get_full_name|default:"—" }}</td>
+              <td class="py-2">
+                {% if s.signed_off %}<span style="color:#065f46;font-weight:700;">✓ Signed</span>{% else %}<span style="color:#9ca3af;">Pending</span>{% endif %}
+              </td>
+              <td class="py-2">
+                <form method="post" action="{% url 'staff_delete_scenario' student.pk s.pk %}" onsubmit="return confirm('Delete this scenario record?')">
+                  {% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:10px;border-radius:5px;padding:2px 7px;"><i class="bi bi-trash"></i></button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p style="color:#9ca3af;font-size:13px;">No scenario records yet.</p>
         {% endif %}
       </div>
     </div>

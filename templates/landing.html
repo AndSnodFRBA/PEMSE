@@ -9,10 +9,8 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <style>
     :root {
-      --navy:      #1a2e4a;
-      --navy-mid:  #2B5EA7;
-      --accent:    #5B9BC8;
-      --navy-deep: #163366;
+      --navy:   {{ AGENCY_NAVY }};
+      --accent: {{ AGENCY_ACCENT }};
     }
 
     * { box-sizing: border-box; }
@@ -21,7 +19,7 @@
       margin: 0;
       font-family: 'DM Sans', sans-serif;
       min-height: 100vh;
-      background: linear-gradient(145deg, var(--navy) 0%, #1e3a6e 40%, #2B5EA7 80%, var(--accent) 100%);
+      background: linear-gradient(145deg, var(--navy) 0%, var(--navy) 55%, var(--accent) 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -176,7 +174,7 @@
       color: #5a7a9a;
       text-decoration: none;
     }
-    .btn-secondary-link:hover { color: var(--navy-mid); text-decoration: underline; }
+    .btn-secondary-link:hover { color: var(--navy); text-decoration: underline; }
 
     /* ── Footer ── */
     .landing-footer {
@@ -268,7 +266,7 @@
   <div class="cards-row">
 
     <!-- Student -->
-    <div class="portal-card" style="--card-accent: #5B9BC8;">
+    <div class="portal-card" style="--card-accent: {{ AGENCY_NAVY }};">
       <div class="card-icon-wrap">
         <i class="bi bi-person-fill"></i>
       </div>
@@ -281,7 +279,7 @@
     </div>
 
     <!-- Instructor -->
-    <div class="portal-card" style="--card-accent: #2B5EA7;">
+    <div class="portal-card" style="--card-accent: {{ AGENCY_ACCENT }};">
       <div class="card-icon-wrap">
         <i class="bi bi-mortarboard-fill"></i>
       </div>

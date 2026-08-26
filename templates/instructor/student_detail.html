@@ -189,6 +189,93 @@
   {% endif %}
 </div>
 
+<!-- Clinical rotations -->
+<div class="card mb-3">
+  <div class="card-body py-2 px-3 border-bottom" style="background:#f8fafc;">
+    <span class="fw-semibold" style="font-size:13px;">Clinical Rotations</span>
+    <span class="text-muted" style="font-size:12px;"> — Total: {{ rotations|length }}</span>
+  </div>
+  <div class="p-3">
+    <form method="post" class="mb-3">
+      {% csrf_token %}
+      <div class="row g-2">
+        <div class="col-md-2"><label class="form-label" style="font-size:11px;font-weight:600;">Date *</label>{{ rotation_form.rotation_date }}</div>
+        <div class="col-md-3"><label class="form-label" style="font-size:11px;font-weight:600;">Site Name *</label>{{ rotation_form.site_name }}</div>
+        <div class="col-md-2"><label class="form-label" style="font-size:11px;font-weight:600;">Site Type *</label>{{ rotation_form.site_type }}</div>
+        <div class="col-md-2"><label class="form-label" style="font-size:11px;font-weight:600;">Hours *</label>{{ rotation_form.hours_completed }}</div>
+        <div class="col-md-3"><label class="form-label" style="font-size:11px;font-weight:600;">Patient Contacts</label>{{ rotation_form.patient_contacts }}</div>
+        <div class="col-md-3"><label class="form-label" style="font-size:11px;font-weight:600;">Site City</label>{{ rotation_form.site_city }}</div>
+        <div class="col-md-3"><label class="form-label" style="font-size:11px;font-weight:600;">Shift Start</label>{{ rotation_form.shift_start }}</div>
+        <div class="col-md-3"><label class="form-label" style="font-size:11px;font-weight:600;">Shift End</label>{{ rotation_form.shift_end }}</div>
+        <div class="col-md-3"><label class="form-label" style="font-size:11px;font-weight:600;">Site Address</label>{{ rotation_form.site_address }}</div>
+      </div>
+      <div class="text-muted mt-1 mb-2" style="font-size:11px;">Logs hours only — does not send a preceptor evaluation request.</div>
+      <button type="submit" class="btn btn-sm btn-primary">Save Rotation</button>
+    </form>
+    {% if rotations %}
+    <table class="table table-sm mb-0" style="font-size:12px;">
+      <thead style="background:#f8fafc;">
+        <tr><th class="py-2">Date</th><th class="py-2">Site</th><th class="py-2">Type</th><th class="py-2">Hours</th><th class="py-2">Patients</th></tr>
+      </thead>
+      <tbody>
+        {% for r in rotations %}
+        <tr style="border-bottom:1px solid #f0f4f8;">
+          <td class="py-2">{{ r.rotation_date|date:"M j, Y" }}</td>
+          <td class="py-2">{{ r.site_name }}</td>
+          <td class="py-2">{{ r.get_site_type_display }}</td>
+          <td class="py-2">{{ r.hours_completed }}</td>
+          <td class="py-2">{{ r.patient_contacts }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-muted text-center" style="font-size:13px;">No clinical rotations recorded yet.</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Scenario documentation -->
+<div class="card mb-3">
+  <div class="card-body py-2 px-3 border-bottom" style="background:#f8fafc;">
+    <span class="fw-semibold" style="font-size:13px;">Scenarios</span>
+    <span class="text-muted" style="font-size:12px;"> — Total: {{ scenario_records|length }}</span>
+  </div>
+  <div class="p-3">
+    <form method="post" class="mb-3">
+      {% csrf_token %}
+      <div class="row g-2">
+        <div class="col-md-2"><label class="form-label" style="font-size:11px;font-weight:600;">Date *</label>{{ scenario_form.scenario_date }}</div>
+        <div class="col-md-2"><label class="form-label" style="font-size:11px;font-weight:600;">Time</label>{{ scenario_form.scenario_time }}</div>
+        <div class="col-md-3"><label class="form-label" style="font-size:11px;font-weight:600;">Category *</label>{{ scenario_form.scenario_category }}</div>
+        <div class="col-md-5"><label class="form-label" style="font-size:11px;font-weight:600;">Scenario</label>{{ scenario_form.scenario_description }}</div>
+        <div class="col-12"><label class="form-label" style="font-size:11px;font-weight:600;">Notes</label>{{ scenario_form.notes }}</div>
+      </div>
+      <div class="text-muted mt-1 mb-2" style="font-size:11px;">Submitting signs this off under your name as the administering instructor.</div>
+      <button type="submit" class="btn btn-sm btn-primary">Save &amp; Sign Off</button>
+    </form>
+    {% if scenario_records %}
+    <table class="table table-sm mb-0" style="font-size:12px;">
+      <thead style="background:#f8fafc;">
+        <tr><th class="py-2">Date</th><th class="py-2">Category</th><th class="py-2">Scenario</th><th class="py-2">Instructor</th></tr>
+      </thead>
+      <tbody>
+        {% for s in scenario_records %}
+        <tr style="border-bottom:1px solid #f0f4f8;">
+          <td class="py-2">{{ s.scenario_date|date:"M j, Y" }}</td>
+          <td class="py-2">{{ s.get_scenario_category_display }}</td>
+          <td class="py-2">{{ s.scenario_description|default:"—" }}</td>
+          <td class="py-2">{{ s.instructor.get_full_name|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-muted text-center" style="font-size:13px;">No scenarios recorded yet.</div>
+    {% endif %}
+  </div>
+</div>
+
 <!-- Instructor notes -->
 <div class="card mb-3">
   <div class="card-body py-2 px-3 border-bottom" style="background:#f8fafc;">

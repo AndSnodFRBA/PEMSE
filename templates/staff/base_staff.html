@@ -172,6 +172,16 @@
     </a>
   </nav>
 
+  {% if request.user.role == 'admin' or request.user.is_superuser %}
+  <div class="sidebar-section-label mt-3">Program Director</div>
+  <nav class="sidebar-nav">
+    <a href="{% url 'staff_medical_director_log' %}"
+       class="nav-item {% if request.resolver_match.url_name == 'staff_medical_director_log' %}active{% endif %}">
+      <i class="bi bi-file-earmark-medical-fill"></i> Medical Director Log
+    </a>
+  </nav>
+  {% endif %}
+
   <div class="sidebar-user">
     <div class="user-avatar">{{ request.user.initials }}</div>
     <div class="user-info">

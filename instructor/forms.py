@@ -1,7 +1,8 @@
 from django import forms
 
 from documents.models import InstructorDocument
-from students.models import Student
+from evaluations.models import ClinicalRotation
+from students.models import ScenarioRecord, Student
 from .models import (
     AttendanceRecord,
     InstructionalHourLog,
@@ -116,6 +117,49 @@ class StudentAttendanceForm(forms.ModelForm):
             'arrival_time': forms.TimeInput(attrs=_time),
             'notes':        forms.TextInput(attrs={**_fc, 'placeholder': 'Optional note…'}),
         }
+
+
+class InstructorScenarioForm(forms.ModelForm):
+    """Instructor logs a scenario they personally administered — signed off automatically."""
+    class Meta:
+        model  = ScenarioRecord
+        fields = ['scenario_date', 'scenario_time', 'scenario_category', 'scenario_description', 'notes']
+        widgets = {
+            'scenario_date':        forms.DateInput(attrs=_date),
+            'scenario_time':        forms.TimeInput(attrs=_time),
+            'scenario_category':    forms.Select(attrs=_fs),
+            'scenario_description': forms.TextInput(attrs={**_fc, 'placeholder': 'e.g. Chest Pain / STEMI'}),
+            'notes':                forms.Textarea(attrs={**_fc, 'rows': 2}),
+        }
+
+
+class InstructorRotationForm(forms.ModelForm):
+    """Instructor logs a clinical rotation on a student's behalf — hours only, no preceptor evaluation request."""
+    class Meta:
+        model  = ClinicalRotation
+        fields = [
+            'site_name', 'site_address', 'site_city', 'site_type',
+            'rotation_date', 'shift_start', 'shift_end',
+            'hours_completed', 'patient_contacts',
+        ]
+        widgets = {
+            'site_name':        forms.TextInput(attrs=_fc),
+            'site_address':     forms.TextInput(attrs=_fc),
+            'site_city':        forms.TextInput(attrs=_fc),
+            'site_type':        forms.Select(attrs=_fs),
+            'rotation_date':    forms.DateInput(attrs=_date),
+            'shift_start':      forms.TimeInput(attrs=_time),
+            'shift_end':        forms.TimeInput(attrs=_time),
+            'hours_completed':  forms.NumberInput(attrs={**_fc, 'step': '0.5', 'min': '0'}),
+            'patient_contacts': forms.NumberInput(attrs={**_fc, 'min': '0'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['site_address'].required = False
+        self.fields['site_city'].required    = False
+        self.fields['shift_start'].required  = False
+        self.fields['shift_end'].required    = False
 
 
 class InstructorProfileForm(forms.ModelForm):

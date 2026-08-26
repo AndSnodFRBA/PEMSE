@@ -4,7 +4,7 @@ from .models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
     CourseReportRecord, EntranceRequirementRecord,
     PatientContactRecord, PaymentHistory, PaymentRecord,
-    PsychomotorSkillRecord, ReminderLog, SiteSettings, Student, StudentNote,
+    PsychomotorSkillRecord, ReminderLog, ScenarioRecord, SiteSettings, Student, StudentNote,
 )
 
 
@@ -104,6 +104,15 @@ class PatientContactRecordAdmin(admin.ModelAdmin):
     search_fields = ['student__first_name', 'student__last_name', 'site_name', 'supervisor_name']
     date_hierarchy = 'contact_date'
     raw_id_fields  = ('student',)
+
+
+@admin.register(ScenarioRecord)
+class ScenarioRecordAdmin(admin.ModelAdmin):
+    list_display  = ['student', 'scenario_date', 'scenario_category', 'instructor', 'signed_off']
+    list_filter   = ['scenario_category', 'scenario_date', 'signed_off']
+    search_fields = ['student__first_name', 'student__last_name', 'scenario_description']
+    date_hierarchy = 'scenario_date'
+    raw_id_fields  = ('student', 'instructor')
 
 
 @admin.register(EntranceRequirementRecord)

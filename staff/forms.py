@@ -2,16 +2,18 @@ from django import forms
 
 from courses.models import Course, CourseEnrollment
 from documents.models import StudentDocument
+from evaluations.models import ClinicalRotation
 from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
     CourseReportRecord, EntranceRequirementRecord, LatePaymentFee,
     PatientContactRecord, PaymentHistory, PaymentRecord, PsychomotorSkillRecord,
-    SiteSettings, Student, StudentNote,
+    ScenarioRecord, SiteSettings, Student, StudentNote,
 )
 from instructor.models import (
     InstructorCourseAssignment, InstructorObservation,
     InstructorMeeting, RemediationPlan,
 )
+from .models import MedicalDirectorConsultation
 
 
 class InvitationForm(forms.Form):
@@ -339,6 +341,61 @@ class PatientContactForm(forms.ModelForm):
         }
 
 
+class ScenarioForm(forms.ModelForm):
+    class Meta:
+        model  = ScenarioRecord
+        fields = [
+            'scenario_date', 'scenario_time', 'scenario_category',
+            'scenario_description', 'instructor', 'signed_off', 'notes',
+        ]
+        widgets = {
+            'scenario_date':        forms.DateInput(attrs=_date),
+            'scenario_time':        forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'scenario_category':    forms.Select(attrs=_fs),
+            'scenario_description': forms.TextInput(attrs={**_fc, 'placeholder': 'e.g. Chest Pain / STEMI'}),
+            'instructor':           forms.Select(attrs=_fs),
+            'notes':                forms.Textarea(attrs={**_fc, 'rows': 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['instructor'].queryset = Student.objects.filter(
+            role=Student.Role.INSTRUCTOR
+        ).order_by('last_name', 'first_name')
+        self.fields['instructor'].label = 'Instructor (administered / signed off)'
+
+
+class StaffRotationForm(forms.ModelForm):
+    """Staff logs a clinical rotation on a student's behalf — hours only, no preceptor evaluation request."""
+    class Meta:
+        model  = ClinicalRotation
+        fields = [
+            'site_name', 'site_address', 'site_city', 'site_type',
+            'rotation_date', 'shift_start', 'shift_end',
+            'hours_completed', 'patient_contacts', 'course',
+        ]
+        widgets = {
+            'site_name':        forms.TextInput(attrs=_fc),
+            'site_address':     forms.TextInput(attrs=_fc),
+            'site_city':        forms.TextInput(attrs=_fc),
+            'site_type':        forms.Select(attrs=_fs),
+            'rotation_date':    forms.DateInput(attrs=_date),
+            'shift_start':      forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'shift_end':        forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'hours_completed':  forms.NumberInput(attrs={**_fc, 'step': '0.5', 'min': '0'}),
+            'patient_contacts': forms.NumberInput(attrs={**_fc, 'min': '0'}),
+            'course':           forms.Select(attrs=_fs),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['site_address'].required = False
+        self.fields['site_city'].required    = False
+        self.fields['shift_start'].required  = False
+        self.fields['shift_end'].required    = False
+        self.fields['course'].required       = False
+
+
 class EntranceRequirementForm(forms.ModelForm):
     class Meta:
         model  = EntranceRequirementRecord
@@ -593,3 +650,20 @@ class SiteSettingsForm(forms.ModelForm):
             'ne_approval_number',
         ]
         widgets = {field: forms.TextInput(attrs=_fc) for field in fields}
+
+
+class MedicalDirectorConsultationForm(forms.ModelForm):
+    class Meta:
+        model  = MedicalDirectorConsultation
+        fields = [
+            'medical_director_name', 'consultation_date', 'consultation_type',
+            'topics_discussed', 'action_items', 'next_consultation_date',
+        ]
+        widgets = {
+            'medical_director_name':  forms.TextInput(attrs=_fc),
+            'consultation_date':      forms.DateInput(attrs=_date),
+            'consultation_type':      forms.Select(attrs=_fs),
+            'topics_discussed':       forms.Textarea(attrs={**_fc, 'rows': 3}),
+            'action_items':           forms.Textarea(attrs={**_fc, 'rows': 2}),
+            'next_consultation_date': forms.DateInput(attrs=_date),
+        }

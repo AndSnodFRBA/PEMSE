@@ -11,19 +11,22 @@ from django.utils import timezone
 
 from courses.models import Course, CourseEnrollment
 from documents.models import InstructorDocument
+from evaluations.models import ClinicalRotation
 from schedule.forms import CalendarEventForm
 from schedule.models import CalendarEvent
 from staff.models import StudentInvitation
 from students.forms import StudentLoginForm
 from students.models import (
     CognitiveExamRecord, PatientContactRecord,
-    PsychomotorSkillRecord, Student,
+    PsychomotorSkillRecord, ScenarioRecord, Student,
 )
 from .forms import (
     AttendanceSessionForm,
     HourLogForm,
     InstructorDocumentForm,
     InstructorProfileForm,
+    InstructorRotationForm,
+    InstructorScenarioForm,
     StudentAttendanceForm,
 )
 from .mixins import instructor_required
@@ -663,6 +666,8 @@ def instructor_student_detail(request, pk):
     cognitive_exams    = CognitiveExamRecord.objects.filter(student=student, course=course)
     psychomotor_skills = PsychomotorSkillRecord.objects.filter(student=student, course=course)
     patient_contacts   = PatientContactRecord.objects.filter(student=student, course=course)
+    scenario_records   = ScenarioRecord.objects.filter(student=student, course=course).select_related('instructor')
+    rotations          = ClinicalRotation.objects.filter(student=student, course=course)
 
     pc_totals = {
         'total':           patient_contacts.count(),
@@ -690,6 +695,33 @@ def instructor_student_detail(request, pk):
             messages.success(request, 'Note added.')
             return redirect('instructor_student_detail', pk=pk)
 
+    scenario_form = InstructorScenarioForm()
+    if request.method == 'POST' and 'scenario_date' in request.POST:
+        scenario_form = InstructorScenarioForm(request.POST)
+        if scenario_form.is_valid():
+            rec = scenario_form.save(commit=False)
+            rec.student      = student
+            rec.course       = course
+            rec.instructor   = instructor
+            rec.signed_off   = True
+            rec.signed_off_at = timezone.now()
+            rec.save()
+            messages.success(request, 'Scenario recorded and signed off.')
+            return redirect('instructor_student_detail', pk=pk)
+        messages.error(request, 'Please correct the errors in the scenario form.')
+
+    rotation_form = InstructorRotationForm()
+    if request.method == 'POST' and 'rotation_date' in request.POST:
+        rotation_form = InstructorRotationForm(request.POST)
+        if rotation_form.is_valid():
+            rotation         = rotation_form.save(commit=False)
+            rotation.student = student
+            rotation.course  = course
+            rotation.save()
+            messages.success(request, 'Clinical rotation recorded.')
+            return redirect('instructor_student_detail', pk=pk)
+        messages.error(request, 'Please correct the errors in the rotation form.')
+
     return render(request, 'instructor/student_detail.html', {
         'student':           student,
         'enrollment':        enrollment,
@@ -706,6 +738,10 @@ def instructor_student_detail(request, pk):
         'pc_totals':         pc_totals,
         'is_aemt':           is_aemt,
         'notes':             notes,
+        'scenario_records':  scenario_records,
+        'scenario_form':     scenario_form,
+        'rotations':         rotations,
+        'rotation_form':     rotation_form,
     })
 
 

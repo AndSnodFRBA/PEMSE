@@ -85,3 +85,36 @@ class StaffInvitation(models.Model):
     def __str__(self):
         status = 'used' if self.used else ('expired' if self.is_expired else 'pending')
         return f'Staff invite → {self.email} ({status})'
+
+
+class MedicalDirectorConsultation(models.Model):
+    """Program director's log of required contact with the medical director.
+    Visible to the program director (Admin role) only — not shown to office staff."""
+
+    CONSULTATION_TYPES = [
+        ('routine',   'Routine Check-In'),
+        ('protocol',  'Protocol Review'),
+        ('qa_case',   'QA / Case Review'),
+        ('incident',  'Incident Review'),
+        ('other',     'Other'),
+    ]
+
+    conducted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='medical_director_consultations',
+    )
+    medical_director_name = models.CharField(max_length=200, blank=True)
+    consultation_date     = models.DateField()
+    consultation_type     = models.CharField(max_length=20, choices=CONSULTATION_TYPES, default='routine')
+    topics_discussed      = models.TextField()
+    action_items          = models.TextField(blank=True)
+    next_consultation_date = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-consultation_date']
+
+    def __str__(self):
+        return f'{self.get_consultation_type_display()} — {self.consultation_date}'

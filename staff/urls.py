@@ -52,6 +52,12 @@ urlpatterns = [
     # Compliance — patient contacts
     path('students/<int:pk>/add-contact/',                          views.add_patient_contact,      name='staff_add_contact'),
     path('students/<int:pk>/contacts/<int:contact_pk>/delete/',     views.delete_patient_contact,   name='staff_delete_contact'),
+    # Compliance — scenario documentation
+    path('students/<int:pk>/add-scenario/',                         views.add_scenario_record,      name='staff_add_scenario'),
+    path('students/<int:pk>/scenarios/<int:record_pk>/delete/',     views.delete_scenario_record,   name='staff_delete_scenario'),
+    # Clinical rotations (staff/instructor entry on student's behalf)
+    path('students/<int:pk>/add-rotation/',                         views.add_clinical_rotation,    name='staff_add_rotation'),
+    path('students/<int:pk>/rotations/<int:rotation_pk>/delete/',   views.delete_clinical_rotation, name='staff_delete_rotation'),
     # Compliance — entrance requirements & completion
     path('students/<int:pk>/entrance-reqs/',                        views.save_entrance_requirements, name='staff_save_entrance_reqs'),
     path('students/<int:pk>/completion/',                           views.save_completion_record,   name='staff_save_completion'),
@@ -71,6 +77,9 @@ urlpatterns = [
     path('axes/',                                                   views.axes_lockouts,           name='staff_axes_lockouts'),
     # Site settings
     path('settings/',                                               views.site_settings,           name='staff_site_settings'),
+    # Medical director consultation log (program director only)
+    path('medical-director/',                                       views.medical_director_log,     name='staff_medical_director_log'),
+    path('medical-director/<int:pk>/delete/',                       views.delete_medical_director_consultation, name='staff_delete_medical_director_consultation'),
     # Reminders
     path('reminders/',                                              views.reminder_dashboard,       name='staff_reminder_dashboard'),
     path('reminders/send/',                                         views.reminder_bulk_send,       name='staff_reminder_send'),

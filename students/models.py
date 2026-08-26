@@ -451,6 +451,45 @@ class PatientContactRecord(models.Model):
         return f'{self.student.get_full_name()} — {self.site_name} ({self.contact_date})'
 
 
+class ScenarioRecord(models.Model):
+    """State-required documentation of in-class scenarios — student, date/time,
+    scenario category, and the instructor who administered and signed off."""
+
+    CATEGORY_CHOICES = [
+        ('medical',     'Medical'),
+        ('trauma',      'Trauma'),
+        ('cardiac',     'Cardiac Arrest'),
+        ('airway',      'Airway / Respiratory'),
+        ('ob_peds',     'OB / Pediatric'),
+        ('behavioral',  'Behavioral / Psychiatric'),
+        ('mci',         'Multi-Casualty / Mass Casualty'),
+        ('environmental', 'Environmental / Hazmat'),
+        ('other',       'Other'),
+    ]
+
+    student     = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='scenario_records')
+    course      = models.ForeignKey('courses.Course', on_delete=models.CASCADE)
+    scenario_date = models.DateField()
+    scenario_time = models.TimeField(null=True, blank=True)
+    scenario_category    = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    scenario_description = models.CharField(max_length=300, blank=True)
+    instructor = models.ForeignKey(
+        Student, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='scenarios_administered',
+        limit_choices_to={'role': 'instructor'},
+    )
+    signed_off    = models.BooleanField(default=False)
+    signed_off_at = models.DateTimeField(null=True, blank=True)
+    notes      = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-scenario_date']
+
+    def __str__(self):
+        return f'{self.student.get_full_name()} — {self.get_scenario_category_display()} ({self.scenario_date})'
+
+
 class EntranceRequirementRecord(models.Model):
     """Per 172 NAC 13-004(B)(i)(8) — Copy of each student's entrance requirements."""
     student          = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='entrance_requirements')

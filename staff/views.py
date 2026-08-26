@@ -12,6 +12,7 @@ from django.utils import timezone
 
 from courses.models import Course, CourseAnnouncement, CourseEnrollment
 from documents.models import StudentDocument
+from evaluations.models import ClinicalRotation
 from instructor.models import AttendanceRecord, InstructorCourseAssignment, StudentAttendance
 from schedule.forms import CalendarEventForm
 from schedule.models import CalendarEvent
@@ -24,7 +25,7 @@ from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
     CourseReportRecord, EntranceRequirementRecord, LatePaymentFee,
     PatientContactRecord, PaymentHistory, PaymentRecord, PsychomotorSkillRecord,
-    ReminderLog, SiteSettings, Student, StudentNote, StudentNotification,
+    ReminderLog, ScenarioRecord, SiteSettings, Student, StudentNote, StudentNotification,
 )
 from students.reminders import BalanceDueRule, RegistrationIncompleteRule
 from .forms import (
@@ -38,22 +39,25 @@ from .forms import (
     EntranceRequirementForm,
     InvitationForm,
     LatePaymentFeeForm,
+    MedicalDirectorConsultationForm,
     PatientContactForm,
     PaymentHistoryForm,
     PsychomotorSkillForm,
     ReminderBulkSendForm,
+    ScenarioForm,
     SiteSettingsForm,
     StaffAccountInviteForm,
     StaffAnnouncementForm,
     StaffAssignCourseForm,
     StaffPaymentRecordForm,
+    StaffRotationForm,
     StudentNoteForm,
     StaffInviteAcceptForm,
     StaffStudentEditForm,
     WaiveLateFeeForm,
 )
-from .mixins import staff_required
-from .models import StaffInvitation, StudentInvitation
+from .mixins import admin_required, staff_required
+from .models import MedicalDirectorConsultation, StaffInvitation, StudentInvitation
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
@@ -468,6 +472,7 @@ def student_detail(request, pk):
     cognitive_exams    = CognitiveExamRecord.objects.filter(student=student).select_related('course')
     psychomotor_skills = PsychomotorSkillRecord.objects.filter(student=student).select_related('course')
     patient_contacts   = PatientContactRecord.objects.filter(student=student).select_related('course')
+    scenario_records   = ScenarioRecord.objects.filter(student=student).select_related('course', 'instructor')
 
     # Ensure default entrance requirements exist for this student/course combo
     if course:
@@ -554,6 +559,7 @@ def student_detail(request, pk):
         'cognitive_exams':    cognitive_exams,
         'psychomotor_skills': psychomotor_skills,
         'patient_contacts':   patient_contacts,
+        'scenario_records':   scenario_records,
         'entrance_reqs':      entrance_reqs,
         'completion_rec':     completion_rec,
         'pc_totals':          pc_totals,
@@ -563,6 +569,8 @@ def student_detail(request, pk):
         'exam_form':          CognitiveExamForm(),
         'skill_form':         PsychomotorSkillForm(),
         'contact_form':       PatientContactForm(),
+        'scenario_form':      ScenarioForm(),
+        'rotation_form':      StaffRotationForm(),
         'completion_form':    CourseCompletionForm(instance=completion_rec) if completion_rec else CourseCompletionForm(),
         'active_tab':         request.GET.get('tab', 'overview'),
     })
@@ -669,6 +677,36 @@ def axes_lockouts(request):
         'attempts': attempts,
         'failure_limit': settings.AXES_FAILURE_LIMIT,
     })
+
+
+@admin_required
+def medical_director_log(request):
+    consultations = MedicalDirectorConsultation.objects.select_related('conducted_by')
+    site = SiteSettings.get()
+    if request.method == 'POST':
+        form = MedicalDirectorConsultationForm(request.POST)
+        if form.is_valid():
+            consult = form.save(commit=False)
+            consult.conducted_by = request.user
+            consult.save()
+            messages.success(request, 'Consultation logged.')
+            return redirect('staff_medical_director_log')
+        messages.error(request, 'Please correct the errors below.')
+    else:
+        form = MedicalDirectorConsultationForm(initial={'medical_director_name': site.medical_director_name})
+    return render(request, 'staff/medical_director_log.html', {
+        'consultations': consultations,
+        'form': form,
+    })
+
+
+@admin_required
+def delete_medical_director_consultation(request, pk):
+    consult = get_object_or_404(MedicalDirectorConsultation, pk=pk)
+    if request.method == 'POST':
+        consult.delete()
+        messages.success(request, 'Consultation record deleted.')
+    return redirect('staff_medical_director_log')
 
 
 @staff_required
@@ -1398,6 +1436,62 @@ def delete_patient_contact(request, pk, contact_pk):
         contact.delete()
         messages.success(request, 'Patient contact deleted.')
     return _detail_redirect(pk, 'contacts')
+
+
+# ── Scenario Documentation ─────────────────────────────────────────────────────
+
+@staff_required
+def add_scenario_record(request, pk):
+    student    = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
+    enrollment = CourseEnrollment.objects.filter(student=student).first()
+    if request.method == 'POST':
+        form = ScenarioForm(request.POST)
+        if form.is_valid():
+            rec         = form.save(commit=False)
+            rec.student = student
+            rec.course  = enrollment.course if enrollment else None
+            if rec.signed_off and not rec.signed_off_at:
+                rec.signed_off_at = timezone.now()
+            rec.save()
+            messages.success(request, 'Scenario recorded.')
+        else:
+            messages.error(request, 'Please correct the errors in the scenario form.')
+    return _detail_redirect(pk, 'scenarios')
+
+
+@staff_required
+def delete_scenario_record(request, pk, record_pk):
+    record = get_object_or_404(ScenarioRecord, pk=record_pk, student_id=pk)
+    if request.method == 'POST':
+        record.delete()
+        messages.success(request, 'Scenario record deleted.')
+    return _detail_redirect(pk, 'scenarios')
+
+
+# ── Clinical Rotations ──────────────────────────────────────────────────────────
+
+@staff_required
+def add_clinical_rotation(request, pk):
+    student = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
+    if request.method == 'POST':
+        form = StaffRotationForm(request.POST)
+        if form.is_valid():
+            rotation         = form.save(commit=False)
+            rotation.student = student
+            rotation.save()
+            messages.success(request, 'Clinical rotation recorded.')
+        else:
+            messages.error(request, 'Please correct the errors in the rotation form.')
+    return redirect(f"{reverse('staff_student_detail', args=[pk])}#clinical-rotations")
+
+
+@staff_required
+def delete_clinical_rotation(request, pk, rotation_pk):
+    rotation = get_object_or_404(ClinicalRotation, pk=rotation_pk, student_id=pk)
+    if request.method == 'POST':
+        rotation.delete()
+        messages.success(request, 'Clinical rotation deleted.')
+    return redirect(f"{reverse('staff_student_detail', args=[pk])}#clinical-rotations")
 
 
 # ── Entrance Requirements ─────────────────────────────────────────────────────
