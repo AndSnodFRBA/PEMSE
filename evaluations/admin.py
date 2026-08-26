@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import ClinicalRotation, CourseEvaluation, PreceptorEvaluation, StudentSiteEvaluation
+from .models import ClinicalRotation, CourseEvaluation, PatientCareNarrative, PreceptorEvaluation, StudentSiteEvaluation
 
 
 @admin.register(CourseEvaluation)
@@ -82,6 +82,15 @@ class PreceptorEvaluationAdmin(admin.ModelAdmin):
         ('Overall', {'fields': ('overall_performance', 'recommended_to_pass')}),
         ('Written Feedback', {'fields': ('strengths', 'areas_for_improvement', 'additional_comments')}),
     )
+
+
+@admin.register(PatientCareNarrative)
+class PatientCareNarrativeAdmin(admin.ModelAdmin):
+    list_display  = ('rotation', 'encounter_date', 'chief_complaint_category', 'patient_age', 'patient_sex', 'created_at')
+    list_filter   = ('chief_complaint_category', 'patient_sex', 'disposition')
+    search_fields = ('rotation__student__first_name', 'rotation__student__last_name', 'chief_complaint')
+    readonly_fields = ('created_at',)
+    date_hierarchy = 'encounter_date'
 
 
 @admin.register(StudentSiteEvaluation)

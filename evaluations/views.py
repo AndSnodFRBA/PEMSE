@@ -9,8 +9,8 @@ from django.utils import timezone
 
 from staff.mixins import staff_required
 
-from .forms import AddRotationForm, PreceptorEvalForm, StudentSiteEvalForm
-from .models import ClinicalRotation, CourseEvaluation, PreceptorEvaluation, StudentSiteEvaluation
+from .forms import AddRotationForm, PatientCareNarrativeForm, PreceptorEvalForm, StudentSiteEvalForm
+from .models import ClinicalRotation, CourseEvaluation, PatientCareNarrative, PreceptorEvaluation, StudentSiteEvaluation
 
 
 # ── Student views ─────────────────────────────────────────────────────────────
@@ -21,7 +21,7 @@ def rotation_log(request):
         ClinicalRotation.objects
         .filter(student=request.user)
         .select_related('course')
-        .prefetch_related('preceptor_eval', 'student_eval')
+        .prefetch_related('preceptor_eval', 'student_eval', 'patient_narratives')
     )
 
     total_hours    = sum(r.hours_completed for r in rotations)
@@ -105,6 +105,35 @@ def site_eval(request, pk):
         return redirect('rotation_log')
 
     return render(request, 'evaluations/site_eval.html', {
+        'form':     form,
+        'rotation': rotation,
+    })
+
+
+@login_required
+def patient_narrative_list(request, pk):
+    rotation = get_object_or_404(ClinicalRotation, pk=pk, student=request.user)
+    narratives = rotation.patient_narratives.all()
+    return render(request, 'evaluations/patient_narrative_list.html', {
+        'rotation':   rotation,
+        'narratives': narratives,
+    })
+
+
+@login_required
+def add_patient_narrative(request, pk):
+    rotation = get_object_or_404(ClinicalRotation, pk=pk, student=request.user)
+    form = PatientCareNarrativeForm(request.POST or None, initial={'encounter_date': rotation.rotation_date})
+
+    if request.method == 'POST' and form.is_valid():
+        narrative = form.save(commit=False)
+        narrative.rotation = rotation
+        narrative.deidentification_confirmed = True
+        narrative.save()
+        messages.success(request, 'Patient care report saved.')
+        return redirect('rotation_patient_reports', pk=rotation.pk)
+
+    return render(request, 'evaluations/add_patient_narrative.html', {
         'form':     form,
         'rotation': rotation,
     })
@@ -298,11 +327,13 @@ def staff_eval_detail(request, pk):
     rotation       = get_object_or_404(ClinicalRotation, pk=pk)
     preceptor_eval_obj = getattr(rotation, 'preceptor_eval', None)
     student_eval_obj   = getattr(rotation, 'student_eval', None)
+    patient_narratives = rotation.patient_narratives.all()
 
     return render(request, 'staff/eval_detail.html', {
-        'rotation':       rotation,
-        'preceptor_eval': preceptor_eval_obj,
-        'student_eval':   student_eval_obj,
+        'rotation':           rotation,
+        'preceptor_eval':     preceptor_eval_obj,
+        'student_eval':       student_eval_obj,
+        'patient_narratives': patient_narratives,
     })
 
 

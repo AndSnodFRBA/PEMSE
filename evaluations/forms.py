@@ -1,6 +1,7 @@
 from django import forms
 
-from .models import ClinicalRotation, PreceptorEvaluation, StudentSiteEvaluation
+from .models import ClinicalRotation, PatientCareNarrative, PreceptorEvaluation, StudentSiteEvaluation
+from .phi_filter import scan_for_phi
 
 _fc = {'class': 'form-control'}
 _fs = {'class': 'form-select'}
@@ -51,6 +52,59 @@ class AddRotationForm(forms.ModelForm):
                 'preceptor_email': 'Preceptor email',
                 'preceptor_title': 'Preceptor title / role',
             }[f]
+
+
+class PatientCareNarrativeForm(forms.ModelForm):
+    """Student-completed, de-identified patient care report. There is intentionally
+    no field for patient name, DOB, address, or any other direct identifier — and
+    every free-text field is scanned for accidental PHI before it can be saved."""
+
+    confirm_deidentified = forms.BooleanField(
+        required=True,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label='I confirm this report contains no patient names, dates of birth, addresses, '
+              'phone numbers, medical record numbers, or other identifying information.',
+    )
+
+    class Meta:
+        model = PatientCareNarrative
+        fields = [
+            'encounter_date', 'patient_age', 'patient_sex',
+            'chief_complaint_category', 'chief_complaint',
+            'narrative', 'interventions', 'disposition',
+        ]
+        widgets = {
+            'encounter_date':            forms.DateInput(attrs={**_fc, 'type': 'date'}),
+            'patient_age':                forms.NumberInput(attrs={**_fc, 'min': '0', 'max': '120'}),
+            'patient_sex':                forms.Select(attrs=_fs),
+            'chief_complaint_category':   forms.Select(attrs=_fs),
+            'chief_complaint':            forms.TextInput(attrs={**_fc, 'placeholder': 'e.g. chest pain, fall from standing'}),
+            'narrative':                  forms.Textarea(attrs={**_fc, 'rows': 6}),
+            'interventions':              forms.Textarea(attrs={**_fc, 'rows': 3}),
+            'disposition':                forms.Select(attrs=_fs),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['disposition'].required = False
+        self.fields['interventions'].required = False
+
+    def clean_patient_age(self):
+        age = self.cleaned_data.get('patient_age')
+        if age is not None and age > 120:
+            raise forms.ValidationError('Enter age in years only (no dates of birth).')
+        return age
+
+    def _clean_text_field(self, name):
+        value = self.cleaned_data.get(name, '')
+        issues = scan_for_phi(value)
+        if issues:
+            raise forms.ValidationError(issues)
+        return value
+
+    def clean_chief_complaint(self):  return self._clean_text_field('chief_complaint')
+    def clean_narrative(self):        return self._clean_text_field('narrative')
+    def clean_interventions(self):    return self._clean_text_field('interventions')
 
 
 class PreceptorEvalForm(forms.Form):

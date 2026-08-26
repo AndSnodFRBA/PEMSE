@@ -222,6 +222,68 @@ class CourseEvaluation(models.Model):
         return round(sum(scores) / len(scores), 1) if scores else None
 
 
+class PatientCareNarrative(models.Model):
+    """Short, de-identified patient care report a student completes for a clinical
+    patient contact. By design there is no field for patient name, date of birth,
+    address, or any other direct identifier — only age, sex, and clinical details
+    are captured, and free-text fields are scanned to block accidental PHI."""
+
+    CATEGORY_CHOICES = [
+        ('medical',      'Medical'),
+        ('trauma',       'Trauma'),
+        ('cardiac',      'Cardiac'),
+        ('respiratory',  'Respiratory'),
+        ('behavioral',   'Behavioral / Psychiatric'),
+        ('ob_peds',      'OB / Pediatric'),
+        ('other',        'Other'),
+    ]
+
+    SEX_CHOICES = [
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('U', 'Unknown / Not specified'),
+    ]
+
+    DISPOSITION_CHOICES = [
+        ('transported', 'Transported'),
+        ('refused',     'Refused care / transport'),
+        ('treated',     'Treated and released'),
+        ('other',       'Other'),
+    ]
+
+    rotation   = models.ForeignKey(
+        ClinicalRotation, on_delete=models.CASCADE, related_name='patient_narratives'
+    )
+    encounter_date = models.DateField(help_text='Date of the patient encounter (no other dates — do not include a date of birth).')
+
+    patient_age = models.PositiveSmallIntegerField(
+        help_text='Approximate age in years only — never a date of birth.'
+    )
+    patient_sex = models.CharField(max_length=1, choices=SEX_CHOICES)
+    chief_complaint_category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    chief_complaint = models.CharField(max_length=200, help_text='Brief, de-identified chief complaint (e.g. "chest pain", "fall from standing").')
+
+    narrative = models.TextField(
+        help_text='Short narrative: assessment, interventions, and patient response. No names, exact dates, addresses, or other identifiers.'
+    )
+    interventions = models.TextField(blank=True)
+    disposition = models.CharField(max_length=20, choices=DISPOSITION_CHOICES, blank=True)
+
+    deidentification_confirmed = models.BooleanField(
+        default=False,
+        help_text='Student attested this report contains no patient-identifying information.'
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-encounter_date', '-created_at']
+        verbose_name = 'Patient care report'
+
+    def __str__(self):
+        return f'{self.rotation.student.get_full_name()} — {self.get_chief_complaint_category_display()} ({self.encounter_date})'
+
+
 class StudentSiteEvaluation(models.Model):
     rotation     = models.OneToOneField(
         ClinicalRotation, on_delete=models.CASCADE, related_name='student_eval'

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Add Patient Report — {{ AGENCY_SHORT_NAME }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="{% url 'rotation_patient_reports' rotation.pk %}" style="color:#5a7a9a;text-decoration:none;font-size:13px;">
+    <i class="bi bi-arrow-left"></i> Back to Patient Reports
+  </a>
+  <h2 class="page-title mt-2 mb-1">Add Patient Care Report</h2>
+  <p style="font-size:13px;color:#374151;" class="mb-0">
+    <strong>{{ rotation.site_name }}</strong> &mdash; {{ rotation.rotation_date|date:"M j, Y" }}
+  </p>
+</div>
+
+<div class="alert alert-warning mb-4" style="font-size:12px;max-width:700px;">
+  <strong><i class="bi bi-shield-exclamation me-1"></i>No patient identifying information.</strong>
+  Do not include the patient's name, date of birth, address, phone number, medical record or
+  insurance number, employer, or any other detail that could identify them. Describe the patient
+  only by approximate age and sex (e.g. "62 y/o male", "a pediatric patient").
+  Every text field below is checked automatically and will reject submissions that look like they
+  contain identifying information.
+</div>
+
+{% if form.non_field_errors %}
+  <div class="alert alert-danger" style="font-size:13px;max-width:700px;">{{ form.non_field_errors }}</div>
+{% endif %}
+
+<form method="post" style="max-width:700px;">
+  {% csrf_token %}
+
+  <div class="card mb-4">
+    <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
+      <i class="bi bi-file-earmark-medical me-2"></i>Encounter Details
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">Encounter Date</label>
+          {{ form.encounter_date }}
+          {% for e in form.encounter_date.errors %}<div class="text-danger" style="font-size:11px;">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">Patient Age (years)</label>
+          {{ form.patient_age }}
+          {% for e in form.patient_age.errors %}<div class="text-danger" style="font-size:11px;">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">Patient Sex</label>
+          {{ form.patient_sex }}
+          {% for e in form.patient_sex.errors %}<div class="text-danger" style="font-size:11px;">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">Category</label>
+          {{ form.chief_complaint_category }}
+          {% for e in form.chief_complaint_category.errors %}<div class="text-danger" style="font-size:11px;">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-md-8">
+          <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">Chief Complaint</label>
+          {{ form.chief_complaint }}
+          {% for e in form.chief_complaint.errors %}<div class="text-danger" style="font-size:11px;">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
+      <i class="bi bi-journal-text me-2"></i>Narrative
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">
+            Assessment, interventions, and patient response
+          </label>
+          {{ form.narrative }}
+          <div style="font-size:11px;color:#9ca3af;" class="mt-1">
+            Example: "62 y/o male, alert and oriented, c/o crushing substernal chest pain radiating to left arm,
+            onset 20 minutes prior. Diaphoretic, BP 148/92, HR 104. 12-lead acquired, aspirin administered per protocol.
+            Patient remained hemodynamically stable during transport."
+          </div>
+          {% for e in form.narrative.errors %}<div class="text-danger" style="font-size:11px;">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-12">
+          <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">Interventions (optional)</label>
+          {{ form.interventions }}
+          {% for e in form.interventions.errors %}<div class="text-danger" style="font-size:11px;">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">Disposition (optional)</label>
+          {{ form.disposition }}
+          {% for e in form.disposition.errors %}<div class="text-danger" style="font-size:11px;">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="form-check">
+        {{ form.confirm_deidentified }}
+        <label class="form-check-label" for="{{ form.confirm_deidentified.id_for_label }}" style="font-size:12px;color:#374151;">
+          {{ form.confirm_deidentified.label }}
+        </label>
+      </div>
+      {% for e in form.confirm_deidentified.errors %}<div class="text-danger" style="font-size:11px;">{{ e }}</div>{% endfor %}
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary" style="border-radius:8px;padding:10px 28px;">
+    <i class="bi bi-check-lg me-1"></i> Save Report
+  </button>
+  <a href="{% url 'rotation_patient_reports' rotation.pk %}" class="btn btn-outline-secondary ms-2" style="border-radius:8px;padding:10px 20px;">
+    Cancel
+  </a>
+</form>
+{% endblock %}

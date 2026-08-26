@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Patient Care Reports — {{ AGENCY_SHORT_NAME }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="{% url 'rotation_log' %}" style="color:#5a7a9a;text-decoration:none;font-size:13px;">
+    <i class="bi bi-arrow-left"></i> Back to Rotations
+  </a>
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2">
+    <div>
+      <h2 class="page-title mb-1">Patient Care Reports</h2>
+      <p style="font-size:13px;color:#374151;" class="mb-0">
+        <strong>{{ rotation.site_name }}</strong> &mdash; {{ rotation.rotation_date|date:"M j, Y" }}
+      </p>
+    </div>
+    <a href="{% url 'rotation_add_patient_report' rotation.pk %}" class="btn btn-primary" style="border-radius:8px;font-size:13px;">
+      <i class="bi bi-plus-lg me-1"></i> Add Patient Report
+    </a>
+  </div>
+</div>
+
+<div class="alert alert-light border mb-4" style="font-size:12px;">
+  <i class="bi bi-shield-lock me-1"></i>
+  These reports are de-identified by design — there is no field for patient name, date of birth,
+  address, or any other direct identifier. Only age, sex, and clinical details are recorded.
+</div>
+
+{% if narratives %}
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table mb-0" style="font-size:13px;">
+      <thead style="background:#f8fafc;">
+        <tr>
+          <th class="ps-3 py-3" style="color:#6b7280;font-weight:600;border-bottom:1px solid #dde4ef;">Date</th>
+          <th class="py-3" style="color:#6b7280;font-weight:600;border-bottom:1px solid #dde4ef;">Category</th>
+          <th class="py-3" style="color:#6b7280;font-weight:600;border-bottom:1px solid #dde4ef;">Age / Sex</th>
+          <th class="py-3" style="color:#6b7280;font-weight:600;border-bottom:1px solid #dde4ef;">Chief Complaint</th>
+          <th class="py-3 pe-3" style="color:#6b7280;font-weight:600;border-bottom:1px solid #dde4ef;">Disposition</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for n in narratives %}
+        <tr style="border-bottom:1px solid #f0f4f8;">
+          <td class="ps-3 py-3" style="white-space:nowrap;color:#374151;">{{ n.encounter_date|date:"M j, Y" }}</td>
+          <td class="py-3" style="color:#374151;">{{ n.get_chief_complaint_category_display }}</td>
+          <td class="py-3" style="color:#374151;">{{ n.patient_age }} / {{ n.get_patient_sex_display }}</td>
+          <td class="py-3" style="color:#374151;">{{ n.chief_complaint }}</td>
+          <td class="py-3 pe-3" style="color:#374151;">{{ n.get_disposition_display|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i class="bi bi-file-earmark-medical" style="font-size:48px;color:#d1d5db;"></i>
+    <h5 class="mt-3 mb-1" style="color:#374151;">No patient care reports yet</h5>
+    <p style="color:#9ca3af;font-size:13px;">Add a de-identified report for each patient contact during this rotation.</p>
+    <a href="{% url 'rotation_add_patient_report' rotation.pk %}" class="btn btn-primary mt-2" style="border-radius:8px;">
+      <i class="bi bi-plus-lg me-1"></i> Add Patient Report
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

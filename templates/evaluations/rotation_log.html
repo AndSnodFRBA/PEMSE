@@ -47,6 +47,7 @@
           <th class="py-3" style="color:#6b7280;font-weight:600;border-bottom:1px solid #dde4ef;">Patients</th>
           <th class="py-3" style="color:#6b7280;font-weight:600;border-bottom:1px solid #dde4ef;">Preceptor Eval</th>
           <th class="py-3" style="color:#6b7280;font-weight:600;border-bottom:1px solid #dde4ef;">Site Eval</th>
+          <th class="py-3" style="color:#6b7280;font-weight:600;border-bottom:1px solid #dde4ef;">Patient Reports</th>
           <th class="py-3 pe-3" style="color:#6b7280;font-weight:600;border-bottom:1px solid #dde4ef;">Actions</th>
         </tr>
       </thead>
@@ -90,6 +91,13 @@
                 <i class="bi bi-pencil me-1"></i>Needed
               </span>
             {% endif %}
+          </td>
+
+          <!-- Patient care reports -->
+          <td class="py-3">
+            <a href="{% url 'rotation_patient_reports' r.pk %}" class="btn btn-sm btn-outline-primary" style="font-size:11px;border-radius:6px;">
+              <i class="bi bi-file-earmark-medical me-1"></i>{{ r.patient_narratives.count }}
+            </a>
           </td>
 
           <!-- Actions -->
