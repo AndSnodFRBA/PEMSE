@@ -2,6 +2,8 @@
 {% block title %}Instructor Dashboard — {{ AGENCY_SHORT_NAME }}{% endblock %}
 
 {% block content %}
+{% include "_dashboard_intro.html" %}
+
 <div class="inst-topbar">
   <h1 class="inst-page-title">Welcome, {{ request.user.first_name }}</h1>
   <div class="d-flex gap-2">

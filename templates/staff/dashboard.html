@@ -2,6 +2,8 @@
 {% block title %}Staff Dashboard — {{ AGENCY_SHORT_NAME }}{% endblock %}
 
 {% block content %}
+{% include "_dashboard_intro.html" %}
+
 {% if DEMO_MODE %}
 <div class="alert alert-warning d-flex align-items-center justify-content-between">
   <span><i class="bi bi-exclamation-triangle"></i> <strong>Demo Mode</strong> — Showing sample data. No real student records.</span>

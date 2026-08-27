@@ -1,0 +1,30 @@
+{% if not user.dashboard_intro_dismissed %}
+<div class="card mb-4" style="border-left:4px solid var(--navy, #2B5EA7);">
+  <div class="card-body">
+    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
+      <div style="flex:1;min-width:240px;">
+        <div style="font-size:11px;font-weight:700;color:#2B5EA7;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;">
+          <i class="bi bi-compass me-1"></i>{{ intro_title|default:"New here? Here's how to get around" }}
+        </div>
+        <div class="row g-3">
+          {% for tip in intro_tips %}
+          <div class="col-md-6">
+            <div style="font-size:13px;font-weight:600;color:#1a2e4a;">
+              <i class="bi {{ tip.icon }} me-1"></i>{{ tip.title }}
+            </div>
+            <div style="font-size:12px;color:#6b7280;">{{ tip.text }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <form method="post" action="{% url 'dismiss_dashboard_intro' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="btn btn-sm btn-outline-secondary" style="border-radius:6px;font-size:11px;white-space:nowrap;" title="Dismiss this">
+          <i class="bi bi-x-lg me-1"></i>Got it
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}

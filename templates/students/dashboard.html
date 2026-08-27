@@ -2,6 +2,8 @@
 {% block title %}Dashboard — {{ AGENCY_TAGLINE }}{% endblock %}
 
 {% block content %}
+{% include "_dashboard_intro.html" %}
+
 {% if next_action %}
 <!-- Next step -->
 <div style="background:var(--navy);color:#fff;border-radius:14px;padding:20px 24px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">

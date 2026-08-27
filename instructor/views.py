@@ -71,6 +71,18 @@ def instructor_logout_view(request):
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
+INSTRUCTOR_INTRO_TIPS = [
+    {'icon': 'bi-clipboard-check', 'title': 'Take attendance',
+     'text': '"Attendance" logs each class session — students see it reflected on their own dashboards.'},
+    {'icon': 'bi-mortarboard', 'title': 'Enter grades',
+     'text': '"Grade Overview" is where quiz, exam, and participation scores get recorded per student.'},
+    {'icon': 'bi-clock-history', 'title': 'Log your hours',
+     'text': '"Hours" tracks your own instructional hours for licensure records.'},
+    {'icon': 'bi-person-lines-fill', 'title': 'Review a student',
+     'text': 'Click into any student from "Courses" to see their full progress, documents, and grades.'},
+]
+
+
 @instructor_required
 def instructor_dashboard(request):
     instructor = request.user
@@ -188,6 +200,7 @@ def instructor_dashboard(request):
         'sessions_this_month_mine':    sessions_this_month_mine,
         'sessions_this_month_all':     sessions_this_month_all,
         'course_hour_totals':          course_hour_totals,
+        'intro_tips':                  INSTRUCTOR_INTRO_TIPS,
     })
 
 

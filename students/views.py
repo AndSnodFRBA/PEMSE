@@ -107,6 +107,18 @@ def logout_view(request):
     return redirect('login')
 
 
+STUDENT_INTRO_TIPS = [
+    {'icon': 'bi-list-check', 'title': 'Finish enrolling',
+     'text': 'The checklist above covers registration, handbook, documents, and your payment contract.'},
+    {'icon': 'bi-mortarboard', 'title': 'Track your grades',
+     'text': '"Grades" shows quiz, exam, and participation scores as your instructor enters them.'},
+    {'icon': 'bi-clipboard2-pulse', 'title': 'Log clinical hours',
+     'text': '"Clinical Rotations" is where you record rotation hours, patient contacts, and preceptor evaluations.'},
+    {'icon': 'bi-calendar3', 'title': 'Stay on schedule',
+     'text': '"Calendar" shows class sessions and deadlines — subscribe from your phone via the link on that page.'},
+]
+
+
 @login_required
 def dashboard_view(request):
     if request.user.is_office_staff:
@@ -221,6 +233,7 @@ def dashboard_view(request):
         'next_class':             next_class,
         'gb':                     gb,
         'certificate_available':  certificate_available,
+        'intro_tips':             STUDENT_INTRO_TIPS,
     })
 
 
@@ -308,6 +321,20 @@ def _build_progress_summary(student, enrollment):
             'pct': _pct(exams_passed, exams_total),
         },
     ]
+
+
+@login_required
+@require_POST
+def dismiss_dashboard_intro(request):
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    request.user.dashboard_intro_dismissed = True
+    request.user.save(update_fields=['dashboard_intro_dismissed'])
+
+    next_url = request.POST.get('next') or '/dashboard/'
+    if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        next_url = '/dashboard/'
+    return redirect(next_url)
 
 
 @login_required

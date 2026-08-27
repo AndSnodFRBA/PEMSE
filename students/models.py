@@ -87,6 +87,12 @@ class Student(AbstractUser):
         help_text='Secret token used in the ICS feed URL for phone calendar subscriptions',
     )
 
+    # ── Dashboard onboarding ───────────────────────────────────────────────────
+    dashboard_intro_dismissed = models.BooleanField(
+        default=False,
+        help_text='Whether this user has dismissed the first-login "how to navigate" info box.'
+    )
+
     class Meta:
         verbose_name = 'Student'
         ordering = ['-date_joined']

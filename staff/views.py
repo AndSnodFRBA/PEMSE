@@ -196,6 +196,18 @@ def reset_demo(request):
     return render(request, 'staff/reset_demo_confirm.html')
 
 
+STAFF_INTRO_TIPS = [
+    {'icon': 'bi-people', 'title': 'Manage students',
+     'text': 'This roster is grouped by course — click a student to review documents, grades, and payment status.'},
+    {'icon': 'bi-clipboard-data', 'title': 'Track compliance',
+     'text': '"Evaluations," "Grade Overview," and "Pass Rates" show state-reporting numbers at a glance.'},
+    {'icon': 'bi-megaphone', 'title': 'Communicate',
+     'text': '"Announcements" posts to student dashboards; "Reminders" tracks automated deadline emails.'},
+    {'icon': 'bi-gear', 'title': 'Configure the agency',
+     'text': '"Site Settings" holds contact/branding info shown across the portal and PDFs. "Invite Staff" and "Instructors" manage access.'},
+]
+
+
 @staff_required
 def staff_dashboard(request):
     from django.db.models import Q
@@ -433,6 +445,7 @@ def staff_dashboard(request):
         'soon_reports':    soon_reports,
         'last_webhook_run': last_webhook_run,
         'webhook_status':   webhook_status,
+        'intro_tips':       STAFF_INTRO_TIPS,
     })
 
 
