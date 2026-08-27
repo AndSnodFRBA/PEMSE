@@ -542,10 +542,11 @@ def completion_certificate_pdf(request, student_id=None):
 
 
 DAILY_TASK_COMMANDS = [
-    'send_deadline_notifications',
-    'check_retention_flags',
-    'sync_instructor_license_events',
-    'check_late_fees',
+    ('backup_database', {'trigger': 'scheduled'}),
+    ('send_deadline_notifications', {}),
+    ('check_retention_flags', {}),
+    ('sync_instructor_license_events', {}),
+    ('check_late_fees', {}),
 ]
 
 
@@ -563,10 +564,10 @@ def daily_tasks_webhook(request):
     import io
     results = {}
     success = True
-    for command_name in DAILY_TASK_COMMANDS:
+    for command_name, kwargs in DAILY_TASK_COMMANDS:
         out = io.StringIO()
         try:
-            call_command(command_name, stdout=out)
+            call_command(command_name, stdout=out, **kwargs)
             results[command_name] = out.getvalue().strip() or 'ok'
         except Exception as exc:
             results[command_name] = f'error: {exc}'
