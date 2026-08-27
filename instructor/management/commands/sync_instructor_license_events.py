@@ -26,7 +26,7 @@ class Command(BaseCommand):
         # staff see all courses, so it will appear on their calendar.
         default_course = Course.objects.filter(is_active=True).first()
         if not default_course:
-            self.stderr.write('No active course found — cannot create calendar events')
+            self.stdout.write('No active course found yet — skipping instructor license calendar sync')
             return
 
         created = 0
