@@ -14,6 +14,7 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -38,7 +39,14 @@ class Command(BaseCommand):
 
     def _run(self, trigger):
         buf = io.StringIO()
-        call_command('dumpdata', exclude=EXCLUDED_APPS, use_natural_foreign_keys=True, stdout=buf)
+        # dumpdata streams each model with QuerySet.iterator(), which on
+        # PostgreSQL opens a named server-side cursor per model. Outside an
+        # explicit transaction, CONN_HEALTH_CHECKS (settings.py) can ping the
+        # pooled connection between those queries and invalidate the cursor,
+        # producing "cursor ... does not exist". Wrapping the whole dump in
+        # one transaction keeps it on a single, uninterrupted transaction.
+        with transaction.atomic():
+            call_command('dumpdata', exclude=EXCLUDED_APPS, use_natural_foreign_keys=True, stdout=buf)
 
         gz_buf = io.BytesIO()
         with gzip.GzipFile(fileobj=gz_buf, mode='wb') as gz:
