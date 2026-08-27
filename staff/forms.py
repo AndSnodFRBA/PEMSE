@@ -3,6 +3,7 @@ from django import forms
 from courses.models import Course, CourseEnrollment
 from documents.models import StudentDocument
 from evaluations.models import ClinicalRotation
+from handbook.models import HandbookChapter
 from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
     CourseReportRecord, EntranceRequirementRecord, LatePaymentFee,
@@ -104,6 +105,17 @@ class StaffAnnouncementForm(forms.ModelForm):
         self.fields['course'].queryset = Course.objects.order_by('option_number')
         self.fields['course'].required = False
         self.fields['course'].empty_label = 'All students'
+
+
+class StaffHandbookChapterForm(forms.ModelForm):
+    class Meta:
+        model   = HandbookChapter
+        fields  = ['number', 'title', 'body', 'is_active']
+        widgets = {
+            'number': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+            'title':  forms.TextInput(attrs={'class': 'form-control'}),
+            'body':   forms.Textarea(attrs={'class': 'form-control', 'rows': 12}),
+        }
 
 
 class StaffStudentEditForm(forms.ModelForm):

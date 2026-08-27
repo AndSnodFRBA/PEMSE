@@ -13,6 +13,7 @@ from django.utils import timezone
 from courses.models import Course, CourseAnnouncement, CourseEnrollment
 from documents.models import StudentDocument
 from evaluations.models import ClinicalRotation
+from handbook.models import HandbookChapter
 from instructor.models import AttendanceRecord, InstructorCourseAssignment, StudentAttendance
 from schedule.forms import CalendarEventForm
 from schedule.models import CalendarEvent
@@ -49,6 +50,7 @@ from .forms import (
     StaffAccountInviteForm,
     StaffAnnouncementForm,
     StaffAssignCourseForm,
+    StaffHandbookChapterForm,
     StaffPaymentRecordForm,
     StaffRotationForm,
     StudentNoteForm,
@@ -1151,6 +1153,44 @@ def announcement_delete(request, pk):
         ann.delete()
         messages.success(request, 'Announcement deleted.')
     return redirect('staff_announcements')
+
+
+# ── Handbook ──────────────────────────────────────────────────────────────────
+
+@staff_required
+def handbook_chapter_list(request):
+    chapters = HandbookChapter.objects.order_by('number')
+    return render(request, 'staff/handbook_chapters.html', {'chapters': chapters})
+
+
+@staff_required
+def handbook_chapter_create(request):
+    form = StaffHandbookChapterForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Chapter added.')
+        return redirect('staff_handbook_chapters')
+    return render(request, 'staff/handbook_chapter_form.html', {'form': form, 'action': 'New'})
+
+
+@staff_required
+def handbook_chapter_edit(request, pk):
+    chapter = get_object_or_404(HandbookChapter, pk=pk)
+    form = StaffHandbookChapterForm(request.POST or None, instance=chapter)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Chapter updated.')
+        return redirect('staff_handbook_chapters')
+    return render(request, 'staff/handbook_chapter_form.html', {'form': form, 'action': 'Edit', 'chapter': chapter})
+
+
+@staff_required
+def handbook_chapter_delete(request, pk):
+    chapter = get_object_or_404(HandbookChapter, pk=pk)
+    if request.method == 'POST':
+        chapter.delete()
+        messages.success(request, 'Chapter deleted.')
+    return redirect('staff_handbook_chapters')
 
 
 # ── PDF ───────────────────────────────────────────────────────────────────────

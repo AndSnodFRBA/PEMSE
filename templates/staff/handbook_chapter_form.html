@@ -1,0 +1,77 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}{{ action }} Chapter — {{ AGENCY_SHORT_NAME }} Staff{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'staff_handbook_chapters' %}" style="color:#5a7a9a;text-decoration:none;font-size:13px;">
+      <i class="bi bi-arrow-left"></i> Handbook
+    </a>
+    <h1 class="staff-page-title mb-0">{{ action }} Chapter</h1>
+  </div>
+</div>
+
+<div class="card" style="max-width:700px;">
+  <div class="card-body p-4">
+    <form method="post">
+      {% csrf_token %}
+      <div class="row g-3 mb-3">
+        <div class="col-sm-3">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Chapter #</label>
+          {{ form.number }}
+          {% if form.number.errors %}<div class="text-danger" style="font-size:12px;margin-top:4px;">{{ form.number.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="col-sm-9">
+          <label class="form-label" style="font-size:12px;font-weight:600;">Title</label>
+          {{ form.title }}
+          {% if form.title.errors %}<div class="text-danger" style="font-size:12px;margin-top:4px;">{{ form.title.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label" style="font-size:12px;font-weight:600;">Body</label>
+        {{ form.body }}
+        <div style="font-size:11px;color:#9ca3af;margin-top:3px;">Basic HTML is supported (e.g. &lt;p&gt;, &lt;strong&gt;, &lt;ul&gt;/&lt;li&gt;).</div>
+        {% if form.body.errors %}<div class="text-danger" style="font-size:12px;margin-top:4px;">{{ form.body.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="mb-4">
+        <div class="form-check">
+          {{ form.is_active }}
+          <label class="form-check-label" style="font-size:13px;">Visible to students</label>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <button type="button" class="btn btn-sm btn-outline-secondary" style="border-radius:8px;" onclick="toggleChapterPreview()">
+          <i class="bi bi-eye me-1"></i>Preview
+        </button>
+        <div id="chapter-preview" style="display:none;margin-top:12px;padding:14px 16px;background:var(--light);border:1px solid var(--border);border-radius:10px;">
+          <div style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">
+            Preview — as students will see it
+          </div>
+          <div id="preview-body"></div>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-sm" style="background:#2B5EA7;color:#fff;border-radius:8px;padding:9px 20px;font-weight:600;">
+          {% if action == 'New' %}Add Chapter{% else %}Save Changes{% endif %}
+        </button>
+        <a href="{% url 'staff_handbook_chapters' %}" class="btn btn-sm btn-outline-secondary" style="border-radius:8px;padding:9px 16px;">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+  function toggleChapterPreview() {
+    const box = document.getElementById('chapter-preview');
+    const bodyField = document.querySelector('[name="body"]');
+    document.getElementById('preview-body').innerHTML = bodyField.value || '<em>(no content yet)</em>';
+    box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  }
+</script>
+{% endblock %}
+{% endblock %}

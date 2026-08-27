@@ -1,0 +1,62 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}Handbook — {{ AGENCY_SHORT_NAME }} Staff{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">Student Handbook</h1>
+  <a href="{% url 'staff_handbook_chapter_create' %}" class="btn btn-sm" style="background:#2B5EA7;color:#fff;border-radius:8px;">
+    <i class="bi bi-plus-lg me-1"></i> New Chapter
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    {% if chapters %}
+    <table class="table table-hover mb-0" style="font-size:13px;">
+      <thead style="background:#f8fafc;border-bottom:2px solid #dde4ef;">
+        <tr>
+          <th class="ps-4 py-3" style="color:#1a2e4a;font-weight:600;width:80px;">#</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Title</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Status</th>
+          <th class="py-3" style="color:#1a2e4a;font-weight:600;">Updated</th>
+          <th class="py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for chapter in chapters %}
+        <tr>
+          <td class="ps-4 py-3" style="color:#374151;font-weight:600;">{{ chapter.number }}</td>
+          <td class="py-3">
+            <div style="font-weight:600;color:#1a2e4a;">{{ chapter.title }}</div>
+          </td>
+          <td class="py-3">
+            {% if chapter.is_active %}
+              <span class="badge" style="background:#d1fae5;color:#065f46;font-size:11px;padding:4px 8px;border-radius:5px;">Active</span>
+            {% else %}
+              <span class="badge" style="background:#f3f4f6;color:#6b7280;font-size:11px;padding:4px 8px;border-radius:5px;">Hidden</span>
+            {% endif %}
+          </td>
+          <td class="py-3" style="color:#6b7280;font-size:12px;">{{ chapter.updated_at|date:"M j, Y" }}</td>
+          <td class="py-3 pe-3">
+            <div class="d-flex gap-2">
+              <a href="{% url 'staff_handbook_chapter_edit' chapter.pk %}" class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:6px;">Edit</a>
+              <form method="post" action="{% url 'staff_handbook_chapter_delete' chapter.pk %}"
+                    onsubmit="return confirm('Delete this chapter?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:12px;border-radius:6px;">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-5" style="color:#9ca3af;">
+      <i class="bi bi-book" style="font-size:32px;"></i>
+      <div class="mt-2" style="font-size:14px;">No handbook chapters yet. <a href="{% url 'staff_handbook_chapter_create' %}">Add the first one</a>.</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
