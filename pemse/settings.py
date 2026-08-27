@@ -230,14 +230,17 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 
 # ── EMAIL — Gmail SMTP ────────────────────────────────────────────────────────
+# Gmail rejects (or silently rewrites) a From address that isn't the
+# authenticated mailbox, so DEFAULT_FROM_EMAIL/ADMIN_EMAIL follow whichever
+# mailbox EMAIL_HOST_USER actually is rather than a hardcoded address.
 EMAIL_BACKEND      = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST         = 'smtp.gmail.com'
 EMAIL_PORT         = 587
 EMAIL_USE_TLS      = True
-EMAIL_HOST_USER    = os.environ.get('EMAIL_HOST_USER', 'emseducation19@gmail.com')
+EMAIL_HOST_USER    = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = 'PEMSE Student Portal <emseducation19@gmail.com>'
-ADMIN_EMAIL        = 'emseducation19@gmail.com'
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', f'{AGENCY_NAME} <{EMAIL_HOST_USER}>')
+ADMIN_EMAIL        = os.environ.get('ADMIN_EMAIL', EMAIL_HOST_USER)
 
 if DEMO_MODE:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
