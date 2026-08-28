@@ -315,7 +315,7 @@
     <div>{{ AGENCY_ADDRESS }}</div>
     <div>
       {{ AGENCY_DIRECTOR }} &nbsp;·&nbsp;
-      <a href="tel:3086312424">{{ AGENCY_PHONE }}</a> &nbsp;·&nbsp;
+      <a href="tel:{{ AGENCY_PHONE }}">{{ AGENCY_PHONE }}</a> &nbsp;·&nbsp;
       <a href="mailto:{{ AGENCY_EMAIL }}">{{ AGENCY_EMAIL }}</a>
     </div>
     <div style="margin-top:8px;">&copy; {% now "Y" %} {{ AGENCY_NAME }}. All rights reserved.</div>
