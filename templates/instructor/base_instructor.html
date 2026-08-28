@@ -51,19 +51,24 @@
 
 <aside class="sidebar" id="mainSidebar">
   <div class="sidebar-brand">
-    {% if DEMO_MODE %}
+    {% if AGENCY_LOGO_URL %}
+    <img src="{{ AGENCY_LOGO_URL }}" alt="{{ AGENCY_SHORT_NAME }} Logo" class="brand-logo"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+    {% elif DEMO_MODE %}
     <span class="portal-logo-text">EMS Training Portal</span>
     {% else %}
     <img src="{% static 'images/PEMSE.jpg' %}" alt="{{ AGENCY_SHORT_NAME }} Logo" class="brand-logo"
          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+    {% endif %}
     <div class="brand-logo-fallback" style="display:none;">
       <i class="bi bi-person-badge-fill" style="color:white;font-size:18px;"></i>
     </div>
-    {% endif %}
+    {% if not AGENCY_LOGO_URL %}
     <div>
       <div class="brand-name">{{ AGENCY_NAME }}</div>
       <div class="brand-sub">Instructor Portal</div>
     </div>
+    {% endif %}
   </div>
 
   <div class="sidebar-section-label">Menu</div>
