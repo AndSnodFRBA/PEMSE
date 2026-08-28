@@ -60,13 +60,17 @@
       z-index: 1;
     }
     .brand-logo {
-      width: 88px;
-      height: 88px;
+      max-width: 340px;
+      width: 100%;
+      height: 90px;
       object-fit: contain;
+      margin-bottom: 16px;
+    }
+    .brand-logo.brand-logo-boxed {
+      width: 88px;
       border-radius: 16px;
       background: rgba(255,255,255,.1);
       padding: 8px;
-      margin-bottom: 16px;
     }
     .brand-logo-placeholder {
       width: 88px;
@@ -252,13 +256,15 @@
       <i class="bi bi-heart-pulse-fill" style="font-size:36px;color:rgba(255,255,255,.7);"></i>
     </div>
     {% else %}
-    <img src="{% static 'images/PEMSE.jpg' %}" alt="{{ AGENCY_NAME }}" class="brand-logo"
+    <img src="{% static 'images/PEMSE.jpg' %}" alt="{{ AGENCY_NAME }}" class="brand-logo brand-logo-boxed"
          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
     <div class="brand-logo-placeholder" style="display:none;">
       <i class="bi bi-heart-pulse-fill" style="font-size:36px;color:rgba(255,255,255,.7);"></i>
     </div>
     {% endif %}
+    {% if not AGENCY_LOGO_URL %}
     <h1 class="brand-name">{{ AGENCY_NAME }}</h1>
+    {% endif %}
     <div class="brand-tagline">Student Portal</div>
   </div>
 

@@ -37,7 +37,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); col
   padding: 14px 16px 12px; border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 .brand-logo {
-  height: 38px; width: auto; object-fit: contain; flex-shrink: 0;
+  height: 38px; width: auto; max-width: 200px; object-fit: contain; flex-shrink: 0;
   filter: brightness(0) invert(1);
 }
 .brand-logo-fallback {
