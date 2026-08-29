@@ -20,16 +20,20 @@
         <div class="alert alert-danger">{{ form.non_field_errors }}</div>
       {% endif %}
 
+      <div style="font-size:12px;color:#6b7280;margin-bottom:16px;">
+        <span class="text-danger">*</span> Required field
+      </div>
+
       <!-- Basic Info -->
       <h6 style="font-weight:700;color:#1a2e4a;font-size:12px;letter-spacing:.8px;text-transform:uppercase;margin-bottom:16px;">Basic Info</h6>
       <div class="row g-3 mb-4">
         <div class="col-sm-2">
-          <label class="form-label" style="font-size:12px;font-weight:600;">Option #</label>
+          <label class="form-label" style="font-size:12px;font-weight:600;">Option # <span class="text-danger">*</span></label>
           {{ form.option_number }}
           {% if form.option_number.errors %}<div class="text-danger" style="font-size:11px;">{{ form.option_number.errors }}</div>{% endif %}
         </div>
         <div class="col-sm-2">
-          <label class="form-label" style="font-size:12px;font-weight:600;">Tag</label>
+          <label class="form-label" style="font-size:12px;font-weight:600;">Tag <span class="text-danger">*</span></label>
           {{ form.tag }}
           {% if form.tag.errors %}<div class="text-danger" style="font-size:11px;">{{ form.tag.errors }}</div>{% endif %}
         </div>
@@ -39,18 +43,18 @@
           {% if form.licensure.errors %}<div class="text-danger" style="font-size:11px;">{{ form.licensure.errors }}</div>{% endif %}
         </div>
         <div class="col-sm-4">
-          <label class="form-label" style="font-size:12px;font-weight:600;">Price ($, without textbook)</label>
+          <label class="form-label" style="font-size:12px;font-weight:600;">Price ($, without textbook) <span class="text-danger">*</span></label>
           {{ form.price }}
           {% if form.price.errors %}<div class="text-danger" style="font-size:11px;">{{ form.price.errors }}</div>{% endif %}
         </div>
         <div class="col-sm-4">
-          <label class="form-label" style="font-size:12px;font-weight:600;">Textbook add-on ($)</label>
+          <label class="form-label" style="font-size:12px;font-weight:600;">Textbook add-on ($) <span class="text-danger">*</span></label>
           {{ form.book_price }}
           <div style="font-size:11px;color:#6b7280;margin-top:3px;">{{ form.book_price.help_text }}</div>
           {% if form.book_price.errors %}<div class="text-danger" style="font-size:11px;">{{ form.book_price.errors }}</div>{% endif %}
         </div>
         <div class="col-12">
-          <label class="form-label" style="font-size:12px;font-weight:600;">Course Name</label>
+          <label class="form-label" style="font-size:12px;font-weight:600;">Course Name <span class="text-danger">*</span></label>
           {{ form.name }}
           {% if form.name.errors %}<div class="text-danger" style="font-size:11px;">{{ form.name.errors }}</div>{% endif %}
         </div>
@@ -59,7 +63,7 @@
           {{ form.description }}
         </div>
         <div class="col-sm-4">
-          <label class="form-label" style="font-size:12px;font-weight:600;">Min. Down ($)</label>
+          <label class="form-label" style="font-size:12px;font-weight:600;">Min. Down ($) <span class="text-danger">*</span></label>
           {{ form.min_down }}
         </div>
         <div class="col-sm-4 d-flex align-items-center gap-3 pt-3">
