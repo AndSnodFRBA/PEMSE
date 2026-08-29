@@ -51,8 +51,9 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
       - name: Deploy to Railway
-        uses: bervproject/railway-deploy@main
-        with:
-          railway-token: ${{ secrets.RAILWAY_TOKEN }}
-          service: pemse-portal
+        run: railway up --service pemse-portal --environment production --ci
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
