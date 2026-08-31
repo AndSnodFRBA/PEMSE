@@ -24,6 +24,17 @@
         <span class="text-danger">*</span> Required field
       </div>
 
+      <!-- Active toggle -->
+      <div class="d-flex align-items-center justify-content-between p-3 mb-4" style="background:#eef6f0;border:2px solid #2fa360;border-radius:10px;">
+        <div>
+          <div style="font-weight:700;color:#1a2e4a;font-size:14px;">Course Active</div>
+          <div style="font-size:12px;color:#6b7280;">Inactive courses are hidden from students and the public registration page.</div>
+        </div>
+        <div class="form-check form-switch mb-0" style="transform:scale(1.6);transform-origin:right center;">
+          {{ form.is_active }}
+        </div>
+      </div>
+
       <!-- Basic Info -->
       <h6 style="font-weight:700;color:#1a2e4a;font-size:12px;letter-spacing:.8px;text-transform:uppercase;margin-bottom:16px;">Basic Info</h6>
       <div class="row g-3 mb-4">
@@ -66,14 +77,10 @@
           <label class="form-label" style="font-size:12px;font-weight:600;">Min. Down ($) <span class="text-danger">*</span></label>
           {{ form.min_down }}
         </div>
-        <div class="col-sm-4 d-flex align-items-center gap-3 pt-3">
+        <div class="col-sm-4 d-flex align-items-center pt-3">
           <div class="form-check">
             {{ form.includes_shirt }}
             <label class="form-check-label" style="font-size:12px;" for="{{ form.includes_shirt.id_for_label }}">Includes shirt</label>
-          </div>
-          <div class="form-check">
-            {{ form.is_active }}
-            <label class="form-check-label" style="font-size:12px;" for="{{ form.is_active.id_for_label }}">Active</label>
           </div>
         </div>
       </div>

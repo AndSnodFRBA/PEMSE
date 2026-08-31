@@ -127,6 +127,21 @@ def send_staff_invitation_email(invitation, invite_link):
     _send("You're invited to join the staff portal", '\n'.join(lines), invitation.email)
 
 
+def send_instructor_invitation_email(invitation, invite_link):
+    lines = [
+        f"You've been invited to set up an instructor profile with {settings.AGENCY_NAME}.",
+        '',
+        f'Create your profile here: {invite_link}',
+        '',
+        f'This link expires {invitation.expires_at.strftime("%B %d, %Y")} and can only be used once.',
+        '',
+        'If you weren\'t expecting this invitation, you can ignore this email.',
+        '',
+        f'— {settings.AGENCY_NAME}',
+    ]
+    _send("You're invited to join as an instructor", '\n'.join(lines), invitation.email)
+
+
 def send_document_review_notification(doc):
     student = doc.student
     if doc.status == doc.Status.APPROVED:

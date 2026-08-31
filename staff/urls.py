@@ -97,6 +97,9 @@ urlpatterns = [
     # Instructor management
     path('instructors/',                              views.staff_instructor_list,         name='staff_instructor_list'),
     path('instructors/add/',                          views.staff_instructor_add,          name='staff_instructor_add'),
+    path('instructors/invite/<int:pk>/resend/',       views.resend_instructor_invite,      name='staff_instructor_invite_resend'),
+    path('instructors/invite/<int:pk>/edit/',         views.edit_instructor_invite,        name='staff_instructor_invite_edit'),
+    path('instructors/invite/<uuid:token>/',          views.instructor_invite_accept,      name='instructor_invite_accept'),
     path('instructors/<int:pk>/',                     views.staff_instructor_detail,       name='staff_instructor_detail'),
     path('instructors/<int:pk>/assign-course/',       views.staff_instructor_assign_course, name='staff_instructor_assign_course'),
     path('instructors/<int:pk>/assignments/<int:assignment_id>/toggle-grade-entry/', views.staff_instructor_toggle_grade_entry, name='staff_instructor_toggle_grade_entry'),

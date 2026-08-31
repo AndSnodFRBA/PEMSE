@@ -19,8 +19,8 @@ from schedule.forms import CalendarEventForm
 from schedule.models import CalendarEvent
 from students.forms import StudentLoginForm
 from students.emails import (
-    _send, send_document_review_notification, send_invitation_email,
-    send_payment_receipt, send_staff_invitation_email,
+    _send, send_document_review_notification, send_instructor_invitation_email,
+    send_invitation_email, send_payment_receipt, send_staff_invitation_email,
 )
 from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
@@ -38,6 +38,8 @@ from .forms import (
     EditInvitationEmailForm,
     EditStudentInvitationForm,
     EntranceRequirementForm,
+    InstructorInviteAcceptForm,
+    InstructorInviteForm,
     InvitationForm,
     LatePaymentFeeForm,
     MedicalDirectorConsultationForm,
@@ -59,7 +61,7 @@ from .forms import (
     WaiveLateFeeForm,
 )
 from .mixins import admin_required, staff_required
-from .models import MedicalDirectorConsultation, StaffInvitation, StudentInvitation
+from .models import InstructorInvitation, MedicalDirectorConsultation, StaffInvitation, StudentInvitation
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
@@ -2526,13 +2528,93 @@ def staff_instructor_list(request):
 
 @staff_required
 def staff_instructor_add(request):
-    from .forms import InstructorCreateForm
-    form = InstructorCreateForm(request.POST or None)
+    form        = InstructorInviteForm(request.POST or None)
+    invitations = InstructorInvitation.objects.select_related('created_by').order_by('-created_at')[:20]
+
+    invite_link = None
+
     if request.method == 'POST' and form.is_valid():
-        instructor = form.save()
-        messages.success(request, f'Instructor account created for {instructor.get_full_name()}.')
-        return redirect('staff_instructor_detail', pk=instructor.pk)
-    return render(request, 'staff/instructor_add.html', {'form': form})
+        email       = form.cleaned_data['email']
+        inv         = InstructorInvitation.objects.create(email=email, created_by=request.user)
+        invite_link = request.build_absolute_uri(f'/staff/instructors/invite/{inv.token}/')
+        send_instructor_invitation_email(inv, invite_link)
+        messages.success(request, f'Invite sent to {email}.')
+        form        = InstructorInviteForm()
+        invitations = InstructorInvitation.objects.select_related('created_by').order_by('-created_at')[:20]
+
+    return render(request, 'staff/instructor_add.html', {
+        'form': form, 'invitations': invitations, 'invite_link': invite_link,
+    })
+
+
+@staff_required
+def resend_instructor_invite(request, pk):
+    inv = get_object_or_404(InstructorInvitation, pk=pk)
+    if request.method == 'POST':
+        if inv.used:
+            messages.error(request, 'This invitation has already been used.')
+        else:
+            inv.expires_at = timezone.now() + timedelta(days=7)
+            inv.save(update_fields=['expires_at'])
+            invite_link = request.build_absolute_uri(f'/staff/instructors/invite/{inv.token}/')
+            send_instructor_invitation_email(inv, invite_link)
+            messages.success(request, f'Invite resent to {inv.email}.')
+    return redirect('staff_instructor_add')
+
+
+@staff_required
+def edit_instructor_invite(request, pk):
+    inv = get_object_or_404(InstructorInvitation, pk=pk)
+    if request.method == 'POST':
+        if inv.used:
+            messages.error(request, 'This invitation has already been used.')
+        else:
+            form = EditInvitationEmailForm(request.POST)
+            if form.is_valid():
+                inv.email = form.cleaned_data['email']
+                inv.save(update_fields=['email'])
+                messages.success(request, 'Invitation email updated.')
+            else:
+                messages.error(request, form.errors['email'][0] if form.errors.get('email') else 'Please enter a valid email.')
+    return redirect('staff_instructor_add')
+
+
+def instructor_invite_accept(request, token):
+    """Profile setup view for an invited instructor — no login required."""
+    try:
+        invitation = InstructorInvitation.objects.get(token=token)
+    except InstructorInvitation.DoesNotExist:
+        messages.error(request, 'This invitation link is invalid.')
+        return redirect('instructor_login')
+
+    if not invitation.is_valid:
+        messages.error(request, 'This invitation link has expired or has already been used.')
+        return redirect('instructor_login')
+
+    if request.user.is_authenticated:
+        return redirect('instructor_dashboard')
+
+    if Student.objects.filter(email__iexact=invitation.email).exists():
+        messages.error(request, 'An account with this email already exists.')
+        return redirect('instructor_login')
+
+    form = InstructorInviteAcceptForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        instructor          = form.save(commit=False)
+        instructor.username = invitation.email.lower()
+        instructor.email    = invitation.email.lower()
+        instructor.role     = Student.Role.INSTRUCTOR
+        instructor.set_password(form.cleaned_data['password1'])
+        instructor.save()
+        invitation.used    = True
+        invitation.used_at = timezone.now()
+        invitation.save()
+        login(request, instructor, backend='students.backends.EmailBackend')
+        messages.success(request, f'Welcome, {instructor.first_name}! Your instructor profile is ready.')
+        return redirect('instructor_dashboard')
+
+    return render(request, 'staff/instructor_invite_accept.html', {'form': form, 'invite_email': invitation.email})
 
 
 @staff_required

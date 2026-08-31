@@ -171,6 +171,8 @@ class CourseForm(forms.ModelForm):
             'registration_close_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'max_students':           forms.NumberInput(attrs={'class': 'form-control'}),
             'schedule_notes':         forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'includes_shirt':         forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_active':              forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
     def clean_syllabus(self):
@@ -479,7 +481,25 @@ class CourseReportForm(forms.ModelForm):
 
 # ── Instructor Management Forms ───────────────────────────────────────────────
 
-class InstructorCreateForm(forms.ModelForm):
+class InstructorInviteForm(forms.Form):
+    email = forms.EmailField(
+        label='Instructor email address',
+        widget=forms.EmailInput(attrs={**_fc, 'placeholder': 'instructor@email.com'}),
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].lower()
+        if Student.objects.filter(email=email).exists():
+            raise forms.ValidationError('An account with this email already exists.')
+        return email
+
+
+class InstructorInviteAcceptForm(forms.ModelForm):
+    """Filled out by an invited instructor to set up their own profile and password.
+
+    Email is intentionally excluded — it's fixed to whatever address the
+    invitation was sent to, so it can't be swapped out from the form.
+    """
     password1 = forms.CharField(
         label='Password',
         widget=forms.PasswordInput(attrs={**_fc, 'placeholder': 'Min. 8 characters'}),
@@ -492,26 +512,19 @@ class InstructorCreateForm(forms.ModelForm):
     class Meta:
         model  = Student
         fields = [
-            'first_name', 'last_name', 'email', 'phone',
+            'first_name', 'last_name', 'phone',
             'instructor_license_number', 'instructor_license_level',
             'instructor_license_expiry', 'instructor_employer',
         ]
         widgets = {
             'first_name':                  forms.TextInput(attrs=_fc),
             'last_name':                   forms.TextInput(attrs=_fc),
-            'email':                       forms.EmailInput(attrs=_fc),
             'phone':                       forms.TextInput(attrs=_fc),
             'instructor_license_number':   forms.TextInput(attrs=_fc),
             'instructor_license_level':    forms.Select(attrs=_fs),
             'instructor_license_expiry':   forms.DateInput(attrs=_date),
             'instructor_employer':         forms.TextInput(attrs=_fc),
         }
-
-    def clean_email(self):
-        email = self.cleaned_data['email'].lower()
-        if Student.objects.filter(email=email).exists():
-            raise forms.ValidationError('An account with this email already exists.')
-        return email
 
     def clean(self):
         cleaned = super().clean()
@@ -520,16 +533,6 @@ class InstructorCreateForm(forms.ModelForm):
         if p1 and p2 and p1 != p2:
             raise forms.ValidationError('Passwords do not match.')
         return cleaned
-
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.username = self.cleaned_data['email'].lower()
-        user.email    = self.cleaned_data['email'].lower()
-        user.role     = Student.Role.INSTRUCTOR
-        user.set_password(self.cleaned_data['password1'])
-        if commit:
-            user.save()
-        return user
 
 
 class StaffInviteAcceptForm(forms.ModelForm):
