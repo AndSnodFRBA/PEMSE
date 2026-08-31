@@ -543,6 +543,7 @@ def completion_certificate_pdf(request, student_id=None):
 
 DAILY_TASK_COMMANDS = [
     ('backup_database', {'trigger': 'scheduled'}),
+    ('archive_completed_courses', {}),
     ('send_deadline_notifications', {}),
     ('check_retention_flags', {}),
     ('sync_instructor_license_events', {}),
