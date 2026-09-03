@@ -111,6 +111,7 @@ urlpatterns = [
     path('instructors/<int:pk>/remediation/',         views.staff_instructor_remediation,  name='staff_instructor_remediation'),
     # Staff account management
     path('accounts/',                                 views.staff_account_list,            name='staff_account_list'),
+    path('accounts/<int:pk>/deactivate/',             views.staff_account_deactivate,      name='staff_account_deactivate'),
     path('accounts/invite/',                          views.staff_account_invite,          name='staff_account_invite'),
     path('accounts/invite/<int:pk>/resend/',          views.resend_staff_invite,           name='staff_account_invite_resend'),
     path('accounts/invite/<int:pk>/edit/',            views.edit_staff_invite,             name='staff_account_invite_edit'),

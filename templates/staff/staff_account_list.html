@@ -19,6 +19,8 @@
             <th class="py-2">Email</th>
             <th class="py-2">Phone</th>
             <th class="py-2">Role</th>
+            <th class="py-2">Status</th>
+            <th class="py-2"></th>
           </tr>
         </thead>
         <tbody>
@@ -33,6 +35,34 @@
             <td class="py-2">{{ account.email }}</td>
             <td class="py-2">{{ account.phone|default:"—" }}</td>
             <td class="py-2">{{ account.get_role_display }}</td>
+            <td class="py-2">
+              {% if account.is_active %}
+                <span class="badge" style="background:#d1fae5;color:#065f46;font-size:11px;">Active</span>
+              {% else %}
+                <span class="badge" style="background:#fee2e2;color:#991b1b;font-size:11px;">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="py-2 pe-3 text-end">
+              {% if account == request.user %}
+                <span style="color:#d1d5db;font-size:11px;">—</span>
+              {% elif account.is_active %}
+                <form method="post" action="{% url 'staff_account_deactivate' account.pk %}"
+                      onsubmit="return confirm('Deactivate {{ account.get_full_name|escapejs }}? They will no longer be able to log in. This can be undone by reactivating them.')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:11px;border-radius:6px;padding:2px 8px;">
+                    <i class="bi bi-slash-circle me-1"></i>Deactivate
+                  </button>
+                </form>
+              {% else %}
+                <form method="post" action="{% url 'staff_account_deactivate' account.pk %}"
+                      onsubmit="return confirm('Reactivate {{ account.get_full_name|escapejs }}? They will be able to log in again.')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-success" style="font-size:11px;border-radius:6px;padding:2px 8px;">
+                    <i class="bi bi-check-circle me-1"></i>Reactivate
+                  </button>
+                </form>
+              {% endif %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>

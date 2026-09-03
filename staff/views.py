@@ -2805,6 +2805,24 @@ def staff_account_list(request):
 
 
 @staff_required
+def staff_account_deactivate(request, pk):
+    """Revokes login access without touching any records. A staff member
+    can't deactivate their own account — that would lock them out."""
+    account = get_object_or_404(Student, pk=pk, role__in=[Student.Role.STAFF, Student.Role.ADMIN])
+    if request.method == 'POST':
+        if account == request.user:
+            messages.error(request, "You can't deactivate your own account.")
+        else:
+            account.is_active = not account.is_active
+            account.save(update_fields=['is_active'])
+            if account.is_active:
+                messages.success(request, f'{account.get_full_name()} has been reactivated.')
+            else:
+                messages.success(request, f'{account.get_full_name()} has been deactivated and can no longer log in.')
+    return redirect('staff_account_list')
+
+
+@staff_required
 def staff_account_invite(request):
     form        = StaffAccountInviteForm(request.POST or None)
     invitations = StaffInvitation.objects.select_related('created_by').order_by('-created_at')[:20]
