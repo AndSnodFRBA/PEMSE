@@ -12,11 +12,28 @@ from django.core.mail import send_mail
 logger = logging.getLogger(__name__)
 
 
+def _agency_contact():
+    """Best available "contact us" string — email and/or phone — pulled from the
+    staff-editable SiteSettings singleton (Staff > Settings > Site Settings), not
+    the env vars. Falls back to just the agency name when neither is configured."""
+    from .models import SiteSettings
+
+    site = SiteSettings.get()
+    bits = []
+    if site.agency_email:
+        bits.append(site.agency_email)
+    phone = (site.agency_phone or '').strip()
+    if phone and phone.lower() != 'available upon request':
+        bits.append(phone)
+    if bits:
+        return f'{settings.AGENCY_SHORT_NAME} at {" or ".join(bits)}'
+    return settings.AGENCY_SHORT_NAME
+
+
 def _automated_notice():
     return (
         f'This is an automated message sent by the {settings.AGENCY_SHORT_NAME} Student Portal. '
-        f'Please do not reply directly to this email — contact {settings.AGENCY_SHORT_NAME} at '
-        f'{settings.AGENCY_EMAIL} instead.'
+        f'Please do not reply directly to this email — contact {_agency_contact()} instead.'
     )
 
 
@@ -53,7 +70,7 @@ def send_registration_confirmation(student, enrollment, conf_number):
         ]
     lines += [
         '',
-        f'If you have any questions, contact {settings.AGENCY_SHORT_NAME} at {settings.AGENCY_EMAIL}.',
+        f'If you have any questions, contact {_agency_contact()}.',
         '',
         f'— {settings.AGENCY_NAME}',
     ]
@@ -97,7 +114,6 @@ def send_invitation_email(invitation, invite_link):
         lines += [
             '',
             f'Course: Option {c.option_number} — {c.name}',
-            f'Base tuition: ${c.price:,.0f}',
         ]
     lines += [
         '',
@@ -176,7 +192,7 @@ def registration_incomplete_reminder_content(student):
         'portal and finish up the remaining steps (course selection, payment contract, handbook, '
         'and required documents) as soon as you can.',
         '',
-        f'Questions? Contact {settings.AGENCY_SHORT_NAME} at {settings.AGENCY_EMAIL}.',
+        f'Questions? Contact {_agency_contact()}.',
         '',
         f'— {settings.AGENCY_NAME}',
     ]
@@ -190,9 +206,7 @@ def balance_due_reminder_content(student, balance_due):
         '',
         f'This is a reminder that you have an outstanding balance of ${balance_due:,.2f} on your {settings.AGENCY_SHORT_NAME} tuition.',
         '',
-        f'Please contact {settings.AGENCY_SHORT_NAME} to arrange payment or if you have questions about your payment schedule.',
-        '',
-        settings.AGENCY_EMAIL,
+        f'Please contact {_agency_contact()} to arrange payment or if you have questions about your payment schedule.',
         '',
         f'— {settings.AGENCY_NAME}',
     ]
@@ -214,7 +228,7 @@ def course_start_reminder_content(student, course, days_before):
         '',
         'Make sure your registration, payment, and required documents are all up to date before class begins.',
         '',
-        f'Questions? Contact {settings.AGENCY_SHORT_NAME} at {settings.AGENCY_EMAIL}.',
+        f'Questions? Contact {_agency_contact()}.',
         '',
         f'— {settings.AGENCY_NAME}',
     ]
@@ -238,7 +252,7 @@ def send_payment_receipt(payment_record):
         lines.append(f'Remaining balance: ${balance:,.2f}')
     lines += [
         '',
-        f'Questions about your balance? Contact {settings.AGENCY_SHORT_NAME} at {settings.AGENCY_EMAIL}.',
+        f'Questions about your balance? Contact {_agency_contact()}.',
         '',
         f'— {settings.AGENCY_NAME}',
     ]
