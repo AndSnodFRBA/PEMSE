@@ -2664,6 +2664,17 @@ def staff_instructor_detail(request, pk):
 
 
 @staff_required
+def staff_instructor_delete(request, pk):
+    instructor = get_object_or_404(Student, pk=pk, role=Student.Role.INSTRUCTOR)
+    if request.method == 'POST':
+        name = instructor.get_full_name()
+        instructor.delete()
+        messages.success(request, f'{name} and all associated records have been deleted.')
+        return redirect('staff_instructor_list')
+    return redirect('staff_instructor_detail', pk=pk)
+
+
+@staff_required
 def staff_instructor_assign_course(request, pk):
     from .forms import InstructorCourseAssignmentForm
     instructor = get_object_or_404(Student, pk=pk, role=Student.Role.INSTRUCTOR)

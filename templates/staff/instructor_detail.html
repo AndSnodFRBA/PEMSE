@@ -27,6 +27,13 @@
     <a href="{% url 'staff_instructor_list' %}" class="btn btn-sm btn-outline-secondary">
       <i class="bi bi-arrow-left me-1"></i> Back
     </a>
+    <form method="post" action="{% url 'staff_instructor_delete' instructor.pk %}"
+          onsubmit="return confirm('Permanently delete {{ instructor.get_full_name|escapejs }}? This also deletes all of their course assignments, hour logs, observations, meetings, remediation plans, and any attendance records they took (including attendance for other students in those sessions). This cannot be undone.')">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-outline-danger">
+        <i class="bi bi-trash3-fill me-1"></i> Delete Instructor
+      </button>
+    </form>
   </div>
 </div>
 
