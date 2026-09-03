@@ -29,7 +29,12 @@
           {% for row in rows %}
           <tr>
             <td class="px-3 py-2">
-              <div class="fw-semibold">{{ row.instructor.get_full_name }}</div>
+              <div class="fw-semibold">
+                {{ row.instructor.get_full_name }}
+                {% if not row.instructor.is_active %}
+                  <span class="badge" style="background:#fee2e2;color:#991b1b;font-size:10px;">Inactive</span>
+                {% endif %}
+              </div>
               <div class="text-muted" style="font-size:11px;">{{ row.instructor.email }}</div>
             </td>
             <td class="py-2">{{ row.instructor.get_instructor_license_level_display|default:"—" }}</td>

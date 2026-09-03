@@ -10,9 +10,9 @@ from .models import (
 
 @admin.register(Student)
 class StudentAdmin(UserAdmin):
-    list_display  = ['email', 'get_full_name', 'enroll_status', 'reg_submitted',
+    list_display  = ['email', 'get_full_name', 'role', 'is_active', 'enroll_status', 'reg_submitted',
                      'handbook_signed', 'contract_signed', 'date_joined']
-    list_filter   = ['enroll_status', 'reg_submitted', 'handbook_signed', 'contract_signed']
+    list_filter   = ['role', 'is_active', 'enroll_status', 'reg_submitted', 'handbook_signed', 'contract_signed']
     search_fields = ['email', 'first_name', 'last_name', 'reg_conf_number']
     ordering      = ['-date_joined']
     readonly_fields = ['date_joined', 'last_login', 'reg_conf_number',

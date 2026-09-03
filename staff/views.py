@@ -2664,13 +2664,19 @@ def staff_instructor_detail(request, pk):
 
 
 @staff_required
-def staff_instructor_delete(request, pk):
+def staff_instructor_deactivate(request, pk):
+    """Revokes login access without touching any of the instructor's records.
+    A full delete (which does cascade through their records) is only available
+    via the Django admin site, reserved for superusers."""
     instructor = get_object_or_404(Student, pk=pk, role=Student.Role.INSTRUCTOR)
     if request.method == 'POST':
-        name = instructor.get_full_name()
-        instructor.delete()
-        messages.success(request, f'{name} and all associated records have been deleted.')
-        return redirect('staff_instructor_list')
+        instructor.is_active = not instructor.is_active
+        instructor.save(update_fields=['is_active'])
+        if instructor.is_active:
+            messages.success(request, f'{instructor.get_full_name()} has been reactivated.')
+        else:
+            messages.success(request, f'{instructor.get_full_name()} has been deactivated and can no longer log in.')
+        return redirect('staff_instructor_detail', pk=pk)
     return redirect('staff_instructor_detail', pk=pk)
 
 

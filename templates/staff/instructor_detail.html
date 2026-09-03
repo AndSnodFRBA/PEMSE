@@ -13,7 +13,12 @@
 
 {% block content %}
 <div class="staff-topbar">
-  <h1 class="staff-page-title">{{ instructor.get_full_name }}</h1>
+  <h1 class="staff-page-title">
+    {{ instructor.get_full_name }}
+    {% if not instructor.is_active %}
+      <span class="badge" style="background:#fee2e2;color:#991b1b;font-size:11px;vertical-align:middle;">Inactive</span>
+    {% endif %}
+  </h1>
   <div class="d-flex gap-2">
     <a href="{% url 'staff_instructor_assign_course' instructor.pk %}" class="btn btn-sm btn-outline-primary">
       Assign Course
@@ -27,13 +32,23 @@
     <a href="{% url 'staff_instructor_list' %}" class="btn btn-sm btn-outline-secondary">
       <i class="bi bi-arrow-left me-1"></i> Back
     </a>
-    <form method="post" action="{% url 'staff_instructor_delete' instructor.pk %}"
-          onsubmit="return confirm('Permanently delete {{ instructor.get_full_name|escapejs }}? This also deletes all of their course assignments, hour logs, observations, meetings, remediation plans, and any attendance records they took (including attendance for other students in those sessions). This cannot be undone.')">
+    {% if instructor.is_active %}
+    <form method="post" action="{% url 'staff_instructor_deactivate' instructor.pk %}"
+          onsubmit="return confirm('Deactivate {{ instructor.get_full_name|escapejs }}? They will no longer be able to log in, but all of their records (course assignments, hour logs, observations, meetings, remediation plans, attendance taken) are kept. This can be undone by reactivating them.')">
       {% csrf_token %}
       <button type="submit" class="btn btn-sm btn-outline-danger">
-        <i class="bi bi-trash3-fill me-1"></i> Delete Instructor
+        <i class="bi bi-slash-circle me-1"></i> Deactivate
       </button>
     </form>
+    {% else %}
+    <form method="post" action="{% url 'staff_instructor_deactivate' instructor.pk %}"
+          onsubmit="return confirm('Reactivate {{ instructor.get_full_name|escapejs }}? They will be able to log in again.')">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-outline-success">
+        <i class="bi bi-check-circle me-1"></i> Reactivate
+      </button>
+    </form>
+    {% endif %}
   </div>
 </div>
 
