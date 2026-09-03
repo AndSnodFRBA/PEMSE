@@ -20,6 +20,9 @@
         <a href="{% url 'staff_student_detail' row.student.pk %}" style="font-weight:600;color:#1a2e4a;text-decoration:none;">
           {{ row.student.get_full_name }}
         </a>
+        {% if not row.student.is_active %}
+          <span class="badge" style="background:#fee2e2;color:#991b1b;font-size:10px;">Inactive</span>
+        {% endif %}
       </td>
       <td class="py-2" style="color:#374151;font-size:12px;">
         {{ row.student.email }}<br>

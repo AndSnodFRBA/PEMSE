@@ -12,6 +12,9 @@
     <span class="badge badge-{{ student.enroll_status }}" style="font-size:11px;padding:4px 10px;border-radius:6px;">
       {{ student.get_enroll_status_display }}
     </span>
+    {% if not student.is_active %}
+      <span class="badge" style="background:#fee2e2;color:#991b1b;font-size:11px;padding:4px 10px;border-radius:6px;">Inactive</span>
+    {% endif %}
     {% if attendance %}
       {% if attendance.level == 'red' %}
         <span title="Below 80% attendance — 172 NAC Chapter 13 allows dismissal above 20% absence" style="background:#fee2e2;color:#991b1b;border-radius:12px;font-size:11px;font-weight:700;padding:3px 10px;"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ attendance.pct }}% attendance</span>
@@ -32,6 +35,23 @@
     <a href="{% url 'staff_invoice_pdf' student.pk %}" class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:7px;">
       <i class="bi bi-receipt me-1"></i>Download Invoice
     </a>
+    {% if student.is_active %}
+    <form method="post" action="{% url 'staff_student_deactivate' student.pk %}"
+          onsubmit="return confirm('Deactivate {{ student.get_full_name|escapejs }}? They will no longer be able to log in, but all of their records (enrollment, payments, documents, grades, attendance) are kept. This can be undone by reactivating them.')">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:12px;border-radius:7px;">
+        <i class="bi bi-slash-circle me-1"></i>Deactivate
+      </button>
+    </form>
+    {% else %}
+    <form method="post" action="{% url 'staff_student_deactivate' student.pk %}"
+          onsubmit="return confirm('Reactivate {{ student.get_full_name|escapejs }}? They will be able to log in again.')">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-outline-success" style="font-size:12px;border-radius:7px;">
+        <i class="bi bi-check-circle me-1"></i>Reactivate
+      </button>
+    </form>
+    {% endif %}
   </div>
 </div>
 

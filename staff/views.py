@@ -605,6 +605,22 @@ def student_edit(request, pk):
 
 
 @staff_required
+def student_deactivate(request, pk):
+    """Revokes login access without touching any of the student's records —
+    enrollment, payments, documents, grades, attendance, etc. all stay intact."""
+    student = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
+    if request.method == 'POST':
+        student.is_active = not student.is_active
+        student.save(update_fields=['is_active'])
+        if student.is_active:
+            messages.success(request, f'{student.get_full_name()} has been reactivated.')
+        else:
+            messages.success(request, f'{student.get_full_name()} has been deactivated and can no longer log in.')
+        return redirect('staff_student_detail', pk=pk)
+    return redirect('staff_student_detail', pk=pk)
+
+
+@staff_required
 def assign_course(request, pk):
     student    = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
     enrollment = CourseEnrollment.objects.filter(student=student).first()
