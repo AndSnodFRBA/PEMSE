@@ -114,17 +114,14 @@
     <div style="font-size:11px;color:#6b7280;margin-top:2px;"><i class="bi bi-clock"></i> {{ enrollment.course.schedule_notes }}</div>
     {% endif %}
 
-    <div class="course-price" style="margin-top:8px;">${{ enrollment.course.price|floatformat:0 }}</div>
-    <div class="course-down">Min. down: ${{ enrollment.course.min_down|floatformat:0 }}</div>
-
     {% if enrollment.course.has_book_option or enrollment.course.includes_shirt %}
     <form method="post" action="{% url 'enroll' enrollment.course.id %}" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
       {% csrf_token %}
       {% if enrollment.course.has_book_option %}
       <label style="font-size:11px;font-weight:600;color:#0a2540;display:block;margin-bottom:4px;">Textbook option *</label>
       <select name="book_included" class="form-select form-select-sm" style="margin-bottom:12px;max-width:340px;">
-        <option value="0" {% if not enrollment.book_included %}selected{% endif %}>Without textbook (${{ enrollment.course.price|floatformat:0 }})</option>
-        <option value="1" {% if enrollment.book_included %}selected{% endif %}>With physical textbook (${{ enrollment.course.price_with_book|floatformat:0 }})</option>
+        <option value="0" {% if not enrollment.book_included %}selected{% endif %}>Without textbook</option>
+        <option value="1" {% if enrollment.book_included %}selected{% endif %}>With physical textbook</option>
       </select>
       {% endif %}
       {% if enrollment.course.includes_shirt %}
@@ -135,10 +132,9 @@
         <option value="M" {% if enrollment.shirt_size == 'M' %}selected{% endif %}>Medium</option>
         <option value="L" {% if enrollment.shirt_size == 'L' %}selected{% endif %}>Large</option>
         <option value="XL" {% if enrollment.shirt_size == 'XL' %}selected{% endif %}>X-Large</option>
-        <option value="2XL" {% if enrollment.shirt_size == '2XL' %}selected{% endif %}>2X-Large (+$5)</option>
-        <option value="3XL" {% if enrollment.shirt_size == '3XL' %}selected{% endif %}>3X-Large (+$5)</option>
+        <option value="2XL" {% if enrollment.shirt_size == '2XL' %}selected{% endif %}>2X-Large</option>
+        <option value="3XL" {% if enrollment.shirt_size == '3XL' %}selected{% endif %}>3X-Large</option>
       </select>
-      <div style="font-size:10px;color:#6b7280;margin-bottom:12px;">2XL and 3XL add $5 to tuition.</div>
       {% endif %}
       <button type="submit" class="btn-ghost">Save selection</button>
     </form>
@@ -158,8 +154,8 @@
         {% if course.has_book_option %}
         <label style="font-size:11px;font-weight:600;color:#0a2540;display:block;margin-bottom:4px;">Textbook option *</label>
         <select name="book_included" class="form-select form-select-sm" style="margin-bottom:8px;">
-          <option value="0">Without textbook (${{ course.price|floatformat:0 }})</option>
-          <option value="1">With physical textbook (${{ course.price_with_book|floatformat:0 }})</option>
+          <option value="0">Without textbook</option>
+          <option value="1">With physical textbook</option>
         </select>
         {% endif %}
         {% if course.includes_shirt %}
@@ -170,10 +166,9 @@
           <option value="M">Medium</option>
           <option value="L">Large</option>
           <option value="XL">X-Large</option>
-          <option value="2XL">2X-Large (+$5)</option>
-          <option value="3XL">3X-Large (+$5)</option>
+          <option value="2XL">2X-Large</option>
+          <option value="3XL">3X-Large</option>
         </select>
-        <div style="font-size:10px;color:#6b7280;margin-bottom:8px;">2XL and 3XL add $5 to tuition.</div>
         {% endif %}
       </div>
       {% endif %}
@@ -197,9 +192,6 @@
         <div style="font-size:11px;color:#6b7280;margin-top:2px;"><i class="bi bi-clock"></i> {{ course.schedule_notes }}</div>
         {% endif %}
 
-        <div class="course-price">${{ course.price|floatformat:0 }}</div>
-        <div class="course-down">Min. down: ${{ course.min_down|floatformat:0 }}</div>
-        {% if course.has_book_option %}<div style="font-size:11px;color:#6b7280;margin-top:2px;">+${{ course.book_price|floatformat:0 }} with physical textbook (${{ course.price_with_book|floatformat:0 }} total)</div>{% endif %}
         {% if course.includes_shirt %}<div style="font-size:11px;color:var(--green);margin-top:4px;">✓ Polo shirt included</div>{% endif %}
         {% if course.max_students %}
           {% if course.is_full %}
@@ -268,19 +260,18 @@
     {% if enrollment %}
     <div class="section-divider">Payment schedule — Option {{ enrollment.course.option_number }}: {{ enrollment.course.name }}</div>
     <div style="background:#fff8e1;border:1px solid #f0d060;border-radius:10px;padding:12px 14px;font-size:12px;color:#7a5c00;margin-bottom:14px;">
-      ⚠️ Minimum down payment due before first night of class. Full tuition required before final testing. <strong>No refunds.</strong>
+      ⚠️ Minimum down payment due before first night of class. <strong>No refunds.</strong>
     </div>
     <div class="pay-schedule" style="margin-bottom:16px;">
-      <div class="pay-row"><span class="pay-label">Minimum down payment (before first class)</span><span>${{ enrollment.course.min_down|floatformat:0 }}</span></div>
+      <div class="pay-row"><span class="pay-label">Minimum down payment (before first class)</span><span>Per schedule</span></div>
       <div class="pay-row"><span class="pay-label">1st payment — 30 days from signature</span><span>Per schedule</span></div>
       <div class="pay-row"><span class="pay-label">2nd payment — 60 days from signature</span><span>Per schedule</span></div>
       <div class="pay-row"><span class="pay-label">3rd payment — 90 days from signature</span><span>Per schedule</span></div>
       <div class="pay-row"><span class="pay-label">4th payment — 120 days from signature</span><span>Per schedule</span></div>
-      <div class="pay-row"><span class="pay-label">Final balance (before final testing)</span><span>${{ enrollment.remaining_balance|floatformat:0 }}</span></div>
+      <div class="pay-row"><span class="pay-label">Final balance (before final testing)</span><span>Per schedule</span></div>
       {% if enrollment.course.has_book_option %}
       <div class="pay-row"><span class="pay-label">Textbook</span><span>{% if enrollment.book_included %}Included{% else %}Not included{% endif %}</span></div>
       {% endif %}
-      <div class="pay-row"><span class="pay-label">Total tuition</span><span>${{ enrollment.total_tuition|floatformat:0 }}</span></div>
     </div>
     <div>
       <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer;">
@@ -312,9 +303,7 @@
     <p style="color:var(--red);font-weight:500;">I understand there are no refunds on {{ AGENCY_SHORT_NAME }} courses. CE hours will NOT be granted on incomplete courses.</p>
     {% if enrollment %}
     <div style="margin-top:14px;background:#fff;border-radius:8px;padding:12px;border:1px solid var(--border);font-size:12px;color:#6b7280;">
-      Course: <strong style="color:#0a2540;">Option {{ enrollment.course.option_number }} — {{ enrollment.course.name }}</strong> &nbsp;|&nbsp;
-      Total: <strong style="color:#0a2540;">${{ enrollment.total_tuition|floatformat:0 }}</strong> &nbsp;|&nbsp;
-      Min. down: <strong style="color:#0a2540;">${{ enrollment.course.min_down|floatformat:0 }}</strong>
+      Course: <strong style="color:#0a2540;">Option {{ enrollment.course.option_number }} — {{ enrollment.course.name }}</strong>
     </div>
     {% endif %}
   </div>

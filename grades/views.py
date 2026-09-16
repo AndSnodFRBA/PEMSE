@@ -49,12 +49,11 @@ def _can_enter_grades(user, course):
 
 
 def certificate_requirements_checklist(student, enrollment, gradebook, completion_record):
-    """The 6 conditions gating certificate generation — broader than
+    """The 5 conditions gating certificate generation — broader than
     GradeBook.meets_completion_requirements, which only covers the 3
     grade-based conditions (overall/section-exams/final). Certificate
-    issuance also needs hours verified, paperwork complete, and the
-    balance paid off."""
-    from students.balance import compute_balance
+    issuance also needs hours verified and paperwork complete. Tuition
+    balance is tracked separately and is not a completion requirement."""
 
     is_clinical_course = enrollment.course.licensure in ('AEMT', 'PARA')
     section_exams = gradebook.section_exam_grades.filter(is_final_exam=False)
@@ -63,8 +62,6 @@ def certificate_requirements_checklist(student, enrollment, gradebook, completio
 
     hours_complete = (not is_clinical_course) or (completion_record.verification_date is not None)
     paperwork_complete = student.enrollment_complete
-    _, _, _, balance_due = compute_balance(student)
-    financial_complete = balance_due <= 0
 
     items = [
         {
@@ -93,11 +90,6 @@ def certificate_requirements_checklist(student, enrollment, gradebook, completio
             'label': 'All required paperwork submitted',
             'met': paperwork_complete,
             'detail': 'Complete' if paperwork_complete else 'Incomplete',
-        },
-        {
-            'label': 'Financial obligations fulfilled',
-            'met': financial_complete,
-            'detail': 'Paid in full' if financial_complete else f'Balance due: ${balance_due:,.2f}',
         },
     ]
     all_met = all(item['met'] for item in items)
