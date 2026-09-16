@@ -46,16 +46,14 @@ from .models import (
 
 def instructor_login_view(request):
     if request.user.is_authenticated:
-        if request.user.is_instructor:
+        if request.user.is_instructor or request.user.is_office_staff:
             return redirect('instructor_dashboard')
-        if request.user.is_office_staff:
-            return redirect('staff_dashboard')
         return redirect('dashboard')
 
     form = StudentLoginForm(request, data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.get_user()
-        if not user.is_instructor:
+        if not (user.is_instructor or user.is_office_staff):
             messages.error(request, 'This login is for instructors only.')
         else:
             login(request, user)
