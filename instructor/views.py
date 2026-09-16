@@ -423,12 +423,16 @@ def instructor_attendance_add(request):
                 student=enrollment.student,
                 defaults={'status': StudentAttendance.Status.PRESENT},
             )
-        messages.success(request, f'Attendance session created for {session.session_date}. Take roll below.')
-
         existing_hour_log = InstructionalHourLog.objects.filter(
             instructor=instructor, course=session.course, session_date=session.session_date,
         ).exists()
         if not existing_hour_log:
+            messages.success(
+                request,
+                f'Attendance session created for {session.session_date} — everyone was marked present by '
+                f'default. Now log your instructional hours below; you can go back and correct anyone\'s '
+                f'attendance status afterward.',
+            )
             from urllib.parse import urlencode
             present_count = session.student_attendance.filter(status='present').count()
             query = urlencode({
@@ -441,6 +445,7 @@ def instructor_attendance_add(request):
             })
             return redirect(f"{reverse('instructor_hours_add')}?{query}")
 
+        messages.success(request, f'Attendance session created for {session.session_date}. Take roll below.')
         return redirect('instructor_attendance_detail', pk=session.pk)
     return render(request, 'instructor/attendance_add.html', {'form': form})
 

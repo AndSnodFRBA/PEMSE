@@ -43,6 +43,7 @@ class HourLogForm(forms.ModelForm):
         ).values_list('course_id', flat=True)
         from courses.models import Course
         self.fields['course'].queryset = Course.objects.filter(pk__in=assigned_course_ids)
+        self.fields['course'].label_from_instance = lambda c: f'Option {c.option_number} — {c.name}'
 
     def clean(self):
         cleaned = super().clean()
@@ -96,6 +97,7 @@ class AttendanceSessionForm(forms.ModelForm):
         ).values_list('course_id', flat=True)
         from courses.models import Course
         self.fields['course'].queryset = Course.objects.filter(pk__in=assigned_course_ids)
+        self.fields['course'].label_from_instance = lambda c: f'Option {c.option_number} — {c.name}'
 
         from schedule.models import CalendarEvent
         # Not date-restricted — attendance is most often taken for a session that
@@ -212,5 +214,6 @@ class InstructorDocumentForm(forms.ModelForm):
         ).values_list('course_id', flat=True)
         from courses.models import Course
         self.fields['course'].queryset = Course.objects.filter(pk__in=assigned_course_ids)
+        self.fields['course'].label_from_instance = lambda c: f'Option {c.option_number} — {c.name}'
         self.fields['course'].required = False
         self.fields['course'].empty_label = 'All students (not course-specific)'

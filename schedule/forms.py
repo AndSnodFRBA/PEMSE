@@ -29,6 +29,7 @@ class CalendarEventForm(forms.ModelForm):
     def __init__(self, courses_queryset, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['course'].queryset = courses_queryset
+        self.fields['course'].label_from_instance = lambda c: f'Option {c.option_number} — {c.name}'
         self.fields['all_day'].widget.attrs['class'] = 'form-check-input'
 
     def clean(self):
