@@ -333,7 +333,12 @@ class RemediationPlan(models.Model):
 
 
 class InstructorNote(models.Model):
-    """Instructor notes about a student — visible to staff only."""
+    """Deprecated — replaced by the shared students.StudentNote log.
+
+    Kept only so historical rows remain readable in the admin; existing rows
+    were copied forward into StudentNote by a data migration. Do not write
+    new notes here.
+    """
     instructor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

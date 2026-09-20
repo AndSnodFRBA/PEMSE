@@ -18,7 +18,7 @@ from staff.models import StudentInvitation
 from students.forms import StudentLoginForm
 from students.models import (
     CognitiveExamRecord, PatientContactRecord,
-    PsychomotorSkillRecord, ScenarioRecord, Student,
+    PsychomotorSkillRecord, ScenarioRecord, Student, StudentNote,
 )
 from .forms import (
     AttendanceSessionForm,
@@ -35,7 +35,6 @@ from .models import (
     InstructionalHourLog,
     InstructorCourseAssignment,
     InstructorMeeting,
-    InstructorNote,
     InstructorObservation,
     RemediationPlan,
     StudentAttendance,
@@ -694,19 +693,18 @@ def instructor_student_detail(request, pk):
     }
     is_aemt = course.licensure in ('AEMT', 'PARA')
 
-    # Instructor notes for this student
-    notes = InstructorNote.objects.filter(
-        instructor=instructor, student=student
-    ).order_by('-created_at')
+    # Shared staff/instructor notes log for this student (never shown to the student)
+    notes = StudentNote.objects.filter(student=student).select_related('created_by', 'course')
 
     if request.method == 'POST' and 'note_text' in request.POST:
         note_text = request.POST['note_text'].strip()
         if note_text:
-            InstructorNote.objects.create(
-                instructor=instructor,
+            StudentNote.objects.create(
                 student=student,
                 course=course,
-                note=note_text,
+                created_by=instructor,
+                note_type=StudentNote.NoteType.GENERAL,
+                body=note_text,
             )
             messages.success(request, 'Note added.')
             return redirect('instructor_student_detail', pk=pk)
@@ -759,6 +757,20 @@ def instructor_student_detail(request, pk):
         'rotations':         rotations,
         'rotation_form':     rotation_form,
     })
+
+
+@instructor_required
+def instructor_delete_student_note(request, pk, note_pk):
+    note = get_object_or_404(StudentNote, pk=note_pk, student_id=pk)
+    # Instructors may only remove their own notes; staff/admin using the
+    # instructor portal can remove any note in the shared log.
+    if note.created_by_id != request.user.pk and not request.user.is_office_staff:
+        messages.error(request, "You can only delete notes you wrote.")
+        return redirect('instructor_student_detail', pk=pk)
+    if request.method == 'POST':
+        note.delete()
+        messages.success(request, 'Note deleted.')
+    return redirect('instructor_student_detail', pk=pk)
 
 
 # ── Profile ───────────────────────────────────────────────────────────────────

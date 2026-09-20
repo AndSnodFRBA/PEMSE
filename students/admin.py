@@ -62,10 +62,10 @@ class ReminderLogAdmin(admin.ModelAdmin):
 
 @admin.register(StudentNote)
 class StudentNoteAdmin(admin.ModelAdmin):
-    list_display  = ['student', 'note_type', 'created_by', 'created_at']
+    list_display  = ['student', 'note_type', 'course', 'created_by', 'created_at']
     list_filter   = ['note_type']
     search_fields = ['student__email', 'student__first_name', 'student__last_name', 'body']
-    raw_id_fields = ('student', 'created_by')
+    raw_id_fields = ('student', 'course', 'created_by')
 
 
 @admin.register(Announcement)

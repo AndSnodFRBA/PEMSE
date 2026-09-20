@@ -272,7 +272,11 @@ class ReminderLog(models.Model):
 
 
 class StudentNote(models.Model):
-    """Free-form staff notes about a student — communications, general notes, etc."""
+    """Free-form notes about a student, written by staff or instructors.
+
+    Shared log: any staff member or instructor can add a note and sees every
+    note here, regardless of who wrote it. Never surfaced to the student.
+    """
 
     class NoteType(models.TextChoices):
         COMMUNICATION = 'communication', 'Communication'
@@ -280,6 +284,11 @@ class StudentNote(models.Model):
         OTHER         = 'other',         'Other'
 
     student    = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='notes')
+    course     = models.ForeignKey(
+        'courses.Course', null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='student_notes',
+        help_text='Optional — course this note relates to.',
+    )
     note_type  = models.CharField(max_length=20, choices=NoteType.choices, default=NoteType.GENERAL)
     body       = models.TextField()
     created_by = models.ForeignKey(

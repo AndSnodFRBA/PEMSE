@@ -810,7 +810,7 @@
 <!-- ── Notes ── -->
 <div class="card mt-4">
   <div class="card-header py-3 d-flex justify-content-between align-items-center" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
-    <span><i class="bi bi-sticky me-2"></i>Notes</span>
+    <span><i class="bi bi-sticky me-2"></i>Notes <span class="text-muted fw-normal" style="font-size:11px;">(shared with instructors — never visible to the student)</span></span>
     <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#add-note-form" style="font-size:12px;border-radius:6px;">
       <i class="bi bi-plus-lg me-1"></i>Add Note
     </button>
@@ -849,7 +849,10 @@
             </span>
           </td>
           <td class="py-2" style="white-space:pre-wrap;max-width:420px;">{{ note.body }}</td>
-          <td class="py-2" style="color:#6b7280;white-space:nowrap;">{{ note.created_by.get_full_name|default:"—" }}</td>
+          <td class="py-2" style="color:#6b7280;white-space:nowrap;">
+            {{ note.created_by.get_full_name|default:"—" }}
+            {% if note.created_by.role == 'instructor' %}<span class="badge" style="background:#ede9fe;color:#5b21b6;font-size:9px;font-weight:600;">Instructor</span>{% endif %}
+          </td>
           <td class="py-2" style="color:#6b7280;white-space:nowrap;">{{ note.created_at|date:"M j, Y g:i A" }}</td>
           <td class="py-2">
             <form method="post" action="{% url 'staff_delete_note' student.pk note.pk %}" onsubmit="return confirm('Delete this note?')">
