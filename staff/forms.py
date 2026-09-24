@@ -28,6 +28,10 @@ class InvitationForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['course'].label_from_instance = lambda c: f'Option {c.option_number} — {c.name}'
+
     def clean_email(self):
         email = self.cleaned_data['email'].lower()
         if Student.objects.filter(email=email).exists():
@@ -66,6 +70,10 @@ class EditStudentInvitationForm(forms.Form):
         queryset=Course.objects.filter(is_active=True).order_by('option_number'),
         widget=forms.Select(attrs={'class': 'form-select form-select-sm'}),
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['course'].label_from_instance = lambda c: f'Option {c.option_number} — {c.name}'
 
     def clean_email(self):
         email = self.cleaned_data['email'].lower()
@@ -408,6 +416,7 @@ class StaffRotationForm(forms.ModelForm):
         self.fields['shift_start'].required  = False
         self.fields['shift_end'].required    = False
         self.fields['course'].required       = False
+        self.fields['course'].label_from_instance = lambda c: f'Option {c.option_number} — {c.name}'
 
 
 class EntranceRequirementForm(forms.ModelForm):
