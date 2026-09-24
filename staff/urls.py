@@ -122,6 +122,7 @@ urlpatterns = [
     # Calendar
     path('calendar/',                          views.staff_calendar,        name='staff_calendar'),
     path('calendar/add/',                      views.staff_calendar_add,    name='staff_calendar_add'),
+    path('calendar/copy/',                     views.staff_calendar_copy,   name='staff_calendar_copy'),
     path('calendar/<int:pk>/edit/',            views.staff_calendar_edit,   name='staff_calendar_edit'),
     path('calendar/<int:pk>/delete/',          views.staff_calendar_delete, name='staff_calendar_delete'),
     # Grades

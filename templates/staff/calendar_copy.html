@@ -1,0 +1,121 @@
+{% extends 'staff/base_staff.html' %}
+{% block title %}Copy Calendar — {{ AGENCY_SHORT_NAME }} Staff Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-section { background:#fff; border-radius:10px; border:1px solid #dde4ef; padding:24px; margin-bottom:20px; }
+  .form-section h6 { font-size:11px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;
+                     color:#6b7280; margin-bottom:16px; }
+  .row-skip td { color:#9ca3af; text-decoration:line-through; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">Copy Calendar From Course</h1>
+  <a href="{% url 'staff_calendar' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> Back
+  </a>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  <div class="form-section">
+    <h6>Source &amp; Destination</h6>
+    <p class="text-muted" style="font-size:13px;">
+      Every event from the source course is copied to the new course, shifted so its first class
+      session lands on the date you pick. Shifts are in whole weeks, so each event keeps its weekday.
+      You'll see a preview before anything is saved.
+    </p>
+    <div class="row g-3">
+      <div class="col-12 col-md-5">
+        <label class="form-label fw-semibold" style="font-size:13px;">{{ form.source.label }}</label>
+        {{ form.source }}
+        {% for e in form.source.errors %}<div class="text-danger" style="font-size:12px;">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label fw-semibold" style="font-size:13px;">{{ form.target.label }}</label>
+        {{ form.target }}
+        {% for e in form.target.errors %}<div class="text-danger" style="font-size:12px;">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label fw-semibold" style="font-size:13px;">{{ form.new_start.label }}</label>
+        {{ form.new_start }}
+        {% for e in form.new_start.errors %}<div class="text-danger" style="font-size:12px;">{{ e }}</div>{% endfor %}
+      </div>
+    </div>
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger mt-3 py-2 mb-0" style="font-size:13px;">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <div class="mt-3">
+      <button type="submit" name="action" value="preview" class="btn btn-outline-primary">
+        <i class="bi bi-eye me-1"></i> Preview
+      </button>
+    </div>
+  </div>
+
+  {% if plan %}
+  <div class="form-section" id="copyPreview">
+    <h6>Preview</h6>
+    <p style="font-size:13px;" class="mb-2">
+      First class session moves from <strong>{{ plan.anchor|date:"D, M j, Y" }}</strong>
+      to <strong>{{ plan.new_start|date:"D, M j, Y" }}</strong>.
+    </p>
+    {% if plan.was_snapped %}
+      <div class="alert alert-warning py-2" style="font-size:13px;">
+        You picked {{ plan.requested_start|date:"D, M j" }}, but the source course's first session was on a
+        {{ plan.anchor|date:"l" }}. The calendar was moved to the nearest {{ plan.anchor|date:"l" }}
+        ({{ plan.new_start|date:"M j" }}) so every event keeps its weekday.
+      </div>
+    {% endif %}
+    <p class="text-muted" style="font-size:12px;">
+      Check for holidays and breaks. You can edit or delete any copied event afterward.
+      {% if plan.to_create|length != plan.events|length %}
+        Struck-through rows are already on the new course's calendar and will be skipped.
+      {% endif %}
+    </p>
+    <div class="table-responsive">
+      <table class="table table-sm mb-3" style="font-size:13px;">
+        <thead style="background:#f8fafc;">
+          <tr>
+            <th class="py-2">Old date</th>
+            <th class="py-2">New date</th>
+            <th class="py-2">Type</th>
+            <th class="py-2">Title</th>
+            <th class="py-2">Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in plan.events %}
+          <tr{% if p.already_exists %} class="row-skip"{% endif %}>
+            <td class="text-muted">{{ p.source.date|date:"D M j, Y" }}</td>
+            <td class="fw-semibold">{{ p.new_date|date:"D M j, Y" }}</td>
+            <td>{{ p.source.get_event_type_display }}</td>
+            <td>{{ p.source.title }}</td>
+            <td>{% if p.source.all_day or not p.source.start_time %}All day{% else %}{{ p.source.start_time|time:"g:i A" }}{% if p.source.end_time %}–{{ p.source.end_time|time:"g:i A" }}{% endif %}{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if plan.to_create %}
+      <button type="submit" name="action" value="confirm" class="btn btn-primary">
+        <i class="bi bi-check2-circle me-1"></i> Copy {{ plan.to_create|length }} Event{{ plan.to_create|length|pluralize }}
+      </button>
+    {% else %}
+      <div class="text-muted" style="font-size:13px;">All of these events are already on the new course's calendar.</div>
+    {% endif %}
+  </div>
+  {% endif %}
+</form>
+
+<script>
+  // The preview only matches the fields it was built from — hide it once they change.
+  document.querySelectorAll('#id_source, #id_target, #id_new_start').forEach(function (el) {
+    el.addEventListener('change', function () {
+      var preview = document.getElementById('copyPreview');
+      if (preview) preview.remove();
+    });
+  });
+</script>
+{% endblock %}

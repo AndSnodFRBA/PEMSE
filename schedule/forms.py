@@ -42,3 +42,37 @@ class CalendarEventForm(forms.ModelForm):
         if start and end and end <= start:
             raise forms.ValidationError('End time must be after start time.')
         return cleaned
+
+
+class CalendarCopyForm(forms.Form):
+    """Pick a past course's calendar to reuse for a new course."""
+
+    source = forms.ModelChoiceField(
+        queryset=None, label='Copy calendar from',
+        widget=forms.Select(attrs=_fs),
+    )
+    target = forms.ModelChoiceField(
+        queryset=None, label='Copy calendar to',
+        widget=forms.Select(attrs=_fs),
+    )
+    new_start = forms.DateField(
+        label='First class session of the new course',
+        widget=forms.DateInput(attrs=_date),
+    )
+
+    def __init__(self, *args, **kwargs):
+        from courses.models import Course
+        super().__init__(*args, **kwargs)
+        label = lambda c: f'Option {c.option_number} — {c.name}'
+        self.fields['source'].queryset = (
+            Course.objects.filter(calendar_events__isnull=False).distinct().order_by('option_number')
+        )
+        self.fields['target'].queryset = Course.objects.filter(is_active=True).order_by('option_number')
+        self.fields['source'].label_from_instance = label
+        self.fields['target'].label_from_instance = label
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('source') and cleaned.get('source') == cleaned.get('target'):
+            raise forms.ValidationError('Pick two different courses.')
+        return cleaned

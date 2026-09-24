@@ -94,3 +94,76 @@ class IcsFormatTests(TestCase):
         ics = build_calendar([], 'PEMSE — ' + 'Emergency Medical Technician — ' * 5)
         for line in ics.split('\r\n'):
             self.assertLessEqual(len(line.encode('utf-8')), 75)
+
+
+class CalendarCopyTests(TestCase):
+    def setUp(self):
+        from .calendar_copy import plan_copy, apply_copy
+        self.plan_copy, self.apply_copy = plan_copy, apply_copy
+        self.old = _course(1, 'EMT')
+        self.new = _course(2, 'EMT2')
+        # Sunday quiz deadline before the first Monday session — anchor must be the session.
+        CalendarEvent.objects.create(course=self.old, title='Quiz 0', event_type='quiz', date=date(2026, 8, 2))
+        CalendarEvent.objects.create(course=self.old, title='Week 1', event_type='session', date=date(2026, 8, 3),
+                                     all_day=False, start_time=time(18), end_time=time(22), location='Station 1',
+                                     description='CH 1-3')
+        CalendarEvent.objects.create(course=self.old, title='Final', event_type='exam', date=date(2026, 11, 16))
+        self.staff = Student.objects.create_user('staff', password='x', role=Student.Role.STAFF)
+
+    def test_shifts_by_whole_weeks_from_first_session(self):
+        plan = self.plan_copy(self.old, self.new, date(2027, 1, 11))  # a Monday
+        self.assertFalse(plan.was_snapped)
+        new_dates = {p.source.title: p.new_date for p in plan.events}
+        self.assertEqual(new_dates['Week 1'], date(2027, 1, 11))
+        self.assertEqual(new_dates['Quiz 0'], date(2027, 1, 10))   # still the Sunday before
+        self.assertEqual(new_dates['Final'], date(2027, 4, 26))
+        for p in plan.events:
+            self.assertEqual(p.new_date.weekday(), p.source.date.weekday())
+
+    def test_non_matching_weekday_snaps_to_nearest(self):
+        plan = self.plan_copy(self.old, self.new, date(2027, 1, 13))  # Wednesday
+        self.assertTrue(plan.was_snapped)
+        self.assertEqual(plan.new_start, date(2027, 1, 11))
+        plan = self.plan_copy(self.old, self.new, date(2027, 1, 15))  # Friday -> next Monday
+        self.assertEqual(plan.new_start, date(2027, 1, 18))
+
+    def test_apply_copies_fields_and_is_idempotent(self):
+        plan = self.plan_copy(self.old, self.new, date(2027, 1, 11))
+        self.assertEqual(self.apply_copy(plan, self.new, self.staff), 3)
+        e = CalendarEvent.objects.get(course=self.new, title='Week 1')
+        self.assertEqual((e.start_time, e.end_time, e.location, e.description, e.all_day, e.created_by),
+                         (time(18), time(22), 'Station 1', 'CH 1-3', False, self.staff))
+        self.assertEqual(CalendarEvent.objects.filter(course=self.old).count(), 3)  # source untouched
+
+        plan = self.plan_copy(self.old, self.new, date(2027, 1, 11))
+        self.assertEqual(len(plan.to_create), 0)
+        self.assertEqual(self.apply_copy(plan, self.new, self.staff), 0)
+        self.assertEqual(CalendarEvent.objects.filter(course=self.new).count(), 3)
+
+    def test_empty_source_returns_none(self):
+        self.assertIsNone(self.plan_copy(self.new, self.old, date(2027, 1, 11)))
+
+    def test_staff_view_preview_then_confirm(self):
+        self.client.force_login(self.staff)
+        url = reverse('staff_calendar_copy')
+        data = {'source': self.old.pk, 'target': self.new.pk, 'new_start': '2027-01-11'}
+
+        r = self.client.post(url, {**data, 'action': 'preview'})
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'Mon Jan 11, 2027')
+        self.assertFalse(CalendarEvent.objects.filter(course=self.new).exists())
+
+        r = self.client.post(url, {**data, 'action': 'confirm'})
+        self.assertRedirects(r, f"{reverse('staff_calendar')}?course={self.new.pk}", fetch_redirect_response=False)
+        self.assertEqual(CalendarEvent.objects.filter(course=self.new).count(), 3)
+
+    def test_same_course_rejected(self):
+        self.client.force_login(self.staff)
+        r = self.client.post(reverse('staff_calendar_copy'),
+                             {'source': self.old.pk, 'target': self.old.pk, 'new_start': '2027-01-11', 'action': 'confirm'})
+        self.assertContains(r, 'Pick two different courses.')
+
+    def test_students_cannot_use_it(self):
+        self.client.force_login(Student.objects.create_user('stu2', password='x'))
+        r = self.client.get(reverse('staff_calendar_copy'))
+        self.assertEqual(r.status_code, 302)
