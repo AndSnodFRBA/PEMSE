@@ -16,20 +16,24 @@ def _escape(text):
         text.replace('\\', '\\\\')
             .replace(';', '\\;')
             .replace(',', '\\,')
+            .replace('\r\n', '\\n')   # browsers submit textarea newlines as CRLF
+            .replace('\r', '\\n')
             .replace('\n', '\\n')
     )
 
 
 def _fold(line):
-    """Fold lines longer than 75 octets per RFC 5545 §3.1."""
-    if len(line.encode('utf-8')) <= 75:
-        return line
-    out = []
-    while len(line.encode('utf-8')) > 75:
-        # naive char-based split is fine for our ASCII-heavy content
-        out.append(line[:75])
-        line = ' ' + line[75:]
-    out.append(line)
+    """Fold lines longer than 75 octets per RFC 5545 §3.1, without splitting
+    a multi-byte character (course names contain em dashes)."""
+    out, current, size = [], '', 0
+    for ch in line:
+        n = len(ch.encode('utf-8'))
+        if size + n > 75:
+            out.append(current)
+            current, size = ' ', 1
+        current += ch
+        size += n
+    out.append(current)
     return CRLF.join(out)
 
 

@@ -3044,6 +3044,7 @@ def staff_calendar(request):
         'courses':         Course.objects.order_by('option_number'),
         'selected_course': int(course_id) if course_id else None,
         'feed_token':      request.user.calendar_token,
+        'feed_courses':    Course.objects.filter(is_active=True).order_by('option_number'),
     })
 
 

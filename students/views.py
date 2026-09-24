@@ -450,6 +450,7 @@ def calendar_view(request):
         'upcoming_events': [e for e in events if e.date >= today],
         'past_events':     [e for e in events if e.date < today],
         'feed_token':      student.calendar_token,
+        'feed_courses':    student.calendar_courses.order_by('option_number'),
         'has_course':      student.calendar_courses.exists(),
     })
 

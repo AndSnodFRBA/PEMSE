@@ -1,9 +1,11 @@
 import uuid
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, Http404
 from django.shortcuts import redirect
+from django.utils.text import slugify
 
 from students.models import Student
 from .ics import build_calendar
@@ -29,10 +31,34 @@ def calendar_feed(request, token):
         label = ', '.join(course_names)
     else:
         label = f'{len(course_names)} Courses'
-    ics_text = build_calendar(events, calendar_name=f'PEMSE — {label}')
+    ics_text = build_calendar(events, calendar_name=f'{settings.AGENCY_SHORT_NAME} — {label}')
 
+    return _ics_response(ics_text, 'pemse-calendar.ics')
+
+
+def calendar_course_feed(request, token, course_id):
+    """Single-course ICS feed, so each class shows up as its own calendar
+    on the subscriber's phone. Same token auth as the combined feed; the
+    course must be one the token's owner can see."""
+    try:
+        user = Student.objects.get(calendar_token=token)
+    except (Student.DoesNotExist, ValueError):
+        raise Http404('Unknown calendar feed.')
+
+    course = user.calendar_courses.filter(pk=course_id).first()
+    if course is None:
+        raise Http404('Unknown calendar feed.')
+
+    events = CalendarEvent.objects.filter(course=course).select_related('course')
+    ics_text = build_calendar(
+        events, calendar_name=f'{settings.AGENCY_SHORT_NAME} — {course.tag}: {course.name}',
+    )
+    return _ics_response(ics_text, f'{slugify(course.tag)}-{course.pk}.ics')
+
+
+def _ics_response(ics_text, filename):
     response = HttpResponse(ics_text, content_type='text/calendar; charset=utf-8')
-    response['Content-Disposition'] = 'inline; filename="pemse-calendar.ics"'
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
     return response
 
 

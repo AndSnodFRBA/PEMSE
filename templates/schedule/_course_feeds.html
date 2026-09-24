@@ -1,0 +1,24 @@
+{# Per-course subscribe links — each class becomes its own calendar on the phone. #}
+{% if feed_courses %}
+<div class="mt-3 pt-3" style="border-top:1px solid var(--border);">
+  <div class="fw-semibold" style="color:#1a2e4a;font-size:13px;">Subscribe to one class at a time</div>
+  <div class="text-muted mb-2" style="font-size:12px;">
+    Each class gets its own calendar on your phone, so you can color or hide them separately.
+    Use these <em>instead of</em> the all-courses link above, or you'll see every event twice.
+  </div>
+  {% for c in feed_courses %}
+  <div class="d-flex align-items-center flex-wrap gap-2 py-1" style="font-size:13px;">
+    <span class="badge" style="background:{{ c.tag_bg }};color:{{ c.tag_color }};">{{ c.tag }}</span>
+    <span class="me-auto">{{ c.name }}</span>
+    <a href="webcal://{{ request.get_host }}{% url 'calendar_course_feed' feed_token c.pk %}" class="btn btn-sm btn-outline-primary py-0">
+      <i class="bi bi-calendar-plus me-1"></i> Subscribe
+    </a>
+    <button class="btn btn-sm btn-outline-secondary py-0" type="button"
+            data-url="{{ request.scheme }}://{{ request.get_host }}{% url 'calendar_course_feed' feed_token c.pk %}"
+            onclick="navigator.clipboard.writeText(this.dataset.url)">
+      <i class="bi bi-clipboard me-1"></i> Copy Link
+    </button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}

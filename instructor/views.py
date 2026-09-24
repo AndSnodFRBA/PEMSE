@@ -894,6 +894,7 @@ def instructor_calendar(request):
         'upcoming_events': [e for e in events if e.date >= today],
         'past_events':     [e for e in events if e.date < today],
         'feed_token':      instructor.calendar_token,
+        'feed_courses':    instructor.calendar_courses.order_by('option_number'),
     })
 
 

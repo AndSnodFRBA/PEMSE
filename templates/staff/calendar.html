@@ -48,11 +48,12 @@
     <a href="webcal://{{ request.get_host }}{% url 'calendar_feed' feed_token %}" class="btn btn-sm btn-outline-primary">
       <i class="bi bi-calendar-plus me-1"></i> Subscribe (webcal)
     </a>
-    <form method="post" action="{% url 'calendar_feed_regenerate' %}" onsubmit="return confirm('This will invalidate your current subscription link on all devices. Continue?')">
+    <form method="post" action="{% url 'calendar_feed_regenerate' %}" onsubmit="return confirm('This will invalidate your current subscription links (all-courses and per-class) on all devices. Continue?')">
       {% csrf_token %}
       <button type="submit" class="btn btn-sm btn-link text-danger p-0" style="font-size:12px;">Reset link</button>
     </form>
   </div>
+  {% include "schedule/_course_feeds.html" %}
 </div>
 
 <form method="get" class="d-flex align-items-center gap-2 mb-3">
