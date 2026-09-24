@@ -99,9 +99,10 @@ class PsychomotorSkillRecordAdmin(admin.ModelAdmin):
 class PatientContactRecordAdmin(admin.ModelAdmin):
     list_display  = ['student', 'contact_date', 'site_name', 'contact_type', 'supervisor_name',
                      'iv_start_attempted', 'iv_start_successful',
-                     'airway_placement_attempted', 'airway_placement_successful']
-    list_filter   = ['contact_type', 'contact_date', 'iv_start_attempted', 'airway_placement_attempted']
+                     'airway_placement_attempted', 'airway_placement_successful', 'verified']
+    list_filter   = ['contact_type', 'contact_date', 'verified', 'iv_start_attempted', 'airway_placement_attempted']
     search_fields = ['student__first_name', 'student__last_name', 'site_name', 'supervisor_name']
+    raw_id_fields = ['student', 'course', 'submitted_by', 'verified_by']
     date_hierarchy = 'contact_date'
     raw_id_fields  = ('student',)
 

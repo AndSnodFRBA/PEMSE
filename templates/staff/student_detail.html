@@ -1046,10 +1046,13 @@
 
         <!-- Totals row -->
         <div class="row g-2 mb-3">
-          <div class="col-auto"><div class="card px-3 py-2 text-center"><div style="font-size:20px;font-weight:700;color:#2B5EA7;">{{ pc_totals.total }}</div><div style="font-size:10px;color:#6b7280;">Total Contacts</div></div></div>
+          <div class="col-auto"><div class="card px-3 py-2 text-center"><div style="font-size:20px;font-weight:700;color:#2B5EA7;">{{ pc_totals.total }}</div><div style="font-size:10px;color:#6b7280;">Verified Contacts</div></div></div>
           {% if is_aemt %}
           <div class="col-auto"><div class="card px-3 py-2 text-center"><div style="font-size:16px;font-weight:700;color:#065f46;">{{ pc_totals.iv_successful }}/{{ pc_totals.iv_attempted }}</div><div style="font-size:10px;color:#6b7280;">IV Starts (Succ/Att)</div></div></div>
           <div class="col-auto"><div class="card px-3 py-2 text-center"><div style="font-size:16px;font-weight:700;color:#065f46;">{{ pc_totals.airway_successful }}/{{ pc_totals.airway_attempted }}</div><div style="font-size:10px;color:#6b7280;">Airway (Succ/Att)</div></div></div>
+          {% endif %}
+          {% if pc_totals.pending %}
+          <div class="col-auto"><div class="card px-3 py-2 text-center" style="border-color:#fde68a;background:#fffbeb;"><div style="font-size:16px;font-weight:700;color:#92600a;">{{ pc_totals.pending }}</div><div style="font-size:10px;color:#92600a;">Pending Verification</div></div></div>
           {% endif %}
           <div class="col-auto d-flex align-items-center ms-auto">
             <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#add-contact-form" style="font-size:12px;border-radius:6px;">
@@ -1099,12 +1102,13 @@
               <th class="py-2 ps-2">Date</th><th class="py-2">Site</th><th class="py-2">Type</th>
               <th class="py-2">Supervisor</th><th class="py-2">Age Group</th>
               {% if is_aemt %}<th class="py-2">IV</th><th class="py-2">Airway</th>{% endif %}
+              <th class="py-2">Status</th>
               <th class="py-2"></th>
             </tr>
           </thead>
           <tbody>
             {% for c in patient_contacts %}
-            <tr style="border-bottom:1px solid #f0f4f8;">
+            <tr style="border-bottom:1px solid #f0f4f8;{% if not c.verified %}background:#fffbeb;{% endif %}">
               <td class="py-2 ps-2" style="white-space:nowrap;">{{ c.contact_date|date:"M j, Y" }}</td>
               <td class="py-2">{{ c.site_name }}</td>
               <td class="py-2">{{ c.get_contact_type_display }}</td>
@@ -1118,10 +1122,28 @@
                 {% if c.airway_placement_attempted %}<span style="color:{% if c.airway_placement_successful %}#065f46{% else %}#991b1b{% endif %};">{% if c.airway_placement_successful %}✓{% else %}✗{% endif %}</span>{% else %}—{% endif %}
               </td>
               {% endif %}
-              <td class="py-2">
-                <form method="post" action="{% url 'staff_delete_contact' student.pk c.pk %}" onsubmit="return confirm('Delete this contact record?')">
-                  {% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:10px;border-radius:5px;padding:2px 7px;"><i class="bi bi-trash"></i></button>
-                </form>
+              <td class="py-2" style="white-space:nowrap;">
+                {% if c.verified %}
+                  <span style="background:#d1fae5;color:#065f46;font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;" title="Verified by {{ c.verified_by.get_full_name }} on {{ c.verified_at|date:'M j, Y' }}">
+                    <i class="bi bi-check-circle-fill me-1"></i>Verified
+                  </span>
+                {% else %}
+                  <span style="background:#fef3c7;color:#92600a;font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;" title="Submitted by {{ c.submitted_by.get_full_name|default:'staff' }}">
+                    <i class="bi bi-hourglass-split me-1"></i>Pending
+                  </span>
+                {% endif %}
+              </td>
+              <td class="py-2 pe-2">
+                <div class="d-flex gap-1">
+                  {% if not c.verified %}
+                  <form method="post" action="{% url 'staff_verify_contact' student.pk c.pk %}">
+                    {% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-success" style="font-size:10px;border-radius:5px;padding:2px 7px;"><i class="bi bi-check-lg"></i> Verify</button>
+                  </form>
+                  {% endif %}
+                  <form method="post" action="{% url 'staff_delete_contact' student.pk c.pk %}" onsubmit="return confirm('Delete this contact record?')">
+                    {% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:10px;border-radius:5px;padding:2px 7px;"><i class="bi bi-trash"></i></button>
+                  </form>
+                </div>
               </td>
             </tr>
             {% endfor %}

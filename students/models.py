@@ -492,6 +492,20 @@ class PatientContactRecord(models.Model):
     airway_placement_attempted  = models.BooleanField(default=False)
     airway_placement_successful = models.BooleanField(default=False)
     notes      = models.TextField(blank=True)
+
+    # Students may log their own contacts, but only a verified record counts
+    # toward the 172 NAC 13-004(D) minimums — staff/instructor sign-off required.
+    submitted_by = models.ForeignKey(
+        Student, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='patient_contacts_submitted',
+    )
+    verified    = models.BooleanField(default=False)
+    verified_by = models.ForeignKey(
+        Student, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='patient_contacts_verified',
+    )
+    verified_at = models.DateTimeField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

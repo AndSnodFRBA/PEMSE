@@ -17,8 +17,11 @@ from .models import (
     Student, PaymentRecord, Announcement, PaymentHistory,
     CognitiveExamRecord, PsychomotorSkillRecord, PatientContactRecord,
     StudentNotification, CourseCompletionRecord, WebhookLog,
+    AEMT_FIELD_REQUIREMENTS,
 )
-from .forms import StudentRegistrationForm, StudentLoginForm, ProfileForm, PaymentForm
+from .forms import (
+    StudentRegistrationForm, StudentLoginForm, ProfileForm, PaymentForm, StudentPatientContactForm,
+)
 from .emails import send_instructor_registration_notifications, send_registration_confirmation
 from courses.models import CourseEnrollment
 from documents.models import StudentDocument, DocumentType
@@ -269,8 +272,12 @@ def _build_progress_summary(student, enrollment):
     total_sessions = AttendanceRecord.objects.filter(course__in=student.calendar_courses).count()
     attendance_pct = round((sessions_attended / total_sessions * 100) if total_sessions else 0)
 
-    contacts_required = 25 if (enrollment and enrollment.course.licensure == 'AEMT') else 5
-    patient_contacts = PatientContactRecord.objects.filter(student=student).count()
+    is_aemt_course = enrollment and enrollment.course.licensure == 'AEMT'
+    contacts_required = AEMT_FIELD_REQUIREMENTS['contacts'] if is_aemt_course else 5
+    # Only verified contacts count — a student's own unverified submissions don't
+    # move this bar until staff/instructor sign off.
+    patient_contacts = PatientContactRecord.objects.filter(student=student, verified=True).count()
+    patient_contacts_pending = PatientContactRecord.objects.filter(student=student, verified=False).count()
 
     skills_passed = PsychomotorSkillRecord.objects.filter(
         student=student, passed=True,
@@ -292,7 +299,10 @@ def _build_progress_summary(student, enrollment):
         {
             'label': 'Patient contacts',
             'value': patient_contacts,
-            'display': f'{patient_contacts} of {contacts_required} required',
+            'display': (
+                f'{patient_contacts} of {contacts_required} required'
+                + (f' ({patient_contacts_pending} pending verification)' if patient_contacts_pending else '')
+            ),
             'pct': _pct(patient_contacts, contacts_required),
         },
         {
@@ -333,6 +343,47 @@ def profile_view(request):
         messages.success(request, 'Profile updated successfully.')
         return redirect('profile')
     return render(request, 'students/profile.html', {'form': form})
+
+
+@login_required
+def patient_contact_log(request):
+    student = request.user
+    contacts = PatientContactRecord.objects.filter(student=student).select_related(
+        'course', 'verified_by'
+    ).order_by('-contact_date')
+    enrollment = CourseEnrollment.objects.filter(student=student).first()
+    is_aemt = bool(enrollment and enrollment.course.licensure == 'AEMT')
+
+    return render(request, 'students/patient_contacts.html', {
+        'contacts': contacts,
+        'is_aemt':  is_aemt,
+        'verified_count': contacts.filter(verified=True).count(),
+        'pending_count':  contacts.filter(verified=False).count(),
+    })
+
+
+@login_required
+def add_patient_contact(request):
+    student    = request.user
+    enrollment = CourseEnrollment.objects.filter(student=student).first()
+    is_aemt    = bool(enrollment and enrollment.course.licensure == 'AEMT')
+
+    form = StudentPatientContactForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        contact              = form.save(commit=False)
+        contact.student      = student
+        contact.course       = enrollment.course if enrollment else None
+        contact.submitted_by = student
+        contact.verified     = False
+        contact.save()
+        messages.success(
+            request,
+            'Patient contact logged — it will count toward your requirements once a '
+            'staff member or instructor verifies it.',
+        )
+        return redirect('patient_contact_log')
+
+    return render(request, 'students/patient_contact_add.html', {'form': form, 'is_aemt': is_aemt})
 
 
 @login_required

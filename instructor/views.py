@@ -686,16 +686,22 @@ def instructor_student_detail(request, pk):
 
     cognitive_exams    = CognitiveExamRecord.objects.filter(student=student, course=course)
     psychomotor_skills = PsychomotorSkillRecord.objects.filter(student=student, course=course)
-    patient_contacts   = PatientContactRecord.objects.filter(student=student, course=course)
+    patient_contacts   = PatientContactRecord.objects.filter(student=student, course=course).select_related(
+        'submitted_by', 'verified_by'
+    )
     scenario_records   = ScenarioRecord.objects.filter(student=student, course=course).select_related('instructor')
     rotations          = ClinicalRotation.objects.filter(student=student, course=course)
 
+    # Only verified contacts count toward requirements — a student's own unverified
+    # submissions are held out until staff/instructor sign off.
+    verified_contacts = patient_contacts.filter(verified=True)
     pc_totals = {
-        'total':           patient_contacts.count(),
-        'iv_attempted':    patient_contacts.filter(iv_start_attempted=True).count(),
-        'iv_successful':   patient_contacts.filter(iv_start_successful=True).count(),
-        'airway_attempted': patient_contacts.filter(airway_placement_attempted=True).count(),
-        'airway_successful': patient_contacts.filter(airway_placement_successful=True).count(),
+        'total':           verified_contacts.count(),
+        'iv_attempted':    verified_contacts.filter(iv_start_attempted=True).count(),
+        'iv_successful':   verified_contacts.filter(iv_start_successful=True).count(),
+        'airway_attempted': verified_contacts.filter(airway_placement_attempted=True).count(),
+        'airway_successful': verified_contacts.filter(airway_placement_successful=True).count(),
+        'pending':         patient_contacts.filter(verified=False).count(),
     }
     is_aemt = course.licensure in ('AEMT', 'PARA')
 
@@ -770,6 +776,25 @@ def instructor_student_detail(request, pk):
         'rotations':         rotations,
         'rotation_form':     rotation_form,
     })
+
+
+@instructor_required
+def instructor_verify_contact(request, pk, contact_pk):
+    instructor = request.user
+    contact = get_object_or_404(PatientContactRecord, pk=contact_pk, student_id=pk)
+    instructor_course_ids = InstructorCourseAssignment.objects.filter(
+        instructor=instructor, is_active=True
+    ).values_list('course_id', flat=True)
+    if contact.course_id not in instructor_course_ids:
+        messages.error(request, 'This student is not in one of your courses.')
+        return redirect('instructor_courses')
+    if request.method == 'POST':
+        contact.verified    = True
+        contact.verified_by = instructor
+        contact.verified_at = timezone.now()
+        contact.save(update_fields=['verified', 'verified_by', 'verified_at'])
+        messages.success(request, 'Patient contact verified.')
+    return redirect('instructor_student_detail', pk=pk)
 
 
 @instructor_required

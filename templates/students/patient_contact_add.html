@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Log Patient Contact — {{ AGENCY_SHORT_NAME }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="{% url 'patient_contact_log' %}" style="color:#5a7a9a;text-decoration:none;font-size:13px;">
+    <i class="bi bi-arrow-left"></i> Back to Patient Contacts
+  </a>
+  <h2 class="page-title mt-2 mb-1">Log New Patient Contact</h2>
+  <p class="text-muted mb-0" style="font-size:13px;">
+    A staff member or instructor will review and verify this before it counts toward your requirements.
+  </p>
+</div>
+
+<form method="post" class="row g-4" style="max-width:800px;">
+  {% csrf_token %}
+
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
+        <i class="bi bi-clipboard2-pulse me-2"></i>Contact Information
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">Date <span class="text-danger">*</span></label>
+            {{ form.contact_date }}
+            {% if form.contact_date.errors %}<div class="text-danger" style="font-size:12px;">{{ form.contact_date.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="col-md-5">
+            <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">Site Name <span class="text-danger">*</span></label>
+            {{ form.site_name }}
+            {% if form.site_name.errors %}<div class="text-danger" style="font-size:12px;">{{ form.site_name.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">Contact Type <span class="text-danger">*</span></label>
+            {{ form.contact_type }}
+            {% if form.contact_type.errors %}<div class="text-danger" style="font-size:12px;">{{ form.contact_type.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">Age Group</label>
+            {{ form.patient_age_group }}
+          </div>
+          <div class="col-md-8">
+            <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">
+              Chief Complaint <span class="text-muted" style="font-weight:400;">(de-identified only)</span>
+            </label>
+            {{ form.chief_complaint }}
+            {% if form.chief_complaint.errors %}<div class="text-danger" style="font-size:12px;">{{ form.chief_complaint.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">Supervisor Name <span class="text-danger">*</span></label>
+            {{ form.supervisor_name }}
+            {% if form.supervisor_name.errors %}<div class="text-danger" style="font-size:12px;">{{ form.supervisor_name.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">Supervisor License Level</label>
+            {{ form.supervisor_license_level }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if is_aemt %}
+  <div class="col-12">
+    <div class="card" style="border-color:#fef3c7;">
+      <div class="card-header py-3" style="background:#fffbeb;border-bottom:1px solid #fef3c7;font-weight:600;color:#92600a;font-size:13px;">
+        <i class="bi bi-lightning-charge me-2"></i>AEMT-Specific Procedures
+      </div>
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-auto"><div class="form-check">{{ form.iv_start_attempted }}<label class="form-check-label" style="font-size:13px;">IV Start Attempted</label></div></div>
+          <div class="col-auto"><div class="form-check">{{ form.iv_start_successful }}<label class="form-check-label" style="font-size:13px;">IV Start Successful</label></div></div>
+          <div class="col-auto"><div class="form-check">{{ form.airway_placement_attempted }}<label class="form-check-label" style="font-size:13px;">Airway Placement Attempted</label></div></div>
+          <div class="col-auto"><div class="form-check">{{ form.airway_placement_successful }}<label class="form-check-label" style="font-size:13px;">Airway Placement Successful</label></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="col-12">
+    <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">
+      Notes <span class="text-muted" style="font-weight:400;">(de-identified only)</span>
+    </label>
+    {{ form.notes }}
+    {% if form.notes.errors %}<div class="text-danger" style="font-size:12px;">{{ form.notes.errors.0 }}</div>{% endif %}
+  </div>
+
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary" style="border-radius:8px;padding:10px 28px;">
+      <i class="bi bi-check-lg me-1"></i> Submit for Verification
+    </button>
+    <a href="{% url 'patient_contact_log' %}" class="btn btn-outline-secondary ms-2" style="border-radius:8px;padding:10px 20px;">
+      Cancel
+    </a>
+  </div>
+</form>
+{% endblock %}

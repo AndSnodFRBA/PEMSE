@@ -58,6 +58,7 @@ urlpatterns = [
     path('students/<int:pk>/skills/<int:skill_pk>/delete/',         views.delete_psychomotor_skill, name='staff_delete_skill'),
     # Compliance — patient contacts
     path('students/<int:pk>/add-contact/',                          views.add_patient_contact,      name='staff_add_contact'),
+    path('students/<int:pk>/contacts/<int:contact_pk>/verify/',     views.verify_patient_contact,   name='staff_verify_contact'),
     path('students/<int:pk>/contacts/<int:contact_pk>/delete/',     views.delete_patient_contact,   name='staff_delete_contact'),
     # Compliance — scenario documentation
     path('students/<int:pk>/add-scenario/',                         views.add_scenario_record,      name='staff_add_scenario'),

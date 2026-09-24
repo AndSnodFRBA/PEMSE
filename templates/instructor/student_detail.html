@@ -173,12 +173,14 @@
 {% include "_aemt_progress.html" %}
 {% endif %}
 
-<!-- Patient contacts (read-only) -->
+<!-- Patient contacts — instructors verify/sign off but don't edit the clinical content -->
 <div class="card mb-3">
   <div class="card-body py-2 px-3 border-bottom d-flex justify-content-between align-items-center"
        style="background:#f8fafc;">
     <span class="fw-semibold" style="font-size:13px;">Patient Contacts</span>
-    <span class="text-muted" style="font-size:12px;">Total: {{ pc_totals.total }}</span>
+    <span class="text-muted" style="font-size:12px;">
+      Verified: {{ pc_totals.total }}{% if pc_totals.pending %} · <span style="color:#92600a;">Pending: {{ pc_totals.pending }}</span>{% endif %}
+    </span>
   </div>
   {% if is_aemt %}
     <div class="px-3 py-2 d-flex gap-4" style="font-size:12px;border-bottom:1px solid #f0f4f8;">
@@ -188,7 +190,42 @@
       <span>Airway Successful: {{ pc_totals.airway_successful }}</span>
     </div>
   {% endif %}
-  {% if not patient_contacts %}
+  {% if patient_contacts %}
+    <div class="table-responsive">
+      <table class="table table-sm mb-0" style="font-size:12px;">
+        <thead style="background:#f8fafc;">
+          <tr>
+            <th class="py-2 ps-3">Date</th><th class="py-2">Site</th><th class="py-2">Type</th>
+            <th class="py-2">Submitted By</th><th class="py-2">Status</th><th class="py-2 pe-3"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in patient_contacts %}
+          <tr style="border-bottom:1px solid #f0f4f8;{% if not c.verified %}background:#fffbeb;{% endif %}">
+            <td class="py-2 ps-3" style="white-space:nowrap;">{{ c.contact_date|date:"M j, Y" }}</td>
+            <td class="py-2">{{ c.site_name }}</td>
+            <td class="py-2">{{ c.get_contact_type_display }}</td>
+            <td class="py-2">{{ c.submitted_by.get_full_name|default:"—" }}</td>
+            <td class="py-2">
+              {% if c.verified %}
+                <span style="background:#d1fae5;color:#065f46;font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;">Verified</span>
+              {% else %}
+                <span style="background:#fef3c7;color:#92600a;font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;">Pending</span>
+              {% endif %}
+            </td>
+            <td class="py-2 pe-3">
+              {% if not c.verified %}
+              <form method="post" action="{% url 'instructor_verify_contact' student.pk c.pk %}">
+                {% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-success" style="font-size:10px;border-radius:5px;padding:2px 7px;"><i class="bi bi-check-lg"></i> Verify</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
     <div class="p-3 text-muted text-center" style="font-size:13px;">No patient contacts recorded.</div>
   {% endif %}
 </div>

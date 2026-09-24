@@ -1,6 +1,11 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from .models import Student, PaymentRecord
+
+from evaluations.phi_filter import scan_for_phi
+from .models import PatientContactRecord, Student, PaymentRecord
+
+_fc = {'class': 'form-control'}
+_fs = {'class': 'form-select'}
 
 
 class StudentLoginForm(AuthenticationForm):
@@ -81,3 +86,41 @@ class PaymentForm(forms.ModelForm):
         widgets = {
             'dept_address': forms.Textarea(attrs={'rows': 2}),
         }
+
+
+class StudentPatientContactForm(forms.ModelForm):
+    """Student logs their own patient contact — held as unverified until a
+    staff member or instructor signs off (see students.models.PatientContactRecord)."""
+    class Meta:
+        model  = PatientContactRecord
+        fields = [
+            'contact_date', 'site_name', 'contact_type',
+            'supervisor_name', 'supervisor_license_level',
+            'patient_age_group', 'chief_complaint',
+            'iv_start_attempted', 'iv_start_successful',
+            'airway_placement_attempted', 'airway_placement_successful',
+            'notes',
+        ]
+        widgets = {
+            'contact_date':              forms.DateInput(attrs={**_fc, 'type': 'date'}),
+            'site_name':                 forms.TextInput(attrs=_fc),
+            'contact_type':              forms.Select(attrs=_fs),
+            'supervisor_name':           forms.TextInput(attrs=_fc),
+            'supervisor_license_level':  forms.TextInput(attrs={**_fc, 'placeholder': 'e.g. NREMT-P'}),
+            'patient_age_group':         forms.Select(attrs=_fs),
+            'chief_complaint':           forms.TextInput(attrs={**_fc, 'placeholder': 'e.g. Chest pain, no identifying details'}),
+            'notes':                     forms.Textarea(attrs={**_fc, 'rows': 2}),
+        }
+        help_texts = {
+            'chief_complaint': 'De-identified only — no patient names, dates of birth, or other identifying details.',
+        }
+
+    def _clean_text_field(self, name):
+        value = self.cleaned_data.get(name, '')
+        issues = scan_for_phi(value)
+        if issues:
+            raise forms.ValidationError(issues)
+        return value
+
+    def clean_chief_complaint(self): return self._clean_text_field('chief_complaint')
+    def clean_notes(self):           return self._clean_text_field('notes')

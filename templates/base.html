@@ -95,6 +95,9 @@
     <a href="{% url 'rotation_log' %}"    class="nav-item {% if 'rotation' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-clipboard2-pulse-fill"></i> Clinical Rotations
     </a>
+    <a href="{% url 'patient_contact_log' %}" class="nav-item {% if 'patient_contact' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-heart-pulse-fill"></i> Patient Contacts
+    </a>
     <a href="{% url 'course_eval_list' %}" class="nav-item {% if 'course_eval' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-journal-check"></i> Course Evaluations
     </a>

@@ -38,6 +38,7 @@ urlpatterns = [
     # Students
     path('students/<int:pk>/', views.instructor_student_detail, name='instructor_student_detail'),
     path('students/<int:pk>/notes/<int:note_pk>/delete/', views.instructor_delete_student_note, name='instructor_delete_student_note'),
+    path('students/<int:pk>/contacts/<int:contact_pk>/verify/', views.instructor_verify_contact, name='instructor_verify_contact'),
 
     # Profile
     path('profile/', views.instructor_profile, name='instructor_profile'),

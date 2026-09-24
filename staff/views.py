@@ -491,7 +491,9 @@ def student_detail(request, pk):
 
     cognitive_exams    = CognitiveExamRecord.objects.filter(student=student).select_related('course')
     psychomotor_skills = PsychomotorSkillRecord.objects.filter(student=student).select_related('course')
-    patient_contacts   = PatientContactRecord.objects.filter(student=student).select_related('course')
+    patient_contacts   = PatientContactRecord.objects.filter(student=student).select_related(
+        'course', 'submitted_by', 'verified_by'
+    )
     scenario_records   = ScenarioRecord.objects.filter(student=student).select_related('course', 'instructor')
 
     # Ensure default entrance requirements exist for this student/course combo
@@ -504,13 +506,16 @@ def student_detail(request, pk):
         if course else (None, False)
     )
 
-    # Patient contact totals
+    # Patient contact totals — only verified contacts count toward requirements;
+    # a student's own unverified submissions are held out until staff/instructor sign off.
+    verified_contacts = patient_contacts.filter(verified=True)
     pc_totals = {
-        'total':                patient_contacts.count(),
-        'iv_attempted':         patient_contacts.filter(iv_start_attempted=True).count(),
-        'iv_successful':        patient_contacts.filter(iv_start_successful=True).count(),
-        'airway_attempted':     patient_contacts.filter(airway_placement_attempted=True).count(),
-        'airway_successful':    patient_contacts.filter(airway_placement_successful=True).count(),
+        'total':                verified_contacts.count(),
+        'iv_attempted':         verified_contacts.filter(iv_start_attempted=True).count(),
+        'iv_successful':        verified_contacts.filter(iv_start_successful=True).count(),
+        'airway_attempted':     verified_contacts.filter(airway_placement_attempted=True).count(),
+        'airway_successful':    verified_contacts.filter(airway_placement_successful=True).count(),
+        'pending':              patient_contacts.filter(verified=False).count(),
     }
 
     is_aemt = course and course.licensure in ('AEMT', 'PARA') if course else False
@@ -1581,13 +1586,30 @@ def add_patient_contact(request, pk):
     if request.method == 'POST':
         form = PatientContactForm(request.POST)
         if form.is_valid():
-            rec         = form.save(commit=False)
-            rec.student = student
-            rec.course  = enrollment.course if enrollment else None
+            rec              = form.save(commit=False)
+            rec.student      = student
+            rec.course       = enrollment.course if enrollment else None
+            rec.submitted_by = request.user
+            # Staff entering it directly is itself the sign-off — no separate review needed.
+            rec.verified    = True
+            rec.verified_by = request.user
+            rec.verified_at = timezone.now()
             rec.save()
             messages.success(request, 'Patient contact recorded.')
         else:
             messages.error(request, 'Please correct the errors in the contact form.')
+    return _detail_redirect(pk, 'contacts')
+
+
+@staff_required
+def verify_patient_contact(request, pk, contact_pk):
+    contact = get_object_or_404(PatientContactRecord, pk=contact_pk, student_id=pk)
+    if request.method == 'POST':
+        contact.verified    = True
+        contact.verified_by = request.user
+        contact.verified_at = timezone.now()
+        contact.save(update_fields=['verified', 'verified_by', 'verified_at'])
+        messages.success(request, 'Patient contact verified.')
     return _detail_redirect(pk, 'contacts')
 
 
