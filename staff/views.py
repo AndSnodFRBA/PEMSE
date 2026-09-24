@@ -782,6 +782,54 @@ def staff_attendance_pdf(request, session_id):
 
 
 @staff_required
+def staff_attendance_log(request):
+    """Agency-wide attendance log — every session taken, across all courses and instructors."""
+    from django.db.models import Count, Q
+
+    course_filter     = request.GET.get('course', '')
+    instructor_filter = request.GET.get('instructor', '')
+    type_filter       = request.GET.get('type', '')
+    date_from         = request.GET.get('from', '')
+    date_to           = request.GET.get('to', '')
+
+    sessions = AttendanceRecord.objects.select_related('course', 'instructor').annotate(
+        present_count=Count('student_attendance', filter=Q(student_attendance__status='present')),
+        absent_count=Count('student_attendance', filter=Q(student_attendance__status='absent')),
+        late_count=Count('student_attendance', filter=Q(student_attendance__status='late')),
+        excused_count=Count('student_attendance', filter=Q(student_attendance__status='excused')),
+        total_count=Count('student_attendance'),
+    ).order_by('-session_date', 'course__name')
+
+    if course_filter:
+        sessions = sessions.filter(course_id=course_filter)
+    if instructor_filter:
+        sessions = sessions.filter(instructor_id=instructor_filter)
+    if type_filter:
+        sessions = sessions.filter(session_type=type_filter)
+    if date_from:
+        sessions = sessions.filter(session_date__gte=date_from)
+    if date_to:
+        sessions = sessions.filter(session_date__lte=date_to)
+
+    courses = Course.objects.all().order_by('option_number')
+    instructors = Student.objects.filter(
+        attendance_taken__isnull=False
+    ).distinct().order_by('last_name', 'first_name')
+
+    return render(request, 'staff/attendance_log.html', {
+        'sessions':           sessions,
+        'courses':            courses,
+        'instructors':        instructors,
+        'session_types':      AttendanceRecord.SESSION_TYPES,
+        'course_filter':      course_filter,
+        'instructor_filter':  instructor_filter,
+        'type_filter':        type_filter,
+        'date_from':          date_from,
+        'date_to':            date_to,
+    })
+
+
+@staff_required
 def edit_payment_info(request, pk):
     student = get_object_or_404(Student, pk=pk, role=Student.Role.STUDENT)
     payment, _ = PaymentRecord.objects.get_or_create(student=student)
