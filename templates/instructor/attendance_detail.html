@@ -57,6 +57,18 @@
         {% endif %}
       </div>
     </div>
+    {% if session.calendar_event.location %}
+    <div class="col-6 col-md-3">
+      <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Location</div>
+      <div class="fw-semibold" style="font-size:14px;">{{ session.calendar_event.location }}</div>
+    </div>
+    {% endif %}
+    {% if session.notes %}
+    <div class="col-12">
+      <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Session Notes</div>
+      <div style="font-size:13px;color:#374151;white-space:pre-wrap;">{{ session.notes }}</div>
+    </div>
+    {% endif %}
   </div>
 </div>
 
@@ -97,6 +109,57 @@
     </div>
   {% else %}
     <div class="p-4 text-center text-muted">No students found for this session.</div>
+  {% endif %}
+</div>
+
+<!-- Instructional hours logged for this course/date -->
+<div class="d-flex align-items-center justify-content-between mt-4 mb-2">
+  <h6 class="text-muted fw-semibold mb-0" style="font-size:11px;letter-spacing:1px;text-transform:uppercase;">
+    Instructional Hours Logged
+  </h6>
+  {% if not own_hours_logged %}
+    <a href="{% url 'instructor_hours_add' %}?date={{ session.session_date|date:'Y-m-d' }}&session_type={{ session.session_type }}&topic={{ session.session_topic|urlencode }}&course={{ session.course_id }}&students_present={{ counts.present }}&from_attendance={{ session.pk }}"
+       class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-clock-history me-1"></i> Log Your Hours
+    </a>
+  {% endif %}
+</div>
+<div class="card mb-4">
+  {% if hour_logs %}
+    <div class="table-responsive">
+      <table class="table mb-0" style="font-size:13px;">
+        <thead style="background:#f8fafc;">
+          <tr>
+            <th class="px-3 py-2">Instructor</th>
+            <th class="py-2">Type</th>
+            <th class="py-2">Time</th>
+            <th class="py-2 text-center">Hours</th>
+            <th class="py-2">Topic Covered</th>
+            <th class="py-2">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in hour_logs %}
+          <tr>
+            <td class="px-3 py-2 fw-semibold">{{ log.instructor.get_full_name }}</td>
+            <td class="py-2">{{ log.get_session_type_display }}</td>
+            <td class="py-2">{{ log.start_time }} – {{ log.end_time }}</td>
+            <td class="py-2 text-center">{{ log.hours }}</td>
+            <td class="py-2 text-muted">{{ log.topic_covered|default:"—" }}</td>
+            <td class="py-2">
+              {% if log.verified %}
+                <span style="background:#d1fae5;color:#065f46;border-radius:12px;font-size:11px;padding:2px 8px;">Verified</span>
+              {% else %}
+                <span style="background:#fef3c7;color:#92600a;border-radius:12px;font-size:11px;padding:2px 8px;">Unverified</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="p-4 text-center text-muted">No instructional hours logged for this course on this date yet.</div>
   {% endif %}
 </div>
 {% endblock %}

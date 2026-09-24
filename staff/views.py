@@ -14,7 +14,9 @@ from courses.models import Course, CourseAnnouncement, CourseEnrollment
 from documents.models import StudentDocument
 from evaluations.models import ClinicalRotation
 from handbook.models import HandbookChapter
-from instructor.models import AttendanceRecord, InstructorCourseAssignment, StudentAttendance
+from instructor.models import (
+    AttendanceRecord, InstructionalHourLog, InstructorCourseAssignment, StudentAttendance,
+)
 from schedule.forms import CalendarEventForm
 from schedule.models import CalendarEvent
 from students.forms import StudentLoginForm
@@ -779,6 +781,37 @@ def staff_attendance_pdf(request, session_id):
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="Attendance_{session.session_date}.pdf"'
     return response
+
+
+@staff_required
+def staff_attendance_session_detail(request, pk):
+    """Full report for one class session: roster, session details, and
+    instructional hours logged for the same course/date, for staff review."""
+    session = get_object_or_404(AttendanceRecord.objects.select_related('course', 'instructor', 'calendar_event'), pk=pk)
+    attendances = session.student_attendance.select_related('student').order_by(
+        'student__last_name', 'student__first_name'
+    )
+    counts = {
+        'present': attendances.filter(status='present').count(),
+        'absent':  attendances.filter(status='absent').count(),
+        'late':    attendances.filter(status='late').count(),
+        'excused': attendances.filter(status='excused').count(),
+        'makeup':  attendances.filter(status='makeup').count(),
+    }
+    total = attendances.count()
+    attendance_pct = round((counts['present'] + counts['late'] + counts['makeup']) / total * 100) if total else None
+
+    hour_logs = InstructionalHourLog.objects.filter(
+        course=session.course, session_date=session.session_date,
+    ).select_related('instructor', 'verified_by').order_by('instructor__last_name')
+
+    return render(request, 'staff/attendance_session_detail.html', {
+        'session':         session,
+        'attendances':     attendances,
+        'counts':          counts,
+        'attendance_pct':  attendance_pct,
+        'hour_logs':       hour_logs,
+    })
 
 
 @staff_required

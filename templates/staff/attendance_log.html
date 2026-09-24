@@ -83,7 +83,7 @@
           <tr>
             <td class="ps-4 py-3">{{ s.session_date }}</td>
             <td class="py-3">
-              <a href="{% url 'staff_course_detail' s.course.pk %}" style="color:#1a2e4a;text-decoration:none;font-weight:600;">
+              <a href="{% url 'staff_attendance_session_detail' s.pk %}" style="color:#1a2e4a;text-decoration:none;font-weight:600;">
                 {{ s.course.name }}
               </a>
             </td>
@@ -103,10 +103,16 @@
             <td class="py-3 text-center" style="color:#d97706;font-weight:600;">{{ s.late_count }}</td>
             <td class="py-3 text-center" style="color:#6b7280;">{{ s.excused_count }}</td>
             <td class="py-3 pe-3 text-end">
-              <a href="{% url 'staff_attendance_pdf' s.pk %}" target="_blank"
-                 class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:6px;">
-                <i class="bi bi-file-earmark-pdf me-1"></i>PDF
-              </a>
+              <div class="d-flex gap-2 justify-content-end">
+                <a href="{% url 'staff_attendance_session_detail' s.pk %}"
+                   class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:6px;">
+                  <i class="bi bi-eye me-1"></i>Report
+                </a>
+                <a href="{% url 'staff_attendance_pdf' s.pk %}" target="_blank"
+                   class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:6px;">
+                  <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+                </a>
+              </div>
             </td>
           </tr>
           {% endfor %}

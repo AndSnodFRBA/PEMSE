@@ -20,6 +20,7 @@ urlpatterns = [
     path('students/<int:pk>/late-fee/<int:fee_id>/waive/', views.waive_late_fee, name='staff_waive_late_fee'),
     path('payments/<int:payment_id>/receipt/', views.payment_receipt_pdf,   name='staff_payment_receipt'),
     path('attendance/',                        views.staff_attendance_log,  name='staff_attendance_log'),
+    path('attendance/<int:pk>/',               views.staff_attendance_session_detail, name='staff_attendance_session_detail'),
     path('attendance/<int:session_id>/pdf/',   views.staff_attendance_pdf,  name='staff_attendance_pdf'),
     path('students/<int:pk>/payment-info/',    views.edit_payment_info,     name='staff_edit_payment_info'),
     path('students/<int:pk>/add-note/',        views.add_student_note,      name='staff_add_note'),

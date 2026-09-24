@@ -462,11 +462,16 @@ def instructor_attendance_detail(request, pk):
         'late':    attendances.filter(status='late').count(),
         'excused': attendances.filter(status='excused').count(),
     }
+    hour_logs = InstructionalHourLog.objects.filter(
+        course=session.course, session_date=session.session_date,
+    ).select_related('instructor', 'verified_by').order_by('instructor__last_name')
     return render(request, 'instructor/attendance_detail.html', {
-        'session':     session,
-        'attendances': attendances,
-        'counts':      counts,
-        'can_edit':    session.is_editable,
+        'session':          session,
+        'attendances':      attendances,
+        'counts':           counts,
+        'can_edit':         session.is_editable,
+        'hour_logs':        hour_logs,
+        'own_hours_logged': hour_logs.filter(instructor=instructor).exists(),
     })
 
 
