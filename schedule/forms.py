@@ -60,14 +60,13 @@ class CalendarCopyForm(forms.Form):
         widget=forms.DateInput(attrs=_date),
     )
 
-    def __init__(self, *args, **kwargs):
-        from courses.models import Course
+    def __init__(self, source_courses, target_courses, *args, **kwargs):
         super().__init__(*args, **kwargs)
         label = lambda c: f'Option {c.option_number} — {c.name}'
         self.fields['source'].queryset = (
-            Course.objects.filter(calendar_events__isnull=False).distinct().order_by('option_number')
+            source_courses.filter(calendar_events__isnull=False).distinct().order_by('option_number')
         )
-        self.fields['target'].queryset = Course.objects.filter(is_active=True).order_by('option_number')
+        self.fields['target'].queryset = target_courses.order_by('option_number')
         self.fields['source'].label_from_instance = label
         self.fields['target'].label_from_instance = label
 

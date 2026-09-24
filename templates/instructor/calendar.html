@@ -19,9 +19,14 @@
 {% block content %}
 <div class="inst-topbar">
   <h1 class="inst-page-title">Course Calendar</h1>
-  <a href="{% url 'instructor_calendar_add' %}" class="btn btn-sm btn-primary">
-    <i class="bi bi-plus-circle me-1"></i> Add Event
-  </a>
+  <div class="d-flex gap-2">
+    <a href="{% url 'instructor_calendar_copy' %}" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-copy me-1"></i> Copy From Course
+    </a>
+    <a href="{% url 'instructor_calendar_add' %}" class="btn btn-sm btn-primary">
+      <i class="bi bi-plus-circle me-1"></i> Add Event
+    </a>
+  </div>
 </div>
 
 <div class="subscribe-box mb-4">

@@ -167,3 +167,40 @@ class CalendarCopyTests(TestCase):
         self.client.force_login(Student.objects.create_user('stu2', password='x'))
         r = self.client.get(reverse('staff_calendar_copy'))
         self.assertEqual(r.status_code, 302)
+
+    def _instructor(self):
+        inst = Student.objects.create_user('inst', password='x', role=Student.Role.INSTRUCTOR)
+        # Taught the old course last year (assignment now inactive), teaching the new one.
+        InstructorCourseAssignment.objects.create(instructor=inst, course=self.old, role='primary', is_active=False)
+        InstructorCourseAssignment.objects.create(instructor=inst, course=self.new, role='primary')
+        return inst
+
+    def test_instructor_can_copy_from_past_course_to_current_course(self):
+        self.client.force_login(self._instructor())
+        r = self.client.post(reverse('instructor_calendar_copy'), {
+            'source': self.old.pk, 'target': self.new.pk, 'new_start': '2027-01-11', 'action': 'confirm'})
+        self.assertRedirects(r, reverse('instructor_calendar'), fetch_redirect_response=False)
+        self.assertEqual(CalendarEvent.objects.filter(course=self.new).count(), 3)
+
+    def test_instructor_cannot_target_course_they_do_not_teach(self):
+        other = _course(3, 'AEMT')
+        self.client.force_login(self._instructor())
+        r = self.client.post(reverse('instructor_calendar_copy'), {
+            'source': self.old.pk, 'target': other.pk, 'new_start': '2027-01-11', 'action': 'confirm'})
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(CalendarEvent.objects.filter(course=other).exists())
+
+    def test_instructor_cannot_copy_from_course_they_never_taught(self):
+        other = _course(3, 'AEMT')
+        CalendarEvent.objects.create(course=other, title='AEMT Week 1', event_type='session', date=date(2026, 8, 3))
+        self.client.force_login(self._instructor())
+        r = self.client.post(reverse('instructor_calendar_copy'), {
+            'source': other.pk, 'target': self.new.pk, 'new_start': '2027-01-11', 'action': 'confirm'})
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(CalendarEvent.objects.filter(course=self.new).exists())
+
+    def test_instructor_page_uses_instructor_portal(self):
+        self.client.force_login(self._instructor())
+        r = self.client.get(reverse('instructor_calendar_copy'))
+        self.assertContains(r, 'class="inst-topbar"')
+        self.assertContains(r, f'href="{reverse("instructor_calendar")}"')

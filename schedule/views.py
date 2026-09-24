@@ -4,10 +4,13 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, Http404
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils.text import slugify
 
 from students.models import Student
+from .calendar_copy import apply_copy, plan_copy
+from .forms import CalendarCopyForm
 from .ics import build_calendar
 from .models import CalendarEvent
 
@@ -75,3 +78,43 @@ def regenerate_feed_token(request):
     if request.user.is_office_staff:
         return redirect('staff_calendar')
     return redirect('calendar')
+
+
+def copy_calendar_page(request, *, source_courses, target_courses, portal):
+    """Shared staff/instructor "Copy From Course" page: preview, then copy.
+
+    `portal` is 'staff' or 'instructor' — picks the base template and the
+    calendar page to return to.
+    """
+    form = CalendarCopyForm(
+        source_courses, target_courses, request.POST or None,
+        initial={'target': request.GET.get('target')},
+    )
+    plan = None
+    calendar_url = reverse(f'{portal}_calendar')
+
+    if request.method == 'POST' and form.is_valid():
+        source = form.cleaned_data['source']
+        target = form.cleaned_data['target']
+        plan = plan_copy(source, target, form.cleaned_data['new_start'])
+
+        if plan is None:
+            form.add_error('source', 'That course has no calendar events to copy.')
+        elif request.POST.get('action') == 'confirm':
+            created = apply_copy(plan, target, request.user)
+            skipped = len(plan.events) - created
+            msg = f'Copied {created} event{"s" if created != 1 else ""} from {source.tag} to {target.name}.'
+            if skipped:
+                msg += f' Skipped {skipped} already on that calendar.'
+            messages.success(request, msg)
+            if portal == 'staff':
+                calendar_url += f'?course={target.pk}'
+            return redirect(calendar_url)
+
+    return render(request, 'schedule/calendar_copy.html', {
+        'form': form,
+        'plan': plan,
+        'base_template': f'{portal}/base_{portal}.html',
+        'css_prefix': 'staff' if portal == 'staff' else 'inst',
+        'calendar_url': calendar_url,
+    })

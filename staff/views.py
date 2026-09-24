@@ -3073,33 +3073,14 @@ def staff_calendar_edit(request, pk):
 
 @staff_required
 def staff_calendar_copy(request):
-    """Reuse a past course's calendar for a new course: preview first, then copy."""
-    from schedule.calendar_copy import apply_copy, plan_copy
-    from schedule.forms import CalendarCopyForm
-
-    initial = {}
-    if request.GET.get('target'):
-        initial['target'] = request.GET['target']
-    form = CalendarCopyForm(request.POST or None, initial=initial)
-    plan = None
-
-    if request.method == 'POST' and form.is_valid():
-        source = form.cleaned_data['source']
-        target = form.cleaned_data['target']
-        plan = plan_copy(source, target, form.cleaned_data['new_start'])
-
-        if plan is None:
-            form.add_error('source', 'That course has no calendar events to copy.')
-        elif request.POST.get('action') == 'confirm':
-            created = apply_copy(plan, target, request.user)
-            skipped = len(plan.events) - created
-            msg = f'Copied {created} event{"s" if created != 1 else ""} from {source.tag} to {target.name}.'
-            if skipped:
-                msg += f' Skipped {skipped} already on that calendar.'
-            messages.success(request, msg)
-            return redirect(f"{reverse('staff_calendar')}?course={target.pk}")
-
-    return render(request, 'staff/calendar_copy.html', {'form': form, 'plan': plan})
+    """Reuse any past course's calendar for an active course."""
+    from schedule.views import copy_calendar_page
+    return copy_calendar_page(
+        request,
+        source_courses=Course.objects.all(),
+        target_courses=Course.objects.filter(is_active=True),
+        portal='staff',
+    )
 
 
 @staff_required

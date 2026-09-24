@@ -1,5 +1,5 @@
-{% extends 'staff/base_staff.html' %}
-{% block title %}Copy Calendar — {{ AGENCY_SHORT_NAME }} Staff Portal{% endblock %}
+{% extends base_template %}
+{% block title %}Copy Calendar — {{ AGENCY_SHORT_NAME }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -11,9 +11,9 @@
 {% endblock %}
 
 {% block content %}
-<div class="staff-topbar">
-  <h1 class="staff-page-title">Copy Calendar From Course</h1>
-  <a href="{% url 'staff_calendar' %}" class="btn btn-sm btn-outline-secondary">
+<div class="{{ css_prefix }}-topbar">
+  <h1 class="{{ css_prefix }}-page-title">Copy Calendar From Course</h1>
+  <a href="{{ calendar_url }}" class="btn btn-sm btn-outline-secondary">
     <i class="bi bi-arrow-left me-1"></i> Back
   </a>
 </div>

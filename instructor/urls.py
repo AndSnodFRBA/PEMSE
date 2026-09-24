@@ -54,6 +54,7 @@ urlpatterns = [
     # Calendar
     path('calendar/',                    views.instructor_calendar,        name='instructor_calendar'),
     path('calendar/add/',                views.instructor_calendar_add,    name='instructor_calendar_add'),
+    path('calendar/copy/',               views.instructor_calendar_copy,   name='instructor_calendar_copy'),
     path('calendar/<int:pk>/edit/',      views.instructor_calendar_edit,   name='instructor_calendar_edit'),
     path('calendar/<int:pk>/delete/',    views.instructor_calendar_delete, name='instructor_calendar_delete'),
 

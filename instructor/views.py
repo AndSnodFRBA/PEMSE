@@ -899,6 +899,22 @@ def instructor_calendar(request):
 
 
 @instructor_required
+def instructor_calendar_copy(request):
+    """Reuse the calendar from any course this instructor has taught (including
+    past assignments) for a course they're currently assigned to."""
+    from schedule.views import copy_calendar_page
+    taught_ids = InstructorCourseAssignment.objects.filter(
+        instructor=request.user
+    ).values_list('course_id', flat=True)
+    return copy_calendar_page(
+        request,
+        source_courses=Course.objects.filter(pk__in=taught_ids),
+        target_courses=_instructor_courses_qs(request.user),
+        portal='instructor',
+    )
+
+
+@instructor_required
 def instructor_calendar_add(request):
     instructor = request.user
     form = CalendarEventForm(_instructor_courses_qs(instructor), request.POST or None)
