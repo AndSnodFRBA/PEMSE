@@ -1040,6 +1040,10 @@
     <!-- TAB: Patient Contacts -->
     <div class="tab-pane fade {% if active_tab == 'contacts' %}show active{% endif %}" id="contacts" role="tabpanel">
       <div class="card-body">
+        {% if aemt_progress %}
+        {% include "_aemt_progress.html" %}
+        {% endif %}
+
         <!-- Totals row -->
         <div class="row g-2 mb-3">
           <div class="col-auto"><div class="card px-3 py-2 text-center"><div style="font-size:20px;font-weight:700;color:#2B5EA7;">{{ pc_totals.total }}</div><div style="font-size:10px;color:#6b7280;">Total Contacts</div></div></div>

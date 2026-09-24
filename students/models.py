@@ -1,5 +1,6 @@
 import os
 import uuid
+from decimal import Decimal
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -428,6 +429,39 @@ class PsychomotorSkillRecord(models.Model):
 
     def __str__(self):
         return f'{self.student.get_full_name()} — {self.skill_name} ({self.evaluation_date})'
+
+
+# 172 NAC 13-004(D) — minimums an AEMT-course student must complete during field
+# experience (or a hospital ED, clinic, or physician's office) before completion.
+# Patient contacts may fall back to a simulated patient encounter lab if field/clinical
+# volume is too low; IV starts and airway placements have no such fallback.
+AEMT_FIELD_REQUIREMENTS = {
+    'contacts':    25,
+    'iv':          24,
+    'airway':      12,
+    'field_hours': Decimal('150'),
+}
+
+
+def aemt_progress_summary(pc_totals, field_hours):
+    """Build the 172 NAC 13-004(D) progress dict from patient-contact totals
+    (as computed for the compliance tab) and total logged field-experience hours.
+    IV/airway progress counts successful placements — the regulation requires the
+    student to have *completed* them, not merely attempted them."""
+    req = AEMT_FIELD_REQUIREMENTS
+
+    def _row(current, required):
+        pct = min(100, round(float(current) / float(required) * 100)) if required else 0
+        return {'current': current, 'required': required, 'met': current >= required, 'pct': pct}
+
+    rows = {
+        'contacts':    _row(pc_totals['total'], req['contacts']),
+        'iv':          _row(pc_totals['iv_successful'], req['iv']),
+        'airway':      _row(pc_totals['airway_successful'], req['airway']),
+        'field_hours': _row(field_hours, req['field_hours']),
+    }
+    rows['all_met'] = all(row['met'] for row in rows.values())
+    return rows
 
 
 class PatientContactRecord(models.Model):

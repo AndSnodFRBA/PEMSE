@@ -1,0 +1,70 @@
+{% comment %}
+Shared by staff/student_detail.html and instructor/student_detail.html.
+Expects `aemt_progress` — see students.models.aemt_progress_summary().
+{% endcomment %}
+<div class="card mb-3" style="border-color:{% if aemt_progress.all_met %}#a7f3d0{% else %}#fde68a{% endif %};">
+  <div class="card-header py-2 d-flex align-items-center justify-content-between flex-wrap gap-2"
+       style="background:{% if aemt_progress.all_met %}#ecfdf5{% else %}#fffbeb{% endif %};">
+    <span style="font-size:12px;font-weight:700;color:{% if aemt_progress.all_met %}#065f46{% else %}#92600a{% endif %};">
+      <i class="bi bi-clipboard2-check me-1"></i>172 NAC 13-004(D) — AEMT Field Experience Requirements
+    </span>
+    {% if aemt_progress.all_met %}
+      <span class="badge" style="background:#059669;color:#fff;font-size:10px;font-weight:600;padding:4px 10px;border-radius:100px;">
+        <i class="bi bi-check-circle-fill me-1"></i>All requirements met
+      </span>
+    {% else %}
+      <span class="badge" style="background:#d97706;color:#fff;font-size:10px;font-weight:600;padding:4px 10px;border-radius:100px;">In progress</span>
+    {% endif %}
+  </div>
+  <div class="card-body py-3">
+    <div class="row g-3">
+      <div class="col-6 col-md-3">
+        <div style="font-size:11px;color:#6b7280;font-weight:600;">Patient Contacts</div>
+        <div style="font-size:15px;font-weight:700;color:{% if aemt_progress.contacts.met %}#065f46{% else %}#374151{% endif %};margin:2px 0 4px;">
+          {{ aemt_progress.contacts.current }} <span style="font-weight:400;color:#9ca3af;">/ {{ aemt_progress.contacts.required }}</span>
+          {% if aemt_progress.contacts.met %}<i class="bi bi-check-circle-fill" style="color:#059669;font-size:12px;"></i>{% endif %}
+        </div>
+        <div style="height:6px;border-radius:4px;background:#f0f4f8;overflow:hidden;">
+          <div style="height:100%;width:{{ aemt_progress.contacts.pct }}%;background:{% if aemt_progress.contacts.met %}#059669{% else %}#d97706{% endif %};"></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div style="font-size:11px;color:#6b7280;font-weight:600;">IV Starts (Successful)</div>
+        <div style="font-size:15px;font-weight:700;color:{% if aemt_progress.iv.met %}#065f46{% else %}#374151{% endif %};margin:2px 0 4px;">
+          {{ aemt_progress.iv.current }} <span style="font-weight:400;color:#9ca3af;">/ {{ aemt_progress.iv.required }}</span>
+          {% if aemt_progress.iv.met %}<i class="bi bi-check-circle-fill" style="color:#059669;font-size:12px;"></i>{% endif %}
+        </div>
+        <div style="height:6px;border-radius:4px;background:#f0f4f8;overflow:hidden;">
+          <div style="height:100%;width:{{ aemt_progress.iv.pct }}%;background:{% if aemt_progress.iv.met %}#059669{% else %}#d97706{% endif %};"></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div style="font-size:11px;color:#6b7280;font-weight:600;">Non-Visualized Airways</div>
+        <div style="font-size:15px;font-weight:700;color:{% if aemt_progress.airway.met %}#065f46{% else %}#374151{% endif %};margin:2px 0 4px;">
+          {{ aemt_progress.airway.current }} <span style="font-weight:400;color:#9ca3af;">/ {{ aemt_progress.airway.required }}</span>
+          {% if aemt_progress.airway.met %}<i class="bi bi-check-circle-fill" style="color:#059669;font-size:12px;"></i>{% endif %}
+        </div>
+        <div style="height:6px;border-radius:4px;background:#f0f4f8;overflow:hidden;">
+          <div style="height:100%;width:{{ aemt_progress.airway.pct }}%;background:{% if aemt_progress.airway.met %}#059669{% else %}#d97706{% endif %};"></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div style="font-size:11px;color:#6b7280;font-weight:600;">Field Experience Hours</div>
+        <div style="font-size:15px;font-weight:700;color:{% if aemt_progress.field_hours.met %}#065f46{% else %}#374151{% endif %};margin:2px 0 4px;">
+          {{ aemt_progress.field_hours.current }} <span style="font-weight:400;color:#9ca3af;">/ {{ aemt_progress.field_hours.required }}</span>
+          {% if aemt_progress.field_hours.met %}<i class="bi bi-check-circle-fill" style="color:#059669;font-size:12px;"></i>{% endif %}
+        </div>
+        <div style="height:6px;border-radius:4px;background:#f0f4f8;overflow:hidden;">
+          <div style="height:100%;width:{{ aemt_progress.field_hours.pct }}%;background:{% if aemt_progress.field_hours.met %}#059669{% else %}#d97706{% endif %};"></div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#9ca3af;margin-top:12px;">
+      Patient contacts may be completed in the field, a hospital ED, clinic, or physician's office — or, if
+      emergency/medical call volume is too low during field experience, in a simulated patient encounter lab
+      (log those below with contact type "Simulated Patient Encounter"). IV starts and airway placements have
+      no simulated-lab fallback and must be completed and documented as shown above. Field experience hours
+      are the sum of this student's logged clinical rotation hours for this course.
+    </div>
+  </div>
+</div>

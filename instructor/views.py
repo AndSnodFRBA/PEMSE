@@ -19,6 +19,7 @@ from students.forms import StudentLoginForm
 from students.models import (
     CognitiveExamRecord, PatientContactRecord,
     PsychomotorSkillRecord, ScenarioRecord, Student, StudentNote,
+    aemt_progress_summary,
 )
 from .forms import (
     AttendanceSessionForm,
@@ -698,6 +699,12 @@ def instructor_student_detail(request, pk):
     }
     is_aemt = course.licensure in ('AEMT', 'PARA')
 
+    # 172 NAC 13-004(D) — AEMT-specific field experience minimums
+    aemt_progress = None
+    if course.licensure == 'AEMT':
+        field_hours = rotations.aggregate(total=Sum('hours_completed'))['total'] or Decimal('0')
+        aemt_progress = aemt_progress_summary(pc_totals, field_hours)
+
     # Shared staff/instructor notes log for this student (never shown to the student)
     notes = StudentNote.objects.filter(student=student).select_related('created_by', 'course')
 
@@ -756,6 +763,7 @@ def instructor_student_detail(request, pk):
         'patient_contacts':  patient_contacts,
         'pc_totals':         pc_totals,
         'is_aemt':           is_aemt,
+        'aemt_progress':     aemt_progress,
         'notes':             notes,
         'scenario_records':  scenario_records,
         'scenario_form':     scenario_form,

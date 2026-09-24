@@ -29,6 +29,7 @@ from students.models import (
     CourseReportRecord, EntranceRequirementRecord, LatePaymentFee,
     PatientContactRecord, PaymentHistory, PaymentRecord, PsychomotorSkillRecord,
     ReminderLog, ScenarioRecord, SiteSettings, Student, StudentNote, StudentNotification,
+    aemt_progress_summary,
 )
 from students.reminders import BalanceDueRule, RegistrationIncompleteRule
 from .forms import (
@@ -513,6 +514,14 @@ def student_detail(request, pk):
     }
 
     is_aemt = course and course.licensure in ('AEMT', 'PARA') if course else False
+
+    # 172 NAC 13-004(D) — AEMT-specific field experience minimums
+    aemt_progress = None
+    if course and course.licensure == 'AEMT':
+        field_hours = ClinicalRotation.objects.filter(student=student, course=course).aggregate(
+            total=Sum('hours_completed')
+        )['total'] or Decimal('0')
+        aemt_progress = aemt_progress_summary(pc_totals, field_hours)
     attendance = _attendance_summary(student, course)
 
     attendance_sessions = []
@@ -583,6 +592,7 @@ def student_detail(request, pk):
         'completion_rec':     completion_rec,
         'pc_totals':          pc_totals,
         'is_aemt':            is_aemt,
+        'aemt_progress':      aemt_progress,
         'attendance':         attendance,
         'attendance_sessions': attendance_sessions,
         'exam_form':          CognitiveExamForm(),
