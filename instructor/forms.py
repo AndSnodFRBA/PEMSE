@@ -217,3 +217,18 @@ class InstructorDocumentForm(forms.ModelForm):
         self.fields['course'].label_from_instance = lambda c: f'Option {c.option_number} — {c.name}'
         self.fields['course'].required = False
         self.fields['course'].empty_label = 'All students (not course-specific)'
+
+
+class InstructorStudentInviteForm(forms.Form):
+    """Invite a student to self-register into the instructor's course — the course
+    is fixed by the URL, so only the email is collected."""
+    email = forms.EmailField(
+        label='Student email address',
+        widget=forms.EmailInput(attrs={**_fc, 'placeholder': 'student@email.com'}),
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].lower()
+        if Student.objects.filter(email=email).exists():
+            raise forms.ValidationError('An account with this email already exists.')
+        return email

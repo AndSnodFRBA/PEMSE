@@ -15,6 +15,7 @@ from evaluations.models import ClinicalRotation
 from schedule.forms import CalendarEventForm
 from schedule.models import CalendarEvent
 from staff.models import StudentInvitation
+from students.emails import send_invitation_email
 from students.forms import StudentLoginForm
 from students.models import (
     CognitiveExamRecord, PatientContactRecord,
@@ -28,6 +29,7 @@ from .forms import (
     InstructorProfileForm,
     InstructorRotationForm,
     InstructorScenarioForm,
+    InstructorStudentInviteForm,
     StudentAttendanceForm,
 )
 from .mixins import instructor_required
@@ -611,7 +613,46 @@ def instructor_course_detail(request, pk):
         'sessions':      sessions,
         'total_sessions': total_sessions,
         'invitations':   invitations,
+        'invite_form':   InstructorStudentInviteForm(),
     })
+
+
+@instructor_required
+def instructor_invite_student(request, pk):
+    course = get_object_or_404(Course, pk=pk)
+    get_object_or_404(
+        InstructorCourseAssignment, instructor=request.user, course=course, is_active=True
+    )
+    if request.method == 'POST':
+        form = InstructorStudentInviteForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            inv = StudentInvitation.objects.create(email=email, course=course, created_by=request.user)
+            invite_link = request.build_absolute_uri(f'/register/invite/{inv.token}/')
+            send_invitation_email(inv, invite_link)
+            messages.success(request, f'Invite sent to {email}.')
+        else:
+            messages.error(request, form.errors['email'][0])
+    return redirect('instructor_course_detail', pk=course.pk)
+
+
+@instructor_required
+def instructor_resend_student_invite(request, pk, inv_pk):
+    course = get_object_or_404(Course, pk=pk)
+    get_object_or_404(
+        InstructorCourseAssignment, instructor=request.user, course=course, is_active=True
+    )
+    inv = get_object_or_404(StudentInvitation, pk=inv_pk, course=course)
+    if request.method == 'POST':
+        if inv.used:
+            messages.error(request, 'This invitation has already been used.')
+        else:
+            inv.expires_at = timezone.now() + timedelta(days=7)
+            inv.save(update_fields=['expires_at'])
+            invite_link = request.build_absolute_uri(f'/register/invite/{inv.token}/')
+            send_invitation_email(inv, invite_link)
+            messages.success(request, f'Invite resent to {inv.email}.')
+    return redirect('instructor_course_detail', pk=course.pk)
 
 
 # ── Documents ─────────────────────────────────────────────────────────────────

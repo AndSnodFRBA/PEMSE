@@ -28,6 +28,8 @@ urlpatterns = [
     # Courses
     path('courses/',          views.instructor_courses,       name='instructor_courses'),
     path('courses/<int:pk>/', views.instructor_course_detail, name='instructor_course_detail'),
+    path('courses/<int:pk>/invite/', views.instructor_invite_student, name='instructor_invite_student'),
+    path('courses/<int:pk>/invite/<int:inv_pk>/resend/', views.instructor_resend_student_invite, name='instructor_resend_student_invite'),
 
     # Documents
     path('documents/',               views.instructor_documents,        name='instructor_documents'),
