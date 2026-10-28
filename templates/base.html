@@ -207,5 +207,203 @@
 </script>
 {% endif %}
 {% block extra_js %}{% endblock %}
+
+{% if user.is_authenticated %}
+<!-- ── Student Portal Tour ── -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/driver.js/1.3.1/driver.css">
+<style>
+  .driver-popover {
+    border-radius: 12px !important;
+    border: none !important;
+    box-shadow: 0 8px 32px rgba(43,94,167,0.18) !important;
+    font-family: 'DM Sans', sans-serif !important;
+    max-width: 320px !important;
+  }
+  .driver-popover-title {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: #1a3a6b !important;
+    margin-bottom: 6px !important;
+  }
+  .driver-popover-description {
+    font-size: 13px !important;
+    color: #374151 !important;
+    line-height: 1.5 !important;
+  }
+  .driver-popover-progress-text { font-size: 11px !important; color: #6b7280 !important; }
+  .driver-popover-next-btn {
+    background: #2B5EA7 !important;
+    border: none !important;
+    border-radius: 7px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    padding: 6px 16px !important;
+  }
+  .driver-popover-next-btn:hover { background: #1a3a6b !important; }
+  .driver-popover-prev-btn {
+    border: 1px solid #d1d5db !important;
+    border-radius: 7px !important;
+    font-size: 13px !important;
+    color: #374151 !important;
+    background: #fff !important;
+    padding: 6px 16px !important;
+  }
+  .driver-popover-close-btn { color: #9ca3af !important; }
+  .driver-popover-arrow { display: none !important; }
+
+  #pemse-tour-btn {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    z-index: 1040;
+    background: #2B5EA7;
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    box-shadow: 0 4px 14px rgba(43,94,167,0.35);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: background 0.15s, transform 0.1s;
+  }
+  #pemse-tour-btn:hover { background: #1a3a6b; transform: translateY(-1px); }
+  @media print { #pemse-tour-btn { display: none !important; } }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/driver.js/1.3.1/driver.js.iife.js"></script>
+<script>
+(function () {
+  const TOUR_KEY = 'pemse_tour_done_student';
+
+  function startStudentTour() {
+    const driver = window.driver.js.driver;
+    const driverObj = driver({
+      showProgress: true,
+      animate: true,
+      overlayColor: 'rgba(26,58,107,0.55)',
+      doneBtnText: 'Done',
+      nextBtnText: 'Next →',
+      prevBtnText: '← Back',
+      onDestroyed: function () {
+        try { localStorage.setItem(TOUR_KEY, '1'); } catch(e){}
+      },
+      steps: [
+        {
+          element: '.sidebar-brand',
+          popover: {
+            title: '👋 Welcome to PEMSE',
+            description: 'This quick tour shows you where everything is. You can skip it anytime and restart it from the <strong>Help &amp; Quick Guide</strong> in the sidebar.',
+            side: 'right', align: 'start'
+          }
+        },
+        {
+          element: 'a[href*="dashboard"]',
+          popover: {
+            title: '🏠 Dashboard',
+            description: 'Your home page. See items that need attention — items with a <strong>!</strong> badge require action before the program starts.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="registration"]',
+          popover: {
+            title: '📄 Registration',
+            description: 'Complete your program registration form here. Fill in your personal info, emergency contacts, and medical information, then submit.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="handbook"]',
+          popover: {
+            title: '📖 Handbook',
+            description: 'Read all chapters of the student handbook and click <em>Sign Handbook</em> to confirm. You must do this before starting program activities.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="documents"]',
+          popover: {
+            title: '📁 My Documents',
+            description: 'Upload required documents like your CPR card and immunization records. Track their status — Approved, Pending, or Rejected.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="student_grades"]',
+          popover: {
+            title: '🎓 My Grades',
+            description: 'View your grades by category: quizzes, exams, skills, worksheets, and participation. Your running average is shown at the top.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="calendar"]',
+          popover: {
+            title: '📅 Calendar',
+            description: 'See all scheduled class sessions color-coded by type. Use the iCal export to add your schedule to your phone or calendar app.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="rotation_log"]',
+          popover: {
+            title: '🏥 Clinical Rotations',
+            description: 'Log your clinical rotation hours and sites here. Fill in the required fields and save as soon as possible after each rotation.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="patient_contact"]',
+          popover: {
+            title: '💗 Patient Contacts',
+            description: 'Record patient contacts during your clinicals. Your instructor may review these, so log them promptly.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="student_help"]',
+          popover: {
+            title: '❓ Help & Quick Guide',
+            description: 'A printable step-by-step guide for every section of the portal. You can also restart this tour from there anytime.',
+            side: 'right'
+          }
+        },
+        {
+          popover: {
+            title: '🎉 You're all set!',
+            description: 'That's the full tour! Start with <strong>Registration</strong> and <strong>Handbook</strong> — both are required before program activities begin. Questions? Email <strong>emseducation19@gmail.com</strong>.'
+          }
+        }
+      ]
+    });
+    driverObj.drive();
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    try {
+      if (!localStorage.getItem(TOUR_KEY)) {
+        setTimeout(startStudentTour, 600);
+      }
+    } catch(e){}
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.createElement('button');
+    btn.id = 'pemse-tour-btn';
+    btn.innerHTML = '<i class="bi bi-map-fill"></i> Site Tour';
+    btn.title = 'Take a guided tour of the portal';
+    btn.addEventListener('click', startStudentTour);
+    document.body.appendChild(btn);
+  });
+
+  window.startPemseTour = startStudentTour;
+})();
+</script>
+{% endif %}
 </body>
 </html>

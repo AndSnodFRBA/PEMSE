@@ -275,5 +275,209 @@
 })();
 </script>
 {% block extra_js %}{% endblock %}
+
+<!-- ── Staff Portal Tour ── -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/driver.js/1.3.1/driver.css">
+<style>
+  .driver-popover {
+    border-radius: 12px !important;
+    border: none !important;
+    box-shadow: 0 8px 32px rgba(43,94,167,0.18) !important;
+    font-family: 'DM Sans', sans-serif !important;
+    max-width: 320px !important;
+  }
+  .driver-popover-title {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: #1a3a6b !important;
+    margin-bottom: 6px !important;
+  }
+  .driver-popover-description {
+    font-size: 13px !important;
+    color: #374151 !important;
+    line-height: 1.5 !important;
+  }
+  .driver-popover-progress-text { font-size: 11px !important; color: #6b7280 !important; }
+  .driver-popover-next-btn {
+    background: #2B5EA7 !important;
+    border: none !important;
+    border-radius: 7px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    padding: 6px 16px !important;
+  }
+  .driver-popover-next-btn:hover { background: #1a3a6b !important; }
+  .driver-popover-prev-btn {
+    border: 1px solid #d1d5db !important;
+    border-radius: 7px !important;
+    font-size: 13px !important;
+    color: #374151 !important;
+    background: #fff !important;
+    padding: 6px 16px !important;
+  }
+  .driver-popover-close-btn { color: #9ca3af !important; }
+  .driver-popover-arrow { display: none !important; }
+
+  #pemse-tour-btn {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    z-index: 1040;
+    background: #2B5EA7;
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    box-shadow: 0 4px 14px rgba(43,94,167,0.35);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: background 0.15s, transform 0.1s;
+  }
+  #pemse-tour-btn:hover { background: #1a3a6b; transform: translateY(-1px); }
+  @media print { #pemse-tour-btn { display: none !important; } }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/driver.js/1.3.1/driver.js.iife.js"></script>
+<script>
+(function () {
+  const TOUR_KEY = 'pemse_tour_done_staff';
+
+  function startStaffTour() {
+    const driver = window.driver.js.driver;
+    const driverObj = driver({
+      showProgress: true,
+      animate: true,
+      overlayColor: 'rgba(26,58,107,0.55)',
+      doneBtnText: 'Done',
+      nextBtnText: 'Next →',
+      prevBtnText: '← Back',
+      onDestroyed: function () {
+        try { localStorage.setItem(TOUR_KEY, '1'); } catch(e){}
+      },
+      steps: [
+        {
+          element: '.sidebar-brand',
+          popover: {
+            title: '👋 Welcome to the Staff Portal',
+            description: 'This quick tour covers the main features. You can restart it anytime from <strong>Help &amp; Quick Guide</strong>.',
+            side: 'right', align: 'start'
+          }
+        },
+        {
+          element: 'a[href*="staff_dashboard"]',
+          popover: {
+            title: '👥 All Students',
+            description: 'Your student roster — see enrollment status, document completion, registration flags, and click any student for a full detail view.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="staff_invite"]',
+          popover: {
+            title: '✉️ Invite Student',
+            description: 'Send a new student their account invitation. Enter their email and they'll receive a secure setup link.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="staff_course_list"]',
+          popover: {
+            title: '📓 Courses',
+            description: 'Create and manage courses, assign instructors, and manage course rosters. Each course tracks its own attendance and grades.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="staff_calendar"]',
+          popover: {
+            title: '📅 Calendar',
+            description: 'Add and manage session dates for all courses. Students and instructors see these entries in their own portals.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="staff_attendance_log"]',
+          popover: {
+            title: '📋 Attendance Log',
+            description: 'A full attendance history across all courses and dates. Filter by student, course, or date range.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="staff_grade_overview"]',
+          popover: {
+            title: '🎓 Grade Book',
+            description: 'Enter and manage student grades by category: quizzes, exams, skills, worksheets, and participation. Students see their grades in real time.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="staff_reminder"]',
+          popover: {
+            title: '🔔 Reminders',
+            description: 'Set automated reminders for students — document deadlines, handbook signing, or custom messages. Reminders appear in the student notification bell.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="staff_instructor"]',
+          popover: {
+            title: '🧑‍🏫 Instructors',
+            description: 'Manage instructor accounts — create new instructors, assign them to courses, and review their logged hours and observations.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="staff_site_settings"]',
+          popover: {
+            title: '⚙️ Settings',
+            description: 'Configure portal settings: agency name, contact info, colors, and other site-wide options.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="staff_help"]',
+          popover: {
+            title: '❓ Help & Quick Guide',
+            description: 'Full step-by-step reference for every staff task — plus this tour button to restart the walkthrough anytime.',
+            side: 'right'
+          }
+        },
+        {
+          popover: {
+            title: '🎉 You're all set!',
+            description: 'That covers the main Staff Portal features. The <strong>Help &amp; Quick Guide</strong> has detailed instructions. Questions? Email <strong>emseducation19@gmail.com</strong>.'
+          }
+        }
+      ]
+    });
+    driverObj.drive();
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    try {
+      if (!localStorage.getItem(TOUR_KEY)) {
+        setTimeout(startStaffTour, 600);
+      }
+    } catch(e){}
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.createElement('button');
+    btn.id = 'pemse-tour-btn';
+    btn.innerHTML = '<i class="bi bi-map-fill"></i> Site Tour';
+    btn.title = 'Take a guided tour of the portal';
+    btn.addEventListener('click', startStaffTour);
+    document.body.appendChild(btn);
+  });
+
+  window.startPemseTour = startStaffTour;
+})();
+</script>
 </body>
 </html>

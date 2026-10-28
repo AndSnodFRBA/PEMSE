@@ -89,6 +89,9 @@
 <div class="inst-topbar">
   <h1 class="inst-page-title"><i class="bi bi-question-circle-fill me-2"></i>Instructor Portal — Quick Guide</h1>
   <div class="print-btn">
+    <button onclick="if(window.startPemseTour){window.startPemseTour();}else{alert('Tour not available.');}" class="btn btn-sm btn-primary">
+      <i class="bi bi-map-fill me-1"></i> Take a Tour
+    </button>
     <button onclick="window.print()" class="btn btn-sm btn-outline-secondary">
       <i class="bi bi-printer-fill me-1"></i> Print
     </button>

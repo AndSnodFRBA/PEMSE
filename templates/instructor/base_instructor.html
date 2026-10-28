@@ -202,5 +202,201 @@
 })();
 </script>
 {% block extra_js %}{% endblock %}
+
+<!-- ── Instructor Portal Tour ── -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/driver.js/1.3.1/driver.css">
+<style>
+  /* PEMSE brand overrides for Driver.js */
+  .driver-popover {
+    border-radius: 12px !important;
+    border: none !important;
+    box-shadow: 0 8px 32px rgba(43,94,167,0.18) !important;
+    font-family: 'DM Sans', sans-serif !important;
+    max-width: 320px !important;
+  }
+  .driver-popover-title {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: #1a3a6b !important;
+    margin-bottom: 6px !important;
+  }
+  .driver-popover-description {
+    font-size: 13px !important;
+    color: #374151 !important;
+    line-height: 1.5 !important;
+  }
+  .driver-popover-progress-text {
+    font-size: 11px !important;
+    color: #6b7280 !important;
+  }
+  .driver-popover-next-btn {
+    background: #2B5EA7 !important;
+    border: none !important;
+    border-radius: 7px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    padding: 6px 16px !important;
+  }
+  .driver-popover-next-btn:hover { background: #1a3a6b !important; }
+  .driver-popover-prev-btn {
+    border: 1px solid #d1d5db !important;
+    border-radius: 7px !important;
+    font-size: 13px !important;
+    color: #374151 !important;
+    background: #fff !important;
+    padding: 6px 16px !important;
+  }
+  .driver-popover-close-btn { color: #9ca3af !important; }
+  .driver-popover-arrow { display: none !important; }
+
+  /* Floating "Take a Tour" button */
+  #pemse-tour-btn {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    z-index: 1040;
+    background: #2B5EA7;
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    box-shadow: 0 4px 14px rgba(43,94,167,0.35);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: background 0.15s, transform 0.1s;
+  }
+  #pemse-tour-btn:hover { background: #1a3a6b; transform: translateY(-1px); }
+  @media print { #pemse-tour-btn { display: none !important; } }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/driver.js/1.3.1/driver.js.iife.js"></script>
+<script>
+(function () {
+  const TOUR_KEY = 'pemse_tour_done_instructor';
+
+  function startInstructorTour() {
+    const driver = window.driver.js.driver;
+    const driverObj = driver({
+      showProgress: true,
+      animate: true,
+      overlayColor: 'rgba(26,58,107,0.55)',
+      doneBtnText: 'Done',
+      nextBtnText: 'Next →',
+      prevBtnText: '← Back',
+      onDestroyed: function () {
+        try { localStorage.setItem(TOUR_KEY, '1'); } catch(e){}
+      },
+      steps: [
+        {
+          element: '.sidebar-brand',
+          popover: {
+            title: '👋 Welcome to the Instructor Portal',
+            description: 'This quick tour walks you through the key features. You can skip it anytime and restart it from <strong>Help &amp; Quick Guide</strong>.',
+            side: 'right', align: 'start'
+          }
+        },
+        {
+          element: 'a[href*="instructor_dashboard"]',
+          popover: {
+            title: '🏠 Dashboard',
+            description: 'Your home base. See upcoming sessions, recent attendance, and quick-action cards at a glance.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="instructor_courses"]',
+          popover: {
+            title: '📓 My Courses',
+            description: 'View the courses you're assigned to and drill into each one to see enrolled students, attendance records, and retention flags.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="instructor_hours"]',
+          popover: {
+            title: '⏱ Log Hours',
+            description: 'Record your teaching hours here. Click <em>+ Add Hours</em>, enter your date and times, and save. Log within 7 days of each session.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="instructor_attendance"]',
+          popover: {
+            title: '✅ Attendance',
+            description: 'Mark students Present, Absent, or Late for each session. Select the date and session type, then save. Record within 48 hours.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="instructor_calendar"]',
+          popover: {
+            title: '📅 Calendar',
+            description: 'View all scheduled sessions color-coded by type: Lecture, Skills Lab, and Clinical. Export to your personal calendar with the iCal link.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="instructor_grade"]',
+          popover: {
+            title: '🎓 Grades',
+            description: 'A read-only grade overview per student. Grades are entered by admin — contact Andrew if something looks wrong.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="instructor_profile"]',
+          popover: {
+            title: '👤 My Profile',
+            description: 'Update your phone number, email, or password here. Keep your contact info current.',
+            side: 'right'
+          }
+        },
+        {
+          element: 'a[href*="instructor_help"]',
+          popover: {
+            title: '❓ Help & Quick Guide',
+            description: 'A full printable reference covering every section of the portal — plus this tour button to restart the walkthrough anytime.',
+            side: 'right'
+          }
+        },
+        {
+          popover: {
+            title: '🎉 You're all set!',
+            description: 'That covers the main features. The <strong>Help &amp; Quick Guide</strong> page has step-by-step instructions for every task. Questions? Email <strong>emseducation19@gmail.com</strong>.'
+          }
+        }
+      ]
+    });
+    driverObj.drive();
+  }
+
+  // Auto-launch on first visit
+  document.addEventListener('DOMContentLoaded', function () {
+    try {
+      if (!localStorage.getItem(TOUR_KEY)) {
+        setTimeout(startInstructorTour, 600);
+      }
+    } catch(e){}
+  });
+
+  // Floating button
+  document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.createElement('button');
+    btn.id = 'pemse-tour-btn';
+    btn.innerHTML = '<i class="bi bi-map-fill"></i> Site Tour';
+    btn.title = 'Take a guided tour of the portal';
+    btn.addEventListener('click', startInstructorTour);
+    document.body.appendChild(btn);
+  });
+
+  // Also expose globally so help.html can call it
+  window.startPemseTour = startInstructorTour;
+})();
+</script>
 </body>
 </html>
