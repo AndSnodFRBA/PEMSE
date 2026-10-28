@@ -1,0 +1,231 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}Staff Quick Guide — {{ AGENCY_SHORT_NAME }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.help-section {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+.help-section-header {
+  background: var(--navy);
+  color: #fff;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.help-section-body { padding: 18px 20px; }
+.help-steps { padding-left: 0; list-style: none; margin: 0; }
+.help-steps li {
+  display: flex;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 14px;
+  align-items: flex-start;
+}
+.help-steps li:last-child { border-bottom: none; }
+.step-num {
+  min-width: 24px; height: 24px;
+  background: var(--navy); color: #fff;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+}
+.help-tip {
+  background: #eff6ff;
+  border-left: 3px solid var(--navy);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px;
+  font-size: 13px; color: #1e3a5f;
+  margin-top: 12px;
+}
+.quick-ref-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.quick-ref-table th {
+  background: var(--navy); color: #fff;
+  padding: 8px 12px; text-align: left; font-weight: 600;
+}
+.quick-ref-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: top;
+}
+.quick-ref-table tr:last-child td { border-bottom: none; }
+.quick-ref-table tr:nth-child(even) td { background: #f9fafb; }
+.nav-path { color: var(--navy); font-weight: 600; }
+.print-btn { display: flex; gap: 10px; align-items: center; }
+@media print {
+  .sidebar, .hamburger-btn, .sidebar-overlay, .software-footer, .print-btn { display: none !important; }
+  .portal-main { padding: 0 !important; }
+  .help-section { break-inside: avoid; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="staff-topbar mb-4">
+  <h1 class="page-title"><i class="bi bi-question-circle-fill me-2"></i>Staff Portal — Quick Guide</h1>
+  <div class="print-btn">
+    <button onclick="window.print()" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-printer-fill me-1"></i> Print
+    </button>
+  </div>
+</div>
+
+<!-- Contact row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card p-3 text-center">
+      <div style="font-size:12px;color:var(--muted);">Portal URL</div>
+      <div style="font-size:14px;font-weight:600;color:var(--navy-deep);margin-top:4px;">www.panhandleems.com/staff/</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-3 text-center">
+      <div style="font-size:12px;color:var(--muted);">Technical Support</div>
+      <div style="font-size:14px;font-weight:600;color:var(--navy-deep);margin-top:4px;">emseducation19@gmail.com</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-3 text-center">
+      <div style="font-size:12px;color:var(--muted);">Office</div>
+      <div style="font-size:14px;font-weight:600;color:var(--navy-deep);margin-top:4px;">709 Rosedale Dr, Scottsbluff NE</div>
+    </div>
+  </div>
+</div>
+
+<!-- Section 1: Logging In -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-box-arrow-in-right"></i> 1. Logging In</div>
+  <div class="help-section-body">
+    <ol class="help-steps">
+      <li><span class="step-num">1</span><span>Go to <strong>www.panhandleems.com</strong> and click <strong>Staff Sign In</strong> (or go to <em>/staff/</em> directly).</span></li>
+      <li><span class="step-num">2</span><span>Enter your username and password, then click <strong>Log In</strong>.</span></li>
+    </ol>
+    <div class="help-tip"><i class="bi bi-info-circle-fill me-1"></i> Lost password? Email emseducation19@gmail.com. Staff accounts are created by an admin — contact Andrew to set up new staff logins.</div>
+  </div>
+</div>
+
+<!-- Section 2: Staff Dashboard -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-shield-fill"></i> 2. Staff Dashboard</div>
+  <div class="help-section-body">
+    <p style="font-size:14px;color:var(--muted);margin-bottom:12px;">The dashboard shows all active students across courses, with filters for status, document issues, and balance flags.</p>
+    <ol class="help-steps">
+      <li><span class="step-num">1</span><span>Use the <strong>filter bar</strong> to narrow students by course, status (Active/Withdrawn), or document flags.</span></li>
+      <li><span class="step-num">2</span><span>Click any student row to open their <span class="nav-path">Student Detail</span> page.</span></li>
+      <li><span class="step-num">3</span><span>The sidebar gives quick access to all staff functions.</span></li>
+    </ol>
+  </div>
+</div>
+
+<!-- Section 3: Managing Students -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-person-lines-fill"></i> 3. Managing Students</div>
+  <div class="help-section-body">
+    <ol class="help-steps">
+      <li><span class="step-num">1</span><span>From the dashboard, click a student's name to open their record.</span></li>
+      <li><span class="step-num">2</span><span>You can view attendance history, documents, grades, payments, and notes.</span></li>
+      <li><span class="step-num">3</span><span>To edit a student's info, click <strong>Edit Student</strong> on their detail page.</span></li>
+      <li><span class="step-num">4</span><span>To change enrollment status, use the <strong>Assign Course</strong> or <strong>Deactivate</strong> buttons.</span></li>
+    </ol>
+    <div class="help-tip"><i class="bi bi-info-circle-fill me-1"></i> Staff notes added to a student's record are not visible to the student. Use these for internal tracking only.</div>
+  </div>
+</div>
+
+<!-- Section 4: Inviting Students -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-envelope-fill"></i> 4. Inviting New Students</div>
+  <div class="help-section-body">
+    <ol class="help-steps">
+      <li><span class="step-num">1</span><span>Go to <span class="nav-path">Courses → Course Detail</span> for the relevant course.</span></li>
+      <li><span class="step-num">2</span><span>Click <strong>Invite Student</strong> and enter their email address.</span></li>
+      <li><span class="step-num">3</span><span>The student receives an email with a secure registration link.</span></li>
+    </ol>
+    <div class="help-tip"><i class="bi bi-info-circle-fill me-1"></i> You can resend or cancel pending invitations from the same course detail page.</div>
+  </div>
+</div>
+
+<!-- Section 5: Courses -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-journal-text"></i> 5. Courses</div>
+  <div class="help-section-body">
+    <ol class="help-steps">
+      <li><span class="step-num">1</span><span>Go to <span class="nav-path">Courses → Course List</span> to see all courses.</span></li>
+      <li><span class="step-num">2</span><span>Click <strong>Add Course</strong> to create a new course (sets term dates, type, instructor).</span></li>
+      <li><span class="step-num">3</span><span>From a course detail page you can assign instructors and send evaluations.</span></li>
+    </ol>
+  </div>
+</div>
+
+<!-- Section 6: Attendance Log -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-check2-square"></i> 6. Attendance Log</div>
+  <div class="help-section-body">
+    <ol class="help-steps">
+      <li><span class="step-num">1</span><span>Go to <span class="nav-path">Compliance → Attendance Log</span>.</span></li>
+      <li><span class="step-num">2</span><span>Filter by course or date range to view session records.</span></li>
+      <li><span class="step-num">3</span><span>Click a session to see individual student status and export as PDF or CSV.</span></li>
+    </ol>
+  </div>
+</div>
+
+<!-- Section 7: Documents -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-folder2-open"></i> 7. Documents Queue</div>
+  <div class="help-section-body">
+    <ol class="help-steps">
+      <li><span class="step-num">1</span><span>Go to <span class="nav-path">Compliance → Document Queue</span>.</span></li>
+      <li><span class="step-num">2</span><span>Review and approve or reject submitted student documents.</span></li>
+    </ol>
+    <div class="help-tip"><i class="bi bi-info-circle-fill me-1"></i> Students are notified automatically when documents are approved or rejected.</div>
+  </div>
+</div>
+
+<!-- Section 8: Handbook & Content -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-book-fill"></i> 8. Handbook &amp; Content</div>
+  <div class="help-section-body">
+    <ol class="help-steps">
+      <li><span class="step-num">1</span><span>Go to <span class="nav-path">Content → Handbook Chapters</span> to edit the student handbook.</span></li>
+      <li><span class="step-num">2</span><span>Go to <span class="nav-path">Reminders</span> to schedule or send bulk notifications to students.</span></li>
+      <li><span class="step-num">3</span><span>Go to <span class="nav-path">Settings → Site Settings</span> to update agency info, logo, and contact details.</span></li>
+    </ol>
+  </div>
+</div>
+
+<!-- Quick Reference -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-lightning-fill"></i> Quick Reference</div>
+  <div class="help-section-body" style="padding:0;">
+    <table class="quick-ref-table">
+      <thead>
+        <tr>
+          <th>What you need</th>
+          <th>Go to</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>View all students</td><td class="nav-path">Dashboard</td><td>Filter by course, status, or document flags</td></tr>
+        <tr><td>Open a student record</td><td class="nav-path">Dashboard → student name</td><td>Full history: attendance, grades, docs, payments</td></tr>
+        <tr><td>Invite a new student</td><td class="nav-path">Courses → Course → Invite Student</td><td>Sends registration email with secure link</td></tr>
+        <tr><td>View attendance log</td><td class="nav-path">Compliance → Attendance Log</td><td>Filter by course or date; export PDF/CSV</td></tr>
+        <tr><td>Review documents</td><td class="nav-path">Compliance → Document Queue</td><td>Approve or reject; students notified automatically</td></tr>
+        <tr><td>Manage courses</td><td class="nav-path">Courses → Course List</td><td>Add, edit, assign instructors</td></tr>
+        <tr><td>Send reminders</td><td class="nav-path">Reminders</td><td>Bulk or per-student notifications</td></tr>
+        <tr><td>Edit handbook</td><td class="nav-path">Content → Handbook Chapters</td><td>Changes visible to students immediately</td></tr>
+        <tr><td>Update site settings</td><td class="nav-path">Settings → Site Settings</td><td>Agency name, logo, contact info, accents</td></tr>
+        <tr><td>Manage instructors</td><td class="nav-path">Instructors</td><td>Add, assign to courses, record observations</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

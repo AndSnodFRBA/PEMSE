@@ -22,4 +22,7 @@ urlpatterns = [
     path('certificate/', views.completion_certificate_pdf, name='completion_certificate_pdf'),
     path('sandbox/',       views.sandbox_entry, name='sandbox_entry'),
     path('sandbox/login/', views.sandbox_login, name='sandbox_login'),
+
+    # Help
+    path('help/', views.student_help, name='student_help'),
 ]

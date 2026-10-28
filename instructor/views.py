@@ -988,3 +988,8 @@ def instructor_calendar_delete(request, pk):
         event.delete()
         messages.success(request, 'Calendar event deleted.')
     return redirect('instructor_calendar')
+
+
+@instructor_required
+def instructor_help(request):
+    return render(request, 'instructor/help.html', {})

@@ -1,0 +1,238 @@
+{% extends "instructor/base_instructor.html" %}
+{% block title %}Instructor Quick Guide — {{ AGENCY_SHORT_NAME }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.help-section {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+.help-section-header {
+  background: var(--navy);
+  color: #fff;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.help-section-body {
+  padding: 18px 20px;
+}
+.help-steps { padding-left: 0; list-style: none; margin: 0; }
+.help-steps li {
+  display: flex;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 14px;
+  align-items: flex-start;
+}
+.help-steps li:last-child { border-bottom: none; }
+.step-num {
+  min-width: 24px;
+  height: 24px;
+  background: var(--navy);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.help-tip {
+  background: #eff6ff;
+  border-left: 3px solid var(--navy);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #1e3a5f;
+  margin-top: 12px;
+}
+.quick-ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.quick-ref-table th {
+  background: var(--navy);
+  color: #fff;
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+}
+.quick-ref-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: top;
+}
+.quick-ref-table tr:last-child td { border-bottom: none; }
+.quick-ref-table tr:nth-child(even) td { background: #f9fafb; }
+.nav-path { color: var(--navy); font-weight: 600; }
+.print-btn { display: flex; gap: 10px; align-items: center; }
+@media print {
+  .sidebar, .hamburger-btn, .sidebar-overlay, .software-footer, .print-btn { display: none !important; }
+  .portal-main { padding: 0 !important; }
+  .help-section { break-inside: avoid; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="inst-topbar">
+  <h1 class="inst-page-title"><i class="bi bi-question-circle-fill me-2"></i>Instructor Portal — Quick Guide</h1>
+  <div class="print-btn">
+    <button onclick="window.print()" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-printer-fill me-1"></i> Print
+    </button>
+  </div>
+</div>
+
+<!-- Contact row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-lbl">Portal URL</div>
+      <div style="font-size:14px;font-weight:600;color:var(--navy-deep);margin-top:4px;">www.panhandleems.com</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-lbl">Program Director</div>
+      <div style="font-size:14px;font-weight:600;color:var(--navy-deep);margin-top:4px;">Robin Darnall — 308.631.2424</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-lbl">Technical Support</div>
+      <div style="font-size:14px;font-weight:600;color:var(--navy-deep);margin-top:4px;">emseducation19@gmail.com</div>
+    </div>
+  </div>
+</div>
+
+<!-- Section 1: Logging In -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-box-arrow-in-right"></i> 1. Logging In</div>
+  <div class="help-section-body">
+    <ol class="help-steps">
+      <li><span class="step-num">1</span><span>Go to <strong>www.panhandleems.com</strong> and click <strong>Sign In</strong>.</span></li>
+      <li><span class="step-num">2</span><span>Enter your username and password, then click <strong>Log In</strong>.</span></li>
+      <li><span class="step-num">3</span><span>First login? You'll be prompted to update your profile.</span></li>
+    </ol>
+    <div class="help-tip"><i class="bi bi-info-circle-fill me-1"></i> Lost password? Use the <strong>Forgot password</strong> link or email emseducation19@gmail.com. Username is usually first initial + last name (e.g. <em>jsmith</em>).</div>
+  </div>
+</div>
+
+<!-- Section 2: Taking Attendance -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-check2-square"></i> 2. Taking Attendance</div>
+  <div class="help-section-body">
+    <p style="font-size:14px;color:var(--muted);margin-bottom:12px;">Record within 48 hours of each session.</p>
+    <ol class="help-steps">
+      <li><span class="step-num">1</span><span>Go to <span class="nav-path">My Courses</span> and click your course name.</span></li>
+      <li><span class="step-num">2</span><span>Click the <span class="nav-path">Attendance</span> tab.</span></li>
+      <li><span class="step-num">3</span><span>Choose the session <strong>date</strong> and <strong>session type</strong> (Lecture or Skills Lab).</span></li>
+      <li><span class="step-num">4</span><span>For each student, mark <span class="badge-present">Present</span>, <span class="badge-absent">Absent</span>, or <span class="badge-late">Late</span>.</span></li>
+      <li><span class="step-num">5</span><span>Click <strong>Save Attendance</strong>.</span></li>
+    </ol>
+    <div class="help-tip"><i class="bi bi-info-circle-fill me-1"></i> <strong>Same-day lecture + lab?</strong> Submit attendance separately for each session type. You can return to edit an entry anytime — changes are logged.</div>
+  </div>
+</div>
+
+<!-- Section 3: Logging Hours -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-clock-fill"></i> 3. Logging Your Hours</div>
+  <div class="help-section-body">
+    <ol class="help-steps">
+      <li><span class="step-num">1</span><span>Go to <span class="nav-path">Log Hours</span> in the sidebar.</span></li>
+      <li><span class="step-num">2</span><span>Click <strong>+ Add Hours</strong>.</span></li>
+      <li><span class="step-num">3</span><span>Select the date, enter start &amp; end time, and a description (e.g. "Lecture – airway management").</span></li>
+      <li><span class="step-num">4</span><span>Click <strong>Save</strong>.</span></li>
+    </ol>
+    <div class="help-tip"><i class="bi bi-info-circle-fill me-1"></i> Log hours within 7 days of each session. Your running total appears at the top of the Hours page.</div>
+  </div>
+</div>
+
+<!-- Section 4: Courses & Roster -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-people-fill"></i> 4. Courses &amp; Student Roster</div>
+  <div class="help-section-body">
+    <ol class="help-steps">
+      <li><span class="step-num">1</span><span>Click <span class="nav-path">My Courses</span> to see courses you're assigned to.</span></li>
+      <li><span class="step-num">2</span><span>Open a course to see enrolled students, their status, and retention flags.</span></li>
+    </ol>
+    <div class="help-tip"><i class="bi bi-info-circle-fill me-1"></i> A <span style="color:#dc2626;">🚩 red flag</span> means the student is at risk per program criteria — contact admin. You cannot add or remove students; contact Robin for roster changes.</div>
+  </div>
+</div>
+
+<!-- Section 5: Calendar -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-calendar3"></i> 5. Calendar</div>
+  <div class="help-section-body">
+    <ol class="help-steps">
+      <li><span class="step-num">1</span><span>Click <span class="nav-path">Calendar</span> in the sidebar to view all scheduled sessions.</span></li>
+      <li><span class="step-num">2</span><span>Sessions are color-coded: <strong>Lecture (L)</strong>, <strong>Skills Lab (S)</strong>, <strong>Clinical (C)</strong>.</span></li>
+      <li><span class="step-num">3</span><span>Use the <strong>iCal export</strong> icon to add the schedule to your personal calendar.</span></li>
+    </ol>
+    <div class="help-tip"><i class="bi bi-info-circle-fill me-1"></i> Calendar entries are managed by admin. Contact Robin to request a date or session change.</div>
+  </div>
+</div>
+
+<!-- Section 6: Profile -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-person-fill"></i> 6. Updating Your Profile</div>
+  <div class="help-section-body">
+    <ol class="help-steps">
+      <li><span class="step-num">1</span><span>Click <span class="nav-path">My Profile</span> in the sidebar.</span></li>
+      <li><span class="step-num">2</span><span>Update your phone, email, or password as needed.</span></li>
+      <li><span class="step-num">3</span><span>Click <strong>Save Changes</strong>.</span></li>
+    </ol>
+  </div>
+</div>
+
+<!-- Section 7: Observations & Meetings -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-eye-fill"></i> 7. Observations &amp; Meetings</div>
+  <div class="help-section-body">
+    <p style="font-size:14px;margin-bottom:12px;">When a director observes your instruction or schedules a check-in, it appears here.</p>
+    <ol class="help-steps">
+      <li><span class="step-num">1</span><span>Click <span class="nav-path">Observations</span> or <span class="nav-path">Meetings &amp; Reviews</span>.</span></li>
+      <li><span class="step-num">2</span><span>Review the note, then click <strong>Acknowledge</strong> to confirm you've seen it.</span></li>
+    </ol>
+  </div>
+</div>
+
+<!-- Quick Reference Table -->
+<div class="help-section">
+  <div class="help-section-header"><i class="bi bi-lightning-fill"></i> Quick Reference</div>
+  <div class="help-section-body" style="padding:0;">
+    <table class="quick-ref-table">
+      <thead>
+        <tr>
+          <th>What you need</th>
+          <th>Go to</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Take attendance</td><td class="nav-path">My Courses → Attendance</td><td>Select date + session type, mark students, Save</td></tr>
+        <tr><td>Log your hours</td><td class="nav-path">Log Hours</td><td>Add Hours, enter times and description, Save</td></tr>
+        <tr><td>View roster</td><td class="nav-path">My Courses → Course</td><td>Read-only; contact admin for enrollment changes</td></tr>
+        <tr><td>See schedule</td><td class="nav-path">Calendar</td><td>Color-coded; iCal export available</td></tr>
+        <tr><td>View grades</td><td class="nav-path">Grades</td><td>Read-only overview per student</td></tr>
+        <tr><td>Edit your profile</td><td class="nav-path">My Profile</td><td>Update contact info or change password</td></tr>
+        <tr><td>Acknowledge observation</td><td class="nav-path">Observations</td><td>Click Acknowledge to confirm you've seen it</td></tr>
+        <tr><td>Acknowledge meeting</td><td class="nav-path">Meetings &amp; Reviews</td><td>Click Acknowledge to confirm</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

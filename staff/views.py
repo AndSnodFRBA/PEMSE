@@ -3090,3 +3090,8 @@ def staff_calendar_delete(request, pk):
         event.delete()
         messages.success(request, 'Calendar event deleted.')
     return redirect('staff_calendar')
+
+
+@staff_required
+def staff_help(request):
+    return render(request, 'staff/help.html', {})

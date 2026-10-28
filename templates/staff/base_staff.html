@@ -166,6 +166,14 @@
     </a>
   </nav>
 
+  <div class="sidebar-section-label mt-3">Help</div>
+  <nav class="sidebar-nav">
+    <a href="{% url 'staff_help' %}"
+       class="nav-item {% if request.resolver_match.url_name == 'staff_help' %}active{% endif %}">
+      <i class="bi bi-question-circle-fill"></i> Help &amp; Quick Guide
+    </a>
+  </nav>
+
   <div class="sidebar-section-label mt-3">Content</div>
   <nav class="sidebar-nav">
     <a href="{% url 'staff_announcements' %}"

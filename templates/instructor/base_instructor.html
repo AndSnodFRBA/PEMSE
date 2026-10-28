@@ -129,6 +129,10 @@
        class="nav-item {% if 'meeting' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-calendar-check-fill"></i> Meetings &amp; Reviews
     </a>
+    <a href="{% url 'instructor_help' %}"
+       class="nav-item {% if request.resolver_match.url_name == 'instructor_help' %}active{% endif %}">
+      <i class="bi bi-question-circle-fill"></i> Help &amp; Quick Guide
+    </a>
   </nav>
 
   <div class="sidebar-user">

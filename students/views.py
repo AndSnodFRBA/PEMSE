@@ -680,3 +680,8 @@ def sandbox_login(request):
         return redirect(next_url)
     messages.error(request, 'Sandbox login failed.')
     return redirect('sandbox_entry')
+
+
+@login_required
+def student_help(request):
+    return render(request, 'students/help.html', {})

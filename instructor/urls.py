@@ -63,4 +63,7 @@ urlpatterns = [
     # Grades (read-only)
     path('grades/',            grade_views.instructor_grade_overview,   name='instructor_grade_overview'),
     path('grades/<int:student_id>/', grade_views.instructor_gradebook_detail, name='instructor_gradebook_detail'),
+
+    # Help
+    path('help/', views.instructor_help, name='instructor_help'),
 ]
