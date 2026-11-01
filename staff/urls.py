@@ -143,6 +143,9 @@ urlpatterns = [
     path('grades/bulk/<int:course_id>/nc-to-zero/',          grade_views.staff_bulk_convert_nc_to_zero, name='staff_bulk_nc_to_zero'),
     path('grades/nc-summary/<int:course_id>/',               grade_views.staff_nc_summary,              name='staff_nc_summary'),
 
+    # Temp util
+    path('util/student-emails/', views.student_email_list, name='staff_student_email_list'),
+
     # Help
     path('help/', views.staff_help, name='staff_help'),
 ]
