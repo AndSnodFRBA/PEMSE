@@ -259,7 +259,7 @@ def import_grades(apps, schema_editor):
             student_id=user.pk, course_id=best_course_id,
         )
         if gb.is_finalized:
-            print(f"  [import] SKIP — gradebook finalized: {user.get_full_name()}")
+            print(f"  [import] SKIP — gradebook finalized: {user.first_name} {user.last_name}")
             continue
 
         for i, raw_val in enumerate(values):
@@ -307,7 +307,7 @@ def import_grades(apps, schema_editor):
             if is_nc:
                 nc_count += 1
 
-        print(f"  [import] OK  {user.get_full_name()} <{email}>")
+        print(f"  [import] OK  {user.first_name} {user.last_name} <{email}>")
 
     print(f"  [import] Done — {imported_count} grade records, {nc_count} marked NC.")
 
