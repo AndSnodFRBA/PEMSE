@@ -4,6 +4,15 @@
 {% block content %}
 <div class="inst-topbar">
   <h1 class="inst-page-title">Student Grades</h1>
+  {% if nc_course_links %}
+  <div class="d-flex gap-2 flex-wrap">
+    {% for c in nc_course_links %}
+    <a href="{% url 'instructor_nc_summary' c.pk %}" class="btn btn-sm btn-outline-warning">
+      <i class="bi bi-exclamation-circle me-1"></i> NC Summary{% if nc_course_links|length > 1 %} — {{ c.name }}{% endif %}
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
 </div>
 
 <div class="card">

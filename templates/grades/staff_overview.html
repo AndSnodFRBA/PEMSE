@@ -9,6 +9,9 @@
     <a href="{% url 'staff_bulk_grade_entry' selected_course.pk %}" class="btn btn-sm btn-primary">
       <i class="bi bi-table me-1"></i> Bulk Grade Entry
     </a>
+    <a href="{% url 'staff_nc_summary' selected_course.pk %}" class="btn btn-sm btn-outline-warning">
+      <i class="bi bi-exclamation-circle me-1"></i> NC Summary
+    </a>
     <a href="{% url 'staff_grade_report' selected_course.pk %}" class="btn btn-sm btn-outline-secondary">
       <i class="bi bi-printer me-1"></i> Class Grade Report
     </a>

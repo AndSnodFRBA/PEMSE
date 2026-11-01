@@ -745,6 +745,43 @@ def staff_bulk_convert_nc_to_zero(request, course_id):
 
 
 @staff_required
+def staff_nc_summary(request, course_id):
+    """Quick view of all Not-Completed grades per student in a course."""
+    course = get_object_or_404(Course, pk=course_id)
+    enrollments = (
+        CourseEnrollment.objects
+        .filter(course=course)
+        .select_related('student')
+        .order_by('student__last_name', 'student__first_name')
+    )
+
+    rows = []
+    for enr in enrollments:
+        gb = GradeBook.objects.filter(student=enr.student, course=course).first()
+        if not gb:
+            continue
+        nc_quizzes = gb.quiz_grades.filter(status='not_completed').order_by('quiz_number')
+        nc_exams   = gb.section_exam_grades.filter(status='not_completed').order_by('is_final_exam', 'exam_number')
+        total_nc   = nc_quizzes.count() + nc_exams.count()
+        rows.append({
+            'student':    enr.student,
+            'gb':         gb,
+            'nc_quizzes': nc_quizzes,
+            'nc_exams':   nc_exams,
+            'total_nc':   total_nc,
+        })
+
+    # Sort: students with most NC first
+    rows.sort(key=lambda r: -r['total_nc'])
+
+    return render(request, 'grades/staff_nc_summary.html', {
+        'course': course,
+        'rows':   rows,
+        'total_nc_all': sum(r['total_nc'] for r in rows),
+    })
+
+
+@staff_required
 def staff_grade_report(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
     sort = request.GET.get('sort', 'name')
@@ -822,7 +859,60 @@ def instructor_grade_overview(request):
             'can_enter_grades': enrollment.course_id in entry_course_ids,
         })
 
-    return render(request, 'grades/instructor_overview.html', {'rows': rows})
+    seen = set()
+    nc_course_links = []
+    for row in rows:
+        if row['course'].pk not in seen:
+            seen.add(row['course'].pk)
+            nc_course_links.append(row['course'])
+
+    return render(request, 'grades/instructor_overview.html', {'rows': rows, 'nc_course_links': nc_course_links})
+
+
+@instructor_required
+def instructor_nc_summary(request, course_id):
+    """Instructor: quick NC summary for one of their assigned courses."""
+    from instructor.models import InstructorCourseAssignment
+    instructor = request.user
+    course = get_object_or_404(Course, pk=course_id)
+
+    # Verify this instructor is assigned to the course
+    if not InstructorCourseAssignment.objects.filter(
+        instructor=instructor, course=course, is_active=True
+    ).exists():
+        messages.error(request, 'You are not assigned to this course.')
+        return redirect('instructor_grade_overview')
+
+    enrollments = (
+        CourseEnrollment.objects
+        .filter(course=course)
+        .select_related('student')
+        .order_by('student__last_name', 'student__first_name')
+    )
+
+    rows = []
+    for enr in enrollments:
+        gb = GradeBook.objects.filter(student=enr.student, course=course).first()
+        if not gb:
+            continue
+        nc_quizzes = gb.quiz_grades.filter(status='not_completed').order_by('quiz_number')
+        nc_exams   = gb.section_exam_grades.filter(status='not_completed').order_by('is_final_exam', 'exam_number')
+        total_nc   = nc_quizzes.count() + nc_exams.count()
+        rows.append({
+            'student':    enr.student,
+            'gb':         gb,
+            'nc_quizzes': nc_quizzes,
+            'nc_exams':   nc_exams,
+            'total_nc':   total_nc,
+        })
+
+    rows.sort(key=lambda r: -r['total_nc'])
+
+    return render(request, 'grades/instructor_nc_summary.html', {
+        'course': course,
+        'rows':   rows,
+        'total_nc_all': sum(r['total_nc'] for r in rows),
+    })
 
 
 @instructor_required

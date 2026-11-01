@@ -1,0 +1,114 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}NC Summary — {{ course.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.nc-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px; }
+.nc-title   { font-size:20px; font-weight:700; color:var(--navy-deep); }
+.nc-sub     { font-size:13px; color:var(--muted); margin-top:2px; }
+
+.stat-chips { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+.chip { padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600; }
+.chip-warn { background:#fef3c7; color:#92600a; border:1px solid #fcd34d; }
+.chip-ok   { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+.chip-info { background:#eff6ff; color:#1e40af; border:1px solid #93c5fd; }
+
+.student-card { border:1px solid var(--border); border-radius:12px; margin-bottom:16px; overflow:hidden; }
+.student-card-head {
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  padding:12px 18px;
+  background:#f8fafc;
+  border-bottom:1px solid var(--border);
+}
+.student-name { font-weight:700; color:var(--navy-deep); font-size:15px; }
+.nc-count-badge {
+  font-size:12px; font-weight:700;
+  background:#fef3c7; color:#92600a;
+  border:1px solid #fcd34d; border-radius:20px;
+  padding:3px 12px;
+}
+.nc-count-badge.zero { background:#d1fae5; color:#065f46; border-color:#6ee7b7; }
+
+.nc-body { padding:14px 18px; }
+.nc-section-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:6px; }
+.nc-pills { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+.nc-pill {
+  font-size:12px; font-weight:600;
+  background:#fef9c3; color:#78350f;
+  border:1px solid #d97706; border-radius:6px;
+  padding:3px 10px;
+}
+.all-done { font-size:13px; color:#059669; font-weight:600; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="nc-header">
+  <div>
+    <div class="nc-title"><i class="bi bi-exclamation-circle me-2 text-warning"></i>Not-Completed Summary</div>
+    <div class="nc-sub">{{ course.name }} — grades not yet completed by student</div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{% url 'staff_bulk_grade_entry' course.pk %}" class="btn btn-sm btn-primary">
+      <i class="bi bi-table me-1"></i> Bulk Entry
+    </a>
+    <a href="{% url 'staff_grade_overview' %}?course={{ course.pk }}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back
+    </a>
+  </div>
+</div>
+
+<div class="stat-chips">
+  <div class="chip chip-info">{{ rows|length }} student{{ rows|length|pluralize }}</div>
+  {% if total_nc_all > 0 %}
+  <div class="chip chip-warn"><i class="bi bi-exclamation-triangle me-1"></i>{{ total_nc_all }} total NC grade{{ total_nc_all|pluralize }}</div>
+  {% else %}
+  <div class="chip chip-ok"><i class="bi bi-check-circle me-1"></i>No NC grades — all caught up!</div>
+  {% endif %}
+</div>
+
+{% if not rows %}
+  <div class="alert alert-info">No students enrolled in this course.</div>
+{% else %}
+  {% for row in rows %}
+  <div class="student-card">
+    <div class="student-card-head">
+      <span class="student-name">{{ row.student.get_full_name }}</span>
+      <div class="d-flex align-items-center gap-2">
+        {% if row.gb.is_finalized %}
+        <span class="badge bg-secondary" style="font-size:11px;">LOCKED</span>
+        {% endif %}
+        <span class="nc-count-badge{% if row.total_nc == 0 %} zero{% endif %}">
+          {% if row.total_nc == 0 %}✓ All complete{% else %}{{ row.total_nc }} NC{% endif %}
+        </span>
+        <a href="{% url 'staff_gradebook_detail' row.student.pk %}" class="btn btn-xs btn-outline-primary" style="font-size:11px;padding:2px 10px;">View Gradebook</a>
+      </div>
+    </div>
+
+    {% if row.total_nc == 0 %}
+    <div class="nc-body"><span class="all-done"><i class="bi bi-check2-all me-1"></i>All assignments completed.</span></div>
+    {% else %}
+    <div class="nc-body">
+      {% if row.nc_quizzes %}
+      <div class="nc-section-label">Quizzes ({{ row.nc_quizzes.count }})</div>
+      <div class="nc-pills">
+        {% for q in row.nc_quizzes %}
+        <span class="nc-pill">Quiz {{ q.quiz_number }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if row.nc_exams %}
+      <div class="nc-section-label">Exams ({{ row.nc_exams.count }})</div>
+      <div class="nc-pills">
+        {% for e in row.nc_exams %}
+        <span class="nc-pill">{{ e.exam_name }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+{% endif %}
+{% endblock %}

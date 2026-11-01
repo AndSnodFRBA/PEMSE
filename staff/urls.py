@@ -141,6 +141,7 @@ urlpatterns = [
     path('grades/<int:student_id>/unfinalize/',               grade_views.unfinalize_gradebook,  name='staff_unfinalize_gradebook'),
     path('grades/bulk/<int:course_id>/',                     grade_views.staff_bulk_grade_entry,      name='staff_bulk_grade_entry'),
     path('grades/bulk/<int:course_id>/nc-to-zero/',          grade_views.staff_bulk_convert_nc_to_zero, name='staff_bulk_nc_to_zero'),
+    path('grades/nc-summary/<int:course_id>/',               grade_views.staff_nc_summary,              name='staff_nc_summary'),
 
     # Help
     path('help/', views.staff_help, name='staff_help'),
