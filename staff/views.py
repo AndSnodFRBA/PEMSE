@@ -3095,13 +3095,3 @@ def staff_calendar_delete(request, pk):
 @staff_required
 def staff_help(request):
     return render(request, 'staff/help.html', {})
-
-
-@staff_required
-def student_email_list(request):
-    """Temporary helper view — lists all student names + emails for grade import mapping."""
-    from django.http import HttpResponse
-    from students.models import Student
-    students = Student.objects.all().order_by('last_name', 'first_name')
-    lines = [f"{u.get_full_name()} | {u.email}" for u in students]
-    return HttpResponse('\n'.join(lines), content_type='text/plain')
