@@ -3101,8 +3101,7 @@ def staff_help(request):
 def student_email_list(request):
     """Temporary helper view — lists all student names + emails for grade import mapping."""
     from django.http import HttpResponse
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-    students = User.objects.filter(is_staff=False, is_superuser=False).order_by('last_name', 'first_name')
+    from students.models import Student
+    students = Student.objects.all().order_by('last_name', 'first_name')
     lines = [f"{u.get_full_name()} | {u.email}" for u in students]
     return HttpResponse('\n'.join(lines), content_type='text/plain')

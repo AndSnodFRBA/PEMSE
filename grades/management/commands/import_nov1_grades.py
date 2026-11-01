@@ -189,7 +189,7 @@ class Command(BaseCommand):
         parser.add_argument('--force', action='store_true', help='Overwrite existing grades')
 
     def handle(self, *args, **options):
-        from django.contrib.auth import get_user_model
+        from students.models import Student as User
         from grades.models import GradeBook, QuizGrade, SectionExamGrade
         from courses.models import CourseEnrollment
         from collections import Counter

@@ -209,7 +209,7 @@ IMPORT_DATA = {
 
 
 def import_grades(apps, schema_editor):
-    User = apps.get_model('accounts', 'CustomUser')
+    User = apps.get_model('students', 'Student')
     GradeBook = apps.get_model('grades', 'GradeBook')
     QuizGrade = apps.get_model('grades', 'QuizGrade')
     SectionExamGrade = apps.get_model('grades', 'SectionExamGrade')
