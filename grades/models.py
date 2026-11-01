@@ -44,9 +44,10 @@ class GradeBook(models.Model):
     @property
     def quiz_average(self):
         quizzes = self.quiz_grades.all()
-        if not quizzes:
+        scored = [q for q in quizzes if not q.is_not_completed and q.score is not None]
+        if not scored:
             return None
-        return round(sum(q.score for q in quizzes) / len(quizzes), 2)
+        return round(sum(q.score for q in scored) / len(scored), 2)
 
     @property
     def skills_average(self):
@@ -80,16 +81,19 @@ class GradeBook(models.Model):
 
     @property
     def section_exam_average(self):
-        """All section exams equal weight — 40% of final"""
+        """All section exams equal weight — 40% of final (NC exams excluded from avg)"""
         exams = self.section_exam_grades.filter(is_final_exam=False)
-        if not exams:
+        scored = [e for e in exams if not e.is_not_completed and e.score is not None]
+        if not scored:
             return None
-        return round(sum(e.score for e in exams) / len(exams), 2)
+        return round(sum(e.score for e in scored) / len(scored), 2)
 
     @property
     def final_exam_score(self):
         final = self.section_exam_grades.filter(is_final_exam=True).first()
-        return float(final.score) if final else None
+        if not final or final.is_not_completed or final.score is None:
+            return None
+        return float(final.score)
 
     @property
     def overall_grade(self):
@@ -124,11 +128,11 @@ class GradeBook(models.Model):
 
     @property
     def section_exams_all_passing(self):
-        """Per handbook: student must achieve 75% minimum on ALL section exams individually"""
+        """Per handbook: student must achieve 75% minimum on ALL section exams individually (NC = not passing)"""
         exams = self.section_exam_grades.filter(is_final_exam=False)
         if not exams:
             return None
-        return all(e.score >= 75 for e in exams)
+        return all((not e.is_not_completed and e.score is not None and e.score >= 75) for e in exams)
 
     @property
     def meets_completion_requirements(self):
@@ -161,17 +165,33 @@ class GradeBook(models.Model):
 
     @property
     def has_failed_section_exam(self):
-        return self.section_exam_grades.filter(
-            is_final_exam=False, score__lt=75
-        ).exists()
+        exams = self.section_exam_grades.filter(is_final_exam=False)
+        return any((not e.is_not_completed and e.score is not None and e.score < 75) for e in exams)
+
+    @property
+    def not_completed_quiz_count(self):
+        return self.quiz_grades.filter(status='not_completed').count()
+
+    @property
+    def not_completed_exam_count(self):
+        return self.section_exam_grades.filter(status='not_completed').count()
 
 
 class QuizGrade(models.Model):
     """Individual quiz score — per handbook: 2 attempts, max 5 resets, missed excused = max 75%, missed unexcused = 0"""
+
+    class Status(models.TextChoices):
+        COMPLETED     = 'completed',     'Completed'
+        NOT_COMPLETED = 'not_completed', 'Not Completed Yet'
+
     gradebook = models.ForeignKey(GradeBook, on_delete=models.CASCADE, related_name='quiz_grades')
     quiz_name = models.CharField(max_length=200)
     quiz_number = models.PositiveIntegerField(help_text='e.g. 1, 2, 3 matching the course schedule')
-    score = models.DecimalField(max_digits=5, decimal_places=2)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.COMPLETED,
+        help_text='Use "Not Completed Yet" for assignments not yet taken',
+    )
+    score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     attempt_number = models.PositiveIntegerField(default=1)
     was_reset = models.BooleanField(default=False)
     missed_excused = models.BooleanField(default=False, help_text='Max score 75% per handbook')
@@ -188,17 +208,39 @@ class QuizGrade(models.Model):
         ordering = ['quiz_number', 'attempt_number']
         unique_together = [['gradebook', 'quiz_number']]
 
+    @property
+    def is_not_completed(self):
+        return self.status == self.Status.NOT_COMPLETED
+
+    @property
+    def effective_score(self):
+        """Score to use in averages — NC counts as None (excluded from avg until resolved)."""
+        if self.is_not_completed:
+            return None
+        return self.score
+
     def __str__(self):
+        if self.is_not_completed:
+            return f'{self.gradebook.student.get_full_name()} — Quiz {self.quiz_number}: NC'
         return f'{self.gradebook.student.get_full_name()} — Quiz {self.quiz_number}: {self.score}%'
 
 
 class SectionExamGrade(models.Model):
     """Section exam score — per handbook: max 2 resets, reset max score 75%, final exam min 75% to pass"""
+
+    class Status(models.TextChoices):
+        COMPLETED     = 'completed',     'Completed'
+        NOT_COMPLETED = 'not_completed', 'Not Completed Yet'
+
     gradebook = models.ForeignKey(GradeBook, on_delete=models.CASCADE, related_name='section_exam_grades')
     exam_name = models.CharField(max_length=200)
     exam_number = models.PositiveIntegerField(null=True, blank=True)
     is_final_exam = models.BooleanField(default=False, help_text='Mark True for the Final Written Exam')
-    score = models.DecimalField(max_digits=5, decimal_places=2)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.COMPLETED,
+        help_text='Use "Not Completed Yet" for exams not yet taken',
+    )
+    score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     was_reset = models.BooleanField(default=False)
     reset_count = models.PositiveIntegerField(default=0, help_text='Max 2 resets per handbook')
     date_taken = models.DateField(null=True, blank=True)
@@ -212,12 +254,26 @@ class SectionExamGrade(models.Model):
     class Meta:
         ordering = ['is_final_exam', 'exam_number']
 
+    @property
+    def is_not_completed(self):
+        return self.status == self.Status.NOT_COMPLETED
+
+    @property
+    def effective_score(self):
+        if self.is_not_completed:
+            return None
+        return self.score
+
     def __str__(self):
         label = 'Final Exam' if self.is_final_exam else f'Section Exam {self.exam_number}'
+        if self.is_not_completed:
+            return f'{self.gradebook.student.get_full_name()} — {label}: NC'
         return f'{self.gradebook.student.get_full_name()} — {label}: {self.score}%'
 
     @property
     def is_passing(self):
+        if self.is_not_completed or self.score is None:
+            return False
         return self.score >= 75
 
 

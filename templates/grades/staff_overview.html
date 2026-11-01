@@ -5,9 +5,14 @@
 <div class="staff-topbar">
   <h1 class="staff-page-title">Grade Book</h1>
   {% if selected_course %}
-  <a href="{% url 'staff_grade_report' selected_course.pk %}" class="btn btn-sm btn-outline-secondary">
-    <i class="bi bi-printer me-1"></i> Class Grade Report
-  </a>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{% url 'staff_bulk_grade_entry' selected_course.pk %}" class="btn btn-sm btn-primary">
+      <i class="bi bi-table me-1"></i> Bulk Grade Entry
+    </a>
+    <a href="{% url 'staff_grade_report' selected_course.pk %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-printer me-1"></i> Class Grade Report
+    </a>
+  </div>
   {% endif %}
 </div>
 

@@ -466,6 +466,284 @@ def unfinalize_gradebook(request, student_id):
     return redirect('staff_gradebook_detail', student_id=student_id)
 
 
+# ── Bulk / Mass grade entry ─────────────────────────────────────────────────
+
+# Standardised assignment list for every course
+BULK_QUIZZES = list(range(1, 42))  # Quiz 1 – 41
+
+BULK_EXAMS = [
+    {'label': 'Section Exam 1',  'number': 1,    'is_final': False},
+    {'label': 'Section Exam 2',  'number': 2,    'is_final': False},
+    {'label': 'Section Exam 3',  'number': 3,    'is_final': False},
+    {'label': 'Section Exam 4',  'number': 4,    'is_final': False},
+    {'label': 'Section Exam 5',  'number': 5,    'is_final': False},
+    {'label': 'Section Exam 6A', 'number': 61,   'is_final': False},
+    {'label': 'Section Exam 6B', 'number': 62,   'is_final': False},
+    {'label': 'Section Exam 7A', 'number': 71,   'is_final': False},
+    {'label': 'Section Exam 7B', 'number': 72,   'is_final': False},
+    {'label': 'Section Exam 8',  'number': 8,    'is_final': False},
+    {'label': 'Section Exam 9',  'number': 9,    'is_final': False},
+    {'label': 'Final Exam',      'number': None,  'is_final': True},
+]
+
+
+@staff_required
+def staff_bulk_grade_entry(request, course_id):
+    """
+    Bulk / mass grade entry — one page shows every student in the course with
+    a column per assignment.  Staff enter scores or mark "NC" (not completed).
+    """
+    from django.db import transaction
+
+    course = get_object_or_404(Course, pk=course_id)
+
+    enrollments = (
+        CourseEnrollment.objects
+        .filter(course=course)
+        .select_related('student')
+        .order_by('student__last_name', 'student__first_name')
+    )
+
+    # ── Build/refresh gradebooks so every enrolled student has one ──
+    student_list = [e.student for e in enrollments]
+    gradebooks = {}
+    for student in student_list:
+        gb, _ = GradeBook.objects.get_or_create(student=student, course=course)
+        gradebooks[student.pk] = gb
+
+    # ── POST: save grid ─────────────────────────────────────────────
+    if request.method == 'POST':
+        if not student_list:
+            messages.error(request, 'No students enrolled.')
+            return redirect('staff_bulk_grade_entry', course_id=course.pk)
+
+        with transaction.atomic():
+            for student in student_list:
+                gb = gradebooks[student.pk]
+                if gb.is_finalized:
+                    continue  # silently skip locked gradebooks
+
+                # Save quiz grades
+                for qnum in BULK_QUIZZES:
+                    key_score  = f'q_{student.pk}_{qnum}_score'
+                    key_status = f'q_{student.pk}_{qnum}_status'
+                    raw_score  = request.POST.get(key_score, '').strip()
+                    is_nc      = request.POST.get(key_status) == 'nc'
+
+                    if not raw_score and not is_nc:
+                        continue  # nothing entered for this cell — leave alone
+
+                    try:
+                        score_val = None if is_nc else float(raw_score)
+                    except ValueError:
+                        continue  # bad input — skip
+
+                    instance, created = QuizGrade.objects.get_or_create(
+                        gradebook=gb,
+                        quiz_number=qnum,
+                        defaults={
+                            'quiz_name': f'Quiz {qnum}',
+                            'entered_by': request.user,
+                        },
+                    )
+                    old_score  = instance.score
+                    old_status = instance.status
+
+                    instance.status = QuizGrade.Status.NOT_COMPLETED if is_nc else QuizGrade.Status.COMPLETED
+                    instance.score  = score_val
+                    instance.entered_by = request.user
+                    instance.quiz_name = f'Quiz {qnum}'
+                    instance.save()
+
+                    log_grade_change(
+                        gb, request.user,
+                        'create' if created else 'update',
+                        'QuizGrade', instance.pk,
+                        field_name='score',
+                        old_value=f'{old_score} ({old_status})' if not created else '',
+                        new_value=f'{instance.score} ({instance.status})',
+                        notes='bulk entry',
+                    )
+
+                # Save exam grades
+                for exam_def in BULK_EXAMS:
+                    enum   = exam_def['number']
+                    is_fin = exam_def['is_final']
+                    elabel = exam_def['label']
+                    # key uses number for section exams, 'final' for final
+                    ekey = 'final' if is_fin else enum
+                    key_score  = f'e_{student.pk}_{ekey}_score'
+                    key_status = f'e_{student.pk}_{ekey}_status'
+                    raw_score  = request.POST.get(key_score, '').strip()
+                    is_nc      = request.POST.get(key_status) == 'nc'
+
+                    if not raw_score and not is_nc:
+                        continue
+
+                    try:
+                        score_val = None if is_nc else float(raw_score)
+                    except ValueError:
+                        continue
+
+                    if is_fin:
+                        instance = SectionExamGrade.objects.filter(
+                            gradebook=gb, is_final_exam=True
+                        ).first()
+                        created = False
+                        if not instance:
+                            instance = SectionExamGrade(gradebook=gb, is_final_exam=True, entered_by=request.user)
+                            created = True
+                    else:
+                        instance, created = SectionExamGrade.objects.get_or_create(
+                            gradebook=gb,
+                            exam_number=enum,
+                            is_final_exam=False,
+                            defaults={'entered_by': request.user},
+                        )
+
+                    old_score  = instance.score
+                    old_status = instance.status if not created else ''
+
+                    instance.exam_name  = elabel
+                    instance.status     = SectionExamGrade.Status.NOT_COMPLETED if is_nc else SectionExamGrade.Status.COMPLETED
+                    instance.score      = score_val
+                    instance.entered_by = request.user
+                    instance.save()
+
+                    log_grade_change(
+                        gb, request.user,
+                        'create' if created else 'update',
+                        'SectionExamGrade', instance.pk,
+                        field_name='score',
+                        old_value=f'{old_score} ({old_status})' if not created else '',
+                        new_value=f'{instance.score} ({instance.status})',
+                        notes='bulk entry',
+                    )
+
+                _notify_staff_if_at_risk(gb)
+
+        messages.success(request, 'Grades saved successfully.')
+        return redirect('staff_bulk_grade_entry', course_id=course.pk)
+
+    # ── GET: build grid data ─────────────────────────────────────────
+    rows = []
+    for student in student_list:
+        gb = gradebooks[student.pk]
+
+        # Index existing quiz grades by quiz_number
+        quiz_map = {qg.quiz_number: qg for qg in gb.quiz_grades.all()}
+
+        # Index existing exam grades
+        exam_map = {}
+        for eg in gb.section_exam_grades.all():
+            if eg.is_final_exam:
+                exam_map['final'] = eg
+            else:
+                exam_map[eg.exam_number] = eg
+
+        quiz_cells = []
+        for qnum in BULK_QUIZZES:
+            qg = quiz_map.get(qnum)
+            quiz_cells.append({
+                'number': qnum,
+                'score':  qg.score if qg else '',
+                'is_nc':  qg.status == 'not_completed' if qg else False,
+                'exists': qg is not None,
+            })
+
+        exam_cells = []
+        for exam_def in BULK_EXAMS:
+            enum   = exam_def['number']
+            is_fin = exam_def['is_final']
+            ekey   = 'final' if is_fin else enum
+            eg     = exam_map.get(ekey)
+            exam_cells.append({
+                'key':    ekey,
+                'label':  exam_def['label'],
+                'score':  eg.score if eg else '',
+                'is_nc':  eg.status == 'not_completed' if eg else False,
+                'exists': eg is not None,
+            })
+
+        rows.append({
+            'student': student,
+            'gb':      gb,
+            'quiz_cells': quiz_cells,
+            'exam_cells': exam_cells,
+        })
+
+    return render(request, 'grades/staff_bulk_grade_entry.html', {
+        'course':      course,
+        'rows':        rows,
+        'quiz_numbers': BULK_QUIZZES,
+        'exam_defs':   BULK_EXAMS,
+    })
+
+
+@staff_required
+def staff_bulk_convert_nc_to_zero(request, course_id):
+    """Convert all 'not completed' quiz and exam grades to 0 for the entire course."""
+    from django.db import transaction
+
+    course = get_object_or_404(Course, pk=course_id)
+
+    if request.method != 'POST':
+        return redirect('staff_bulk_grade_entry', course_id=course.pk)
+
+    quiz_count = 0
+    exam_count = 0
+
+    with transaction.atomic():
+        enrollments = CourseEnrollment.objects.filter(course=course).select_related('student')
+        for enrollment in enrollments:
+            student = enrollment.student
+            gb = GradeBook.objects.filter(student=student, course=course).first()
+            if not gb or gb.is_finalized:
+                continue
+
+            nc_quizzes = gb.quiz_grades.filter(status='not_completed')
+            for qg in nc_quizzes:
+                old_status = qg.status
+                qg.status = QuizGrade.Status.COMPLETED
+                qg.score  = 0
+                qg.save()
+                log_grade_change(
+                    gb, request.user, 'update', 'QuizGrade', qg.pk,
+                    field_name='score',
+                    old_value=f'NC ({old_status})', new_value='0 (completed)',
+                    notes='NC → 0 bulk conversion',
+                )
+                quiz_count += 1
+
+            nc_exams = gb.section_exam_grades.filter(status='not_completed')
+            for eg in nc_exams:
+                old_status = eg.status
+                eg.status = SectionExamGrade.Status.COMPLETED
+                eg.score  = 0
+                eg.save()
+                log_grade_change(
+                    gb, request.user, 'update', 'SectionExamGrade', eg.pk,
+                    field_name='score',
+                    old_value=f'NC ({old_status})', new_value='0 (completed)',
+                    notes='NC → 0 bulk conversion',
+                )
+                exam_count += 1
+
+            _notify_staff_if_at_risk(gb)
+
+    total = quiz_count + exam_count
+    if total:
+        messages.success(
+            request,
+            f'Converted {total} "Not Completed" grade(s) to 0 '
+            f'({quiz_count} quiz, {exam_count} exam).'
+        )
+    else:
+        messages.info(request, 'No "Not Completed" grades found in this course.')
+
+    return redirect('staff_bulk_grade_entry', course_id=course.pk)
+
+
 @staff_required
 def staff_grade_report(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
