@@ -234,7 +234,9 @@ def import_grades(apps, schema_editor):
     course_counter = Counter()
     for u in user_map.values():
         for enr in CourseEnrollment.objects.filter(student_id=u.pk):
-            course_counter[enr.course_id] += 1
+            # enr.course_id may return the Course proxy object on historical models;
+            # always cast to int so the Counter key is a plain integer.
+            course_counter[int(enr.course_id)] += 1
 
     if not course_counter:
         print("  [import] No enrollments found — skipping import.")
