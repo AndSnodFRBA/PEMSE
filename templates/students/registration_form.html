@@ -118,11 +118,31 @@
     <form method="post" action="{% url 'enroll' enrollment.course.id %}" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
       {% csrf_token %}
       {% if enrollment.course.has_book_option %}
-      <label style="font-size:11px;font-weight:600;color:#0a2540;display:block;margin-bottom:4px;">Textbook option *</label>
-      <select name="book_included" class="form-select form-select-sm" style="margin-bottom:12px;max-width:340px;">
-        <option value="0" {% if not enrollment.book_included %}selected{% endif %}>Without textbook</option>
-        <option value="1" {% if enrollment.book_included %}selected{% endif %}>With physical textbook</option>
-      </select>
+      <div style="font-size:12px;font-weight:700;color:#0a2540;margin-bottom:10px;letter-spacing:.01em;">
+        <i class="bi bi-book me-1"></i> Textbook — choose one
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <label style="cursor:pointer;">
+          <input type="radio" name="book_included" value="0" {% if not enrollment.book_included %}checked{% endif %}
+                 style="position:absolute;opacity:0;width:0;" class="book-radio">
+          <div class="book-option-card {% if not enrollment.book_included %}book-option-selected{% endif %}"
+               style="border:2px solid {% if not enrollment.book_included %}#0a2540{% else %}#dde4ef{% endif %};border-radius:10px;padding:14px 12px;text-align:center;background:{% if not enrollment.book_included %}#eef3fb{% else %}#fff{% endif %};">
+            <div style="font-size:20px;margin-bottom:4px;">📄</div>
+            <div style="font-size:12px;font-weight:700;color:#0a2540;">No Textbook</div>
+            <div style="font-size:11px;color:#6b7280;margin-top:2px;">I'll source my own</div>
+          </div>
+        </label>
+        <label style="cursor:pointer;">
+          <input type="radio" name="book_included" value="1" {% if enrollment.book_included %}checked{% endif %}
+                 style="position:absolute;opacity:0;width:0;" class="book-radio">
+          <div class="book-option-card {% if enrollment.book_included %}book-option-selected{% endif %}"
+               style="border:2px solid {% if enrollment.book_included %}#0a2540{% else %}#dde4ef{% endif %};border-radius:10px;padding:14px 12px;text-align:center;background:{% if enrollment.book_included %}#eef3fb{% else %}#fff{% endif %};">
+            <div style="font-size:20px;margin-bottom:4px;">📚</div>
+            <div style="font-size:12px;font-weight:700;color:#0a2540;">Physical Textbook</div>
+            <div style="font-size:11px;color:#2B5EA7;margin-top:2px;font-weight:600;">+${{ enrollment.course.book_price|floatformat:0 }}</div>
+          </div>
+        </label>
+      </div>
       {% endif %}
       {% if enrollment.course.includes_shirt %}
       <label style="font-size:11px;font-weight:600;color:#0a2540;display:block;margin-bottom:4px;">Polo shirt size *</label>
@@ -150,17 +170,37 @@
     <form method="post" action="{% url 'enroll' course.id %}" class="course-card-form">
       {% csrf_token %}
       {% if course.includes_shirt or course.has_book_option %}
-      <div class="course-extra-select" id="extra-select-{{ course.id }}" style="display:none;">
+      <div class="course-extra-select" id="extra-select-{{ course.id }}" style="display:none;padding:16px 16px 4px;border-top:1px solid #e5e9f0;margin-top:8px;">
         {% if course.has_book_option %}
-        <label style="font-size:11px;font-weight:600;color:#0a2540;display:block;margin-bottom:4px;">Textbook option *</label>
-        <select name="book_included" class="form-select form-select-sm" style="margin-bottom:8px;">
-          <option value="0">Without textbook</option>
-          <option value="1">With physical textbook</option>
-        </select>
+        <div style="font-size:12px;font-weight:700;color:#0a2540;margin-bottom:10px;">
+          <i class="bi bi-book me-1"></i> Textbook — choose one <span style="font-weight:400;color:#dc2626;">*&nbsp;required</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+          <label style="cursor:pointer;">
+            <input type="radio" name="book_included" value="0"
+                   style="position:absolute;opacity:0;width:0;" class="book-radio">
+            <div class="book-option-card"
+                 style="border:2px solid #dde4ef;border-radius:10px;padding:14px 10px;text-align:center;background:#fff;">
+              <div style="font-size:20px;margin-bottom:4px;">📄</div>
+              <div style="font-size:12px;font-weight:700;color:#0a2540;">No Textbook</div>
+              <div style="font-size:11px;color:#6b7280;margin-top:2px;">I'll source my own</div>
+            </div>
+          </label>
+          <label style="cursor:pointer;">
+            <input type="radio" name="book_included" value="1"
+                   style="position:absolute;opacity:0;width:0;" class="book-radio">
+            <div class="book-option-card"
+                 style="border:2px solid #dde4ef;border-radius:10px;padding:14px 10px;text-align:center;background:#fff;">
+              <div style="font-size:20px;margin-bottom:4px;">📚</div>
+              <div style="font-size:12px;font-weight:700;color:#0a2540;">Physical Textbook</div>
+              <div style="font-size:11px;color:#2B5EA7;margin-top:2px;font-weight:600;">+${{ course.book_price|floatformat:0 }}</div>
+            </div>
+          </label>
+        </div>
         {% endif %}
         {% if course.includes_shirt %}
         <label style="font-size:11px;font-weight:600;color:#0a2540;display:block;margin-bottom:4px;">Polo shirt size *</label>
-        <select name="shirt_size" class="form-select form-select-sm" style="margin-bottom:4px;">
+        <select name="shirt_size" class="form-select form-select-sm" style="margin-bottom:12px;">
           <option value="">Select size…</option>
           <option value="S">Small</option>
           <option value="M">Medium</option>
@@ -170,12 +210,18 @@
           <option value="3XL">3X-Large</option>
         </select>
         {% endif %}
+        <button type="button" class="btn btn-sm w-100" id="confirm-btn-{{ course.id }}"
+                onclick="confirmExtra({{ course.id }})"
+                style="background:#0a2540;color:#fff;border-radius:8px;padding:10px;font-weight:600;font-size:13px;{% if course.has_book_option %}opacity:.5;pointer-events:none;{% endif %}"
+                {% if course.has_book_option %}disabled{% endif %}>
+          Enroll in this course →
+        </button>
       </div>
       {% endif %}
-      <button type="{% if course.is_full %}button{% elif course.includes_shirt or course.has_book_option %}button{% else %}submit{% endif %}"
+      <button type="{% if course.is_full %}button{% else %}button{% endif %}"
               class="course-card {% if enrollment.course == course %}selected{% endif %}"
               style="width:100%;text-align:left;background:none;border:none;padding:0;cursor:{% if course.is_full %}not-allowed{% else %}pointer{% endif %};{% if course.is_full %}opacity:.55;{% endif %}"
-              {% if course.is_full %}disabled title="This course is full"{% elif course.includes_shirt or course.has_book_option %}onclick="toggleExtra({{ course.id }}, this)"{% endif %}>
+              {% if course.is_full %}disabled title="This course is full"{% else %}onclick="toggleExtra({{ course.id }}, this)"{% endif %}>
         <div class="course-tag" style="background:{{ course.tag_bg }};color:{{ course.tag_color }};">
           {% if course.licensure %}{{ course.get_licensure_display }}{% else %}{{ course.tag }}{% endif %}
         </div>
@@ -372,20 +418,51 @@
 
 {% block extra_js %}
 <script>
-  // ── Shirt size / textbook option toggle ──────────────────────────────────
+  // ── Textbook card selection ───────────────────────────────────────────────
+  document.querySelectorAll('.book-radio').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      // Update visual state for all cards in this form
+      const form = this.closest('form');
+      if (!form) return;
+      form.querySelectorAll('.book-radio').forEach(function(r) {
+        const card = r.nextElementSibling;
+        if (!card) return;
+        if (r.checked) {
+          card.style.border = '2px solid #0a2540';
+          card.style.background = '#eef3fb';
+        } else {
+          card.style.border = '2px solid #dde4ef';
+          card.style.background = '#fff';
+        }
+      });
+      // Enable the Enroll button once a choice is made
+      const courseId = form.querySelector('[id^="confirm-btn-"]');
+      if (courseId) {
+        courseId.disabled = false;
+        courseId.style.opacity = '1';
+        courseId.style.pointerEvents = 'auto';
+      }
+    });
+  });
+
+  // ── Course card toggle ────────────────────────────────────────────────────
   function toggleExtra(courseId, btn) {
     const extraDiv = document.getElementById('extra-select-' + courseId);
-    if (!extraDiv) return;
-    if (extraDiv.style.display === 'none') {
-      extraDiv.style.display = 'block';
-      btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    } else {
-      // Options chosen — submit the parent form
-      const form = btn.closest('form');
-      const shirtSelect = extraDiv.querySelector('select[name="shirt_size"]');
-      if (shirtSelect && !shirtSelect.value) { alert('Please select a shirt size.'); return; }
-      form.submit();
+    if (!extraDiv) {
+      // No extra options — just submit
+      btn.closest('form').submit();
+      return;
     }
+    extraDiv.style.display = 'block';
+    extraDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function confirmExtra(courseId) {
+    const extraDiv = document.getElementById('extra-select-' + courseId);
+    const form = extraDiv.closest('form');
+    const shirtSelect = extraDiv.querySelector('select[name="shirt_size"]');
+    if (shirtSelect && !shirtSelect.value) { alert('Please select a shirt size.'); return; }
+    form.submit();
   }
 
   // ── Payment method selector ──────────────────────────────────────────────
