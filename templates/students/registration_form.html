@@ -127,9 +127,9 @@
                  style="position:absolute;opacity:0;width:0;" class="book-radio">
           <div class="book-option-card {% if not enrollment.book_included %}book-option-selected{% endif %}"
                style="border:2px solid {% if not enrollment.book_included %}#0a2540{% else %}#dde4ef{% endif %};border-radius:10px;padding:14px 12px;text-align:center;background:{% if not enrollment.book_included %}#eef3fb{% else %}#fff{% endif %};">
-            <div style="font-size:20px;margin-bottom:4px;">📄</div>
-            <div style="font-size:12px;font-weight:700;color:#0a2540;">No Textbook</div>
-            <div style="font-size:11px;color:#6b7280;margin-top:2px;">I'll source my own</div>
+            <div style="font-size:20px;margin-bottom:4px;">💻</div>
+            <div style="font-size:12px;font-weight:700;color:#0a2540;">Digital Only</div>
+            <div style="font-size:11px;color:#6b7280;margin-top:2px;">Included with tuition</div>
           </div>
         </label>
         <label style="cursor:pointer;">
@@ -138,7 +138,7 @@
           <div class="book-option-card {% if enrollment.book_included %}book-option-selected{% endif %}"
                style="border:2px solid {% if enrollment.book_included %}#0a2540{% else %}#dde4ef{% endif %};border-radius:10px;padding:14px 12px;text-align:center;background:{% if enrollment.book_included %}#eef3fb{% else %}#fff{% endif %};">
             <div style="font-size:20px;margin-bottom:4px;">📚</div>
-            <div style="font-size:12px;font-weight:700;color:#0a2540;">Physical Textbook</div>
+            <div style="font-size:12px;font-weight:700;color:#0a2540;">Add Physical Copy</div>
             <div style="font-size:11px;color:#2B5EA7;margin-top:2px;font-weight:600;">+${{ enrollment.course.book_price|floatformat:0 }}</div>
           </div>
         </label>
@@ -181,9 +181,9 @@
                    style="position:absolute;opacity:0;width:0;" class="book-radio">
             <div class="book-option-card"
                  style="border:2px solid #dde4ef;border-radius:10px;padding:14px 10px;text-align:center;background:#fff;">
-              <div style="font-size:20px;margin-bottom:4px;">📄</div>
-              <div style="font-size:12px;font-weight:700;color:#0a2540;">No Textbook</div>
-              <div style="font-size:11px;color:#6b7280;margin-top:2px;">I'll source my own</div>
+              <div style="font-size:20px;margin-bottom:4px;">💻</div>
+              <div style="font-size:12px;font-weight:700;color:#0a2540;">Digital Only</div>
+              <div style="font-size:11px;color:#6b7280;margin-top:2px;">Included with tuition</div>
             </div>
           </label>
           <label style="cursor:pointer;">
@@ -192,7 +192,7 @@
             <div class="book-option-card"
                  style="border:2px solid #dde4ef;border-radius:10px;padding:14px 10px;text-align:center;background:#fff;">
               <div style="font-size:20px;margin-bottom:4px;">📚</div>
-              <div style="font-size:12px;font-weight:700;color:#0a2540;">Physical Textbook</div>
+              <div style="font-size:12px;font-weight:700;color:#0a2540;">Add Physical Copy</div>
               <div style="font-size:11px;color:#2B5EA7;margin-top:2px;font-weight:600;">+${{ course.book_price|floatformat:0 }}</div>
             </div>
           </label>
