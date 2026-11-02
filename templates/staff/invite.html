@@ -2,8 +2,11 @@
 {% block title %}Invite Student — {{ AGENCY_SHORT_NAME }} Staff{% endblock %}
 
 {% block content %}
-<div class="staff-topbar">
-  <h1 class="staff-page-title">Invite Student</h1>
+<div class="staff-topbar d-flex align-items-center justify-content-between flex-wrap gap-2">
+  <h1 class="staff-page-title mb-0">Invite Student</h1>
+  <a href="{% url 'staff_bulk_invite' %}" class="btn btn-sm btn-outline-primary">
+    <i class="bi bi-people me-1"></i> Bulk Invite
+  </a>
 </div>
 
 <div class="row g-3">

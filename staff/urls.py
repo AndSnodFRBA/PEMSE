@@ -32,6 +32,7 @@ urlpatterns = [
     path('documents/pending/',                 views.document_review_queue, name='staff_document_queue'),
     path('students/export/csv/',               views.export_students_csv,   name='staff_export_students_csv'),
     path('invite/',                            views.invite_student,        name='staff_invite'),
+    path('invite/bulk/',                       views.bulk_invite_students,  name='staff_bulk_invite'),
     path('invite/<int:pk>/resend/',            views.resend_student_invite, name='staff_invite_resend'),
     path('invite/<int:pk>/edit/',              views.edit_student_invite,   name='staff_invite_edit'),
     path('announcements/',                     views.announcement_list,     name='staff_announcements'),

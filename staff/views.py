@@ -1184,6 +1184,56 @@ def invite_student(request):
 
 
 @staff_required
+def bulk_invite_students(request):
+    """Send invitations to multiple students at once (one email per line)."""
+    courses_active = Course.objects.filter(is_active=True).order_by('option_number')
+    results = None
+
+    if request.method == 'POST':
+        raw_emails = request.POST.get('emails', '')
+        course_id  = request.POST.get('course', '')
+
+        course = None
+        if course_id:
+            try:
+                course = Course.objects.get(pk=course_id)
+            except Course.DoesNotExist:
+                pass
+
+        emails = [e.strip().lower() for e in raw_emails.splitlines() if e.strip()]
+
+        if not emails:
+            messages.error(request, 'No email addresses found — please paste at least one.')
+        elif not course:
+            messages.error(request, 'Please select a course.')
+        else:
+            results = {'sent': [], 'skipped': [], 'course': course}
+            for email in emails:
+                # Skip already-pending (unused, non-expired) invites for same email+course
+                existing = StudentInvitation.objects.filter(
+                    email__iexact=email, course=course, used=False,
+                    expires_at__gt=timezone.now(),
+                ).first()
+                if existing:
+                    results['skipped'].append({'email': email, 'reason': 'already has a pending invite'})
+                    continue
+
+                inv         = StudentInvitation.objects.create(email=email, course=course, created_by=request.user)
+                invite_link = request.build_absolute_uri(f'/register/invite/{inv.token}/')
+                send_invitation_email(inv, invite_link)
+                results['sent'].append(email)
+
+            total = len(results['sent'])
+            skip  = len(results['skipped'])
+            messages.success(request, f'{total} invite{"s" if total != 1 else ""} sent' + (f'; {skip} skipped (already pending).' if skip else '.'))
+
+    return render(request, 'staff/bulk_invite.html', {
+        'courses_active': courses_active,
+        'results': results,
+    })
+
+
+@staff_required
 def resend_student_invite(request, pk):
     inv = get_object_or_404(StudentInvitation, pk=pk)
     if request.method == 'POST':
