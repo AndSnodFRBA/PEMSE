@@ -43,7 +43,34 @@
                 <input class="form-check-input" type="checkbox" name="include_invited" value="1"
                        id="chk-invited" checked>
                 <label class="form-check-label" for="chk-invited" style="font-size:12px;">
-                  Pending invites (not yet registered)
+                  Pending invites
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="include_instructors" value="1"
+                       id="chk-instructors">
+                <label class="form-check-label" for="chk-instructors" style="font-size:12px;">
+                  Assigned instructors
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" style="font-size:12px;font-weight:600;">Send Method</label>
+            <div class="d-flex gap-3 flex-wrap">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="send_mode" value="individual"
+                       id="mode-individual" checked>
+                <label class="form-check-label" for="mode-individual" style="font-size:12px;">
+                  Individual emails <span style="color:#6b7280;">(one per recipient)</span>
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="send_mode" value="bcc"
+                       id="mode-bcc">
+                <label class="form-check-label" for="mode-bcc" style="font-size:12px;">
+                  Single email, all BCC'd <span style="color:#6b7280;">(recipients can't see each other)</span>
                 </label>
               </div>
             </div>
@@ -61,7 +88,7 @@
             <textarea name="body" rows="10" class="form-control form-control-sm"
                       style="resize:vertical;" required
                       placeholder="Type your message here…">{{ request.POST.body }}</textarea>
-            <div style="font-size:11px;color:#9ca3af;margin-top:4px;">
+            <div id="send-mode-hint" style="font-size:11px;color:#9ca3af;margin-top:4px;">
               Plain text — no formatting. Each recipient receives a separate email.
             </div>
           </div>
@@ -86,8 +113,13 @@
       </div>
       <div class="card-body p-4">
         <div style="font-size:13px;margin-bottom:12px;">
-          <strong>{{ result.sent }}</strong> of <strong>{{ result.total }}</strong> recipients received
-          "<em>{{ result.subject }}</em>"
+          {% if result.send_mode == 'bcc' %}
+            One email sent with <strong>{{ result.total }}</strong> recipient(s) BCC'd:
+            "<em>{{ result.subject }}</em>"
+          {% else %}
+            <strong>{{ result.sent }}</strong> of <strong>{{ result.total }}</strong> recipients received
+            "<em>{{ result.subject }}</em>"
+          {% endif %}
         </div>
         {% if result.failed %}
         <div style="font-size:12px;font-weight:700;color:#991b1b;margin-bottom:6px;">
@@ -111,7 +143,9 @@
         <ul class="ps-3 mb-0" style="font-size:13px;">
           <li><strong>Enrolled students</strong> — everyone currently registered in the course.</li>
           <li><strong>Pending invites</strong> — students who received an invite link but haven't registered yet.</li>
-          <li>Each recipient gets a separate email sent from the PEMSE Gmail account.</li>
+          <li><strong>Assigned instructors</strong> — active instructors assigned to the selected course.</li>
+          <li><strong>Individual emails</strong> send one message per recipient — recipients can't see others.</li>
+          <li><strong>Single email (BCC)</strong> sends one message with all recipients hidden in BCC; the To: line shows your own address.</li>
           <li>There is no "unsubscribe" on these — use them for class notices and reminders, not marketing.</li>
         </ul>
       </div>
@@ -125,6 +159,18 @@
     const btn = document.getElementById('send-btn');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending…';
+  });
+
+  // Update hint text based on send mode
+  const hint = document.getElementById('send-mode-hint');
+  document.querySelectorAll('input[name="send_mode"]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      if (this.value === 'bcc') {
+        hint.textContent = 'Plain text — no formatting. One email sent with all recipients BCC'd.';
+      } else {
+        hint.textContent = 'Plain text — no formatting. Each recipient receives a separate email.';
+      }
+    });
   });
 </script>
 {% endblock %}

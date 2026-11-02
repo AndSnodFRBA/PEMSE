@@ -259,19 +259,42 @@ def send_payment_receipt(payment_record):
     _send('Payment received', '\n'.join(lines), student.email)
 
 
-def send_class_email(subject, body, recipient_emails, from_email=None):
-    """Send a staff-composed message to a list of recipients via Django's
-    configured mail backend (Gmail SMTP).  Returns (sent_count, failed_list)."""
-    from django.core.mail import send_mail as _django_send_mail
+def send_class_email(subject, body, recipient_emails, from_email=None, mode='individual'):
+    """Send a staff-composed message to a list of recipients.
+
+    mode='individual'  — one email per recipient (current behaviour)
+    mode='bcc'         — single email with all recipients BCC'd; To: is the sender
+
+    Returns (sent_count, failed_list).
+    """
+    from django.core.mail import send_mail as _django_send_mail, EmailMessage
     from django.conf import settings as _settings
 
+    from_addr = from_email or _settings.DEFAULT_FROM_EMAIL
+    emails = [e for e in recipient_emails if e]
+
+    if not emails:
+        return 0, []
+
+    if mode == 'bcc':
+        try:
+            msg = EmailMessage(
+                subject=subject,
+                body=body,
+                from_email=from_addr,
+                to=[from_addr],   # To: sender — recipients are all BCC'd
+                bcc=emails,
+            )
+            msg.send(fail_silently=False)
+            return len(emails), []
+        except Exception as exc:
+            logger.error('send_class_email (bcc) failed: %s', exc)
+            return 0, emails
+
+    # individual mode
     sent = 0
     failed = []
-    from_addr = from_email or _settings.DEFAULT_FROM_EMAIL
-
-    for email in recipient_emails:
-        if not email:
-            continue
+    for email in emails:
         try:
             _django_send_mail(
                 subject=subject,

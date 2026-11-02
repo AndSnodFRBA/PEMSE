@@ -2244,7 +2244,8 @@ def course_eval_overview(request):
 
 @staff_required
 def class_email(request):
-    """Compose and send a free-form email to an entire class (enrolled + invited)."""
+    """Compose and send a free-form email to an entire class (enrolled + invited + instructors)."""
+    from instructor.models import InstructorCourseAssignment
     courses_active = Course.objects.filter(is_active=True).order_by('option_number')
     result = None
 
@@ -2258,10 +2259,12 @@ def class_email(request):
             pass
 
     if request.method == 'POST':
-        subject    = request.POST.get('subject', '').strip()
-        body       = request.POST.get('body', '').strip()
-        include_enrolled = request.POST.get('include_enrolled') == '1'
-        include_invited  = request.POST.get('include_invited')  == '1'
+        subject             = request.POST.get('subject', '').strip()
+        body                = request.POST.get('body', '').strip()
+        include_enrolled    = request.POST.get('include_enrolled')    == '1'
+        include_invited     = request.POST.get('include_invited')     == '1'
+        include_instructors = request.POST.get('include_instructors') == '1'
+        send_mode           = request.POST.get('send_mode', 'individual')  # 'individual' | 'bcc'
 
         errors = []
         if not subject:
@@ -2270,7 +2273,7 @@ def class_email(request):
             errors.append('Message body is required.')
         if not selected_course:
             errors.append('Please select a course.')
-        if not include_enrolled and not include_invited:
+        if not include_enrolled and not include_invited and not include_instructors:
             errors.append('Select at least one recipient group.')
 
         if errors:
@@ -2296,6 +2299,15 @@ def class_email(request):
                 )
                 recipient_emails += [e for e in invited_emails if e]
 
+            if include_instructors:
+                instructor_emails = list(
+                    InstructorCourseAssignment.objects.filter(
+                        course=selected_course, is_active=True
+                    ).select_related('instructor')
+                    .values_list('instructor__email', flat=True)
+                )
+                recipient_emails += [e for e in instructor_emails if e]
+
             # Deduplicate preserving order
             seen = set()
             unique_emails = []
@@ -2304,14 +2316,15 @@ def class_email(request):
                     seen.add(e.lower())
                     unique_emails.append(e)
 
-            sent, failed = send_class_email(subject, body, unique_emails)
+            sent, failed = send_class_email(subject, body, unique_emails, mode=send_mode)
 
             result = {
-                'course':   selected_course,
-                'sent':     sent,
-                'failed':   failed,
-                'total':    len(unique_emails),
-                'subject':  subject,
+                'course':     selected_course,
+                'sent':       sent,
+                'failed':     failed,
+                'total':      len(unique_emails),
+                'subject':    subject,
+                'send_mode':  send_mode,
             }
 
             if failed:
