@@ -1,0 +1,130 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}Class Email — {{ AGENCY_SHORT_NAME }} Staff{% endblock %}
+
+{% block content %}
+<div class="staff-topbar">
+  <h1 class="staff-page-title">Class Email</h1>
+</div>
+
+<div class="row g-3">
+  <!-- Compose form -->
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
+        Compose Message
+      </div>
+      <div class="card-body p-4">
+        <form method="post" id="class-email-form">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label" style="font-size:12px;font-weight:600;">Course</label>
+            <select name="course" id="course-select" class="form-select form-select-sm" required>
+              <option value="" disabled {% if not selected_course %}selected{% endif %}>— Select a course —</option>
+              {% for c in courses_active %}
+                <option value="{{ c.id }}" {% if selected_course and selected_course.id == c.id %}selected{% endif %}>
+                  Opt. {{ c.option_number }} — {{ c.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" style="font-size:12px;font-weight:600;">Recipients</label>
+            <div class="d-flex gap-3 flex-wrap">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="include_enrolled" value="1"
+                       id="chk-enrolled" checked>
+                <label class="form-check-label" for="chk-enrolled" style="font-size:12px;">
+                  Enrolled students
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="include_invited" value="1"
+                       id="chk-invited" checked>
+                <label class="form-check-label" for="chk-invited" style="font-size:12px;">
+                  Pending invites (not yet registered)
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" style="font-size:12px;font-weight:600;">Subject</label>
+            <input type="text" name="subject" class="form-control form-control-sm"
+                   value="{{ request.POST.subject }}" required
+                   placeholder="e.g. Class reminder — Thursday Nov 7">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" style="font-size:12px;font-weight:600;">Message</label>
+            <textarea name="body" rows="10" class="form-control form-control-sm"
+                      style="resize:vertical;" required
+                      placeholder="Type your message here…">{{ request.POST.body }}</textarea>
+            <div style="font-size:11px;color:#9ca3af;margin-top:4px;">
+              Plain text — no formatting. Each recipient receives a separate email.
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-sm" id="send-btn"
+                  style="background:#2B5EA7;color:#fff;border-radius:8px;padding:9px 20px;font-weight:600;">
+            <i class="bi bi-envelope me-1"></i> Send Email
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results / info panel -->
+  <div class="col-lg-6">
+    {% if result %}
+    <div class="card mb-3">
+      <div class="card-header py-3 d-flex align-items-center gap-2"
+           style="background:{% if result.failed %}#fefce8{% else %}#f0fdf4{% endif %};border-bottom:1px solid {% if result.failed %}#fde047{% else %}#86efac{% endif %};font-weight:600;color:{% if result.failed %}#92600a{% else %}#15803d{% endif %};font-size:13px;">
+        <i class="bi bi-{% if result.failed %}exclamation-circle{% else %}check-circle-fill{% endif %}"></i>
+        Sent — {{ result.course.name }}
+      </div>
+      <div class="card-body p-4">
+        <div style="font-size:13px;margin-bottom:12px;">
+          <strong>{{ result.sent }}</strong> of <strong>{{ result.total }}</strong> recipients received
+          "<em>{{ result.subject }}</em>"
+        </div>
+        {% if result.failed %}
+        <div style="font-size:12px;font-weight:700;color:#991b1b;margin-bottom:6px;">
+          <i class="bi bi-x-circle me-1"></i> Failed to send ({{ result.failed|length }})
+        </div>
+        <ul class="list-unstyled" style="font-size:12px;font-family:monospace;color:#6b7280;">
+          {% for email in result.failed %}
+          <li>{{ email }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <div class="card-header py-3" style="background:#f8fafc;border-bottom:1px solid #dde4ef;font-weight:600;color:#1a2e4a;font-size:13px;">
+        How It Works
+      </div>
+      <div class="card-body p-4" style="font-size:13px;color:#374151;line-height:1.7;">
+        <ul class="ps-3 mb-0" style="font-size:13px;">
+          <li><strong>Enrolled students</strong> — everyone currently registered in the course.</li>
+          <li><strong>Pending invites</strong> — students who received an invite link but haven't registered yet.</li>
+          <li>Each recipient gets a separate email sent from the PEMSE Gmail account.</li>
+          <li>There is no "unsubscribe" on these — use them for class notices and reminders, not marketing.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Prevent double-submit
+  document.getElementById('class-email-form').addEventListener('submit', function() {
+    const btn = document.getElementById('send-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending…';
+  });
+</script>
+{% endblock %}

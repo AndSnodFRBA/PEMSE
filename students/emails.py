@@ -257,3 +257,32 @@ def send_payment_receipt(payment_record):
         f'— {settings.AGENCY_NAME}',
     ]
     _send('Payment received', '\n'.join(lines), student.email)
+
+
+def send_class_email(subject, body, recipient_emails, from_email=None):
+    """Send a staff-composed message to a list of recipients via Django's
+    configured mail backend (Gmail SMTP).  Returns (sent_count, failed_list)."""
+    from django.core.mail import send_mail as _django_send_mail
+    from django.conf import settings as _settings
+
+    sent = 0
+    failed = []
+    from_addr = from_email or _settings.DEFAULT_FROM_EMAIL
+
+    for email in recipient_emails:
+        if not email:
+            continue
+        try:
+            _django_send_mail(
+                subject=subject,
+                message=body,
+                from_email=from_addr,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+            sent += 1
+        except Exception as exc:
+            logger.error('send_class_email failed for %s: %s', email, exc)
+            failed.append(email)
+
+    return sent, failed

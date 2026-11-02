@@ -21,8 +21,9 @@ from schedule.forms import CalendarEventForm
 from schedule.models import CalendarEvent
 from students.forms import StudentLoginForm
 from students.emails import (
-    _send, send_document_review_notification, send_instructor_invitation_email,
-    send_invitation_email, send_payment_receipt, send_staff_invitation_email,
+    _send, send_class_email, send_document_review_notification,
+    send_instructor_invitation_email, send_invitation_email,
+    send_payment_receipt, send_staff_invitation_email,
 )
 from students.models import (
     Announcement, CognitiveExamRecord, CourseCompletionRecord,
@@ -2236,6 +2237,92 @@ def course_eval_overview(request):
         'ce_pending_mid':  ce_pending_mid,
         'ce_pending_end':  ce_pending_end,
         'course_summaries': course_summaries,
+    })
+
+
+# ── Class Email ───────────────────────────────────────────────────────────────
+
+@staff_required
+def class_email(request):
+    """Compose and send a free-form email to an entire class (enrolled + invited)."""
+    courses_active = Course.objects.filter(is_active=True).order_by('option_number')
+    result = None
+
+    # Pre-select course from GET param (e.g. linked from course detail)
+    selected_course_id = request.GET.get('course') or request.POST.get('course')
+    selected_course = None
+    if selected_course_id:
+        try:
+            selected_course = Course.objects.get(pk=selected_course_id)
+        except Course.DoesNotExist:
+            pass
+
+    if request.method == 'POST':
+        subject    = request.POST.get('subject', '').strip()
+        body       = request.POST.get('body', '').strip()
+        include_enrolled = request.POST.get('include_enrolled') == '1'
+        include_invited  = request.POST.get('include_invited')  == '1'
+
+        errors = []
+        if not subject:
+            errors.append('Subject is required.')
+        if not body:
+            errors.append('Message body is required.')
+        if not selected_course:
+            errors.append('Please select a course.')
+        if not include_enrolled and not include_invited:
+            errors.append('Select at least one recipient group.')
+
+        if errors:
+            for e in errors:
+                messages.error(request, e)
+        else:
+            recipient_emails = []
+
+            if include_enrolled:
+                enrolled_emails = list(
+                    CourseEnrollment.objects.filter(course=selected_course)
+                    .select_related('student')
+                    .values_list('student__email', flat=True)
+                )
+                recipient_emails += [e for e in enrolled_emails if e]
+
+            if include_invited:
+                invited_emails = list(
+                    StudentInvitation.objects.filter(
+                        course=selected_course, used=False,
+                        expires_at__gt=timezone.now(),
+                    ).values_list('email', flat=True)
+                )
+                recipient_emails += [e for e in invited_emails if e]
+
+            # Deduplicate preserving order
+            seen = set()
+            unique_emails = []
+            for e in recipient_emails:
+                if e.lower() not in seen:
+                    seen.add(e.lower())
+                    unique_emails.append(e)
+
+            sent, failed = send_class_email(subject, body, unique_emails)
+
+            result = {
+                'course':   selected_course,
+                'sent':     sent,
+                'failed':   failed,
+                'total':    len(unique_emails),
+                'subject':  subject,
+            }
+
+            if failed:
+                messages.warning(request, f'Sent to {sent} recipient(s); {len(failed)} failed — see below.')
+            else:
+                messages.success(request, f'Email sent to {sent} recipient(s).')
+
+    return render(request, 'staff/class_email.html', {
+        'courses_active':    courses_active,
+        'selected_course':   selected_course,
+        'result':            result,
     })
 
 

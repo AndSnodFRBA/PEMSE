@@ -89,6 +89,9 @@ urlpatterns = [
     # Medical director consultation log (program director only)
     path('medical-director/',                                       views.medical_director_log,     name='staff_medical_director_log'),
     path('medical-director/<int:pk>/delete/',                       views.delete_medical_director_consultation, name='staff_delete_medical_director_consultation'),
+    # Class email
+    path('class-email/',                                               views.class_email,              name='staff_class_email'),
+
     # Reminders
     path('reminders/',                                              views.reminder_dashboard,       name='staff_reminder_dashboard'),
     path('reminders/send/',                                         views.reminder_bulk_send,       name='staff_reminder_send'),
