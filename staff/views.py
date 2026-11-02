@@ -1038,6 +1038,15 @@ def course_list(request):
     soon    = today + timedelta(days=7)
     courses = Course.objects.all().order_by('order', 'option_number')
 
+    # Pre-fetch pending invite counts in one query
+    from django.db.models import Count as _Count
+    from students.models import StudentInvitation
+    pending_counts = {
+        item['course_id']: item['n']
+        for item in StudentInvitation.objects.filter(used=False, expires_at__gt=timezone.now())
+        .values('course_id').annotate(n=_Count('id'))
+    }
+
     rows = []
     for c in courses:
         enrolled = c.enrollments.count()
@@ -1051,7 +1060,7 @@ def course_list(request):
             status = 'closing'
         else:
             status = 'open'
-        rows.append({'course': c, 'enrolled': enrolled, 'status': status})
+        rows.append({'course': c, 'enrolled': enrolled, 'invited': pending_counts.get(c.id, 0), 'status': status})
 
     return render(request, 'staff/course_list.html', {'rows': rows})
 
