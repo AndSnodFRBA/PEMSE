@@ -1040,7 +1040,6 @@ def course_list(request):
 
     # Pre-fetch pending invite counts in one query
     from django.db.models import Count as _Count
-    from students.models import StudentInvitation
     pending_counts = {
         item['course_id']: item['n']
         for item in StudentInvitation.objects.filter(used=False, expires_at__gt=timezone.now())
