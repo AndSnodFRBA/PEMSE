@@ -262,13 +262,18 @@ def send_payment_receipt(payment_record):
 def send_class_email(subject, body, recipient_emails, from_email=None, mode='individual'):
     """Send a staff-composed message to a list of recipients.
 
-    mode='individual'  — one email per recipient (current behaviour)
-    mode='bcc'         — single email with all recipients BCC'd; To: is the sender
+    mode='individual'  — one email per recipient, each CC'd to the agency owner
+    mode='bcc'         — single email with all recipients BCC'd; To: is the sender,
+                         agency owner is CC'd
+
+    Robin Darnall (ems.edu911@gmail.com) is always CC'd so she stays in the loop.
 
     Returns (sent_count, failed_list).
     """
-    from django.core.mail import send_mail as _django_send_mail, EmailMessage
+    from django.core.mail import EmailMessage
     from django.conf import settings as _settings
+
+    OWNER_CC = 'ems.edu911@gmail.com'
 
     from_addr = from_email or _settings.DEFAULT_FROM_EMAIL
     emails = [e for e in recipient_emails if e]
@@ -284,6 +289,7 @@ def send_class_email(subject, body, recipient_emails, from_email=None, mode='ind
                 from_email=from_addr,
                 to=[from_addr],   # To: sender — recipients are all BCC'd
                 bcc=emails,
+                cc=[OWNER_CC],
             )
             msg.send(fail_silently=False)
             return len(emails), []
@@ -291,18 +297,19 @@ def send_class_email(subject, body, recipient_emails, from_email=None, mode='ind
             logger.error('send_class_email (bcc) failed: %s', exc)
             return 0, emails
 
-    # individual mode
+    # individual mode — one EmailMessage per recipient so CC is visible on each
     sent = 0
     failed = []
     for email in emails:
         try:
-            _django_send_mail(
+            msg = EmailMessage(
                 subject=subject,
-                message=body,
+                body=body,
                 from_email=from_addr,
-                recipient_list=[email],
-                fail_silently=False,
+                to=[email],
+                cc=[OWNER_CC],
             )
+            msg.send(fail_silently=False)
             sent += 1
         except Exception as exc:
             logger.error('send_class_email failed for %s: %s', email, exc)
