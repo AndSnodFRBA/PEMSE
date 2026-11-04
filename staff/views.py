@@ -1258,6 +1258,37 @@ def resend_student_invite(request, pk):
 
 
 @staff_required
+def resend_all_pending_invites(request):
+    """Re-send invite emails to every unused, non-expired invitation.
+
+    Optionally scoped to a single course via ?course=<id> (or POST course field).
+    Each invite's expiry is extended by 7 days from now so the link stays fresh.
+    """
+    if request.method != 'POST':
+        return redirect('staff_invite')
+
+    course_id = request.POST.get('course') or ''
+    qs = StudentInvitation.objects.filter(used=False, expires_at__gt=timezone.now()).select_related('course')
+    if course_id:
+        qs = qs.filter(course_id=course_id)
+
+    new_expiry = timezone.now() + timedelta(days=7)
+    sent = 0
+    for inv in qs:
+        inv.expires_at = new_expiry
+        inv.save(update_fields=['expires_at'])
+        invite_link = request.build_absolute_uri(f'/register/invite/{inv.token}/')
+        send_invitation_email(inv, invite_link)
+        sent += 1
+
+    if sent:
+        messages.success(request, f'Re-sent {sent} pending invite{"s" if sent != 1 else ""} with a fresh 7-day link.')
+    else:
+        messages.info(request, 'No pending invites found to re-send.')
+    return redirect('staff_invite')
+
+
+@staff_required
 def edit_student_invite(request, pk):
     inv = get_object_or_404(StudentInvitation, pk=pk)
     if request.method == 'POST':

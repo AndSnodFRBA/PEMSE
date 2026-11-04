@@ -4,9 +4,25 @@
 {% block content %}
 <div class="staff-topbar d-flex align-items-center justify-content-between flex-wrap gap-2">
   <h1 class="staff-page-title mb-0">Invite Student</h1>
-  <a href="{% url 'staff_bulk_invite' %}" class="btn btn-sm btn-outline-primary">
-    <i class="bi bi-people me-1"></i> Bulk Invite
-  </a>
+  <div class="d-flex gap-2 flex-wrap align-items-center">
+    <!-- Resend all pending -->
+    <form method="post" action="{% url 'staff_invite_resend_all' %}" class="d-flex gap-2 align-items-center"
+          onsubmit="return confirm('Re-send invite emails to all pending (unused) invitees? Their links will be extended 7 days.');">
+      {% csrf_token %}
+      <select name="course" class="form-select form-select-sm" style="font-size:12px;max-width:240px;">
+        <option value="">All courses</option>
+        {% for c in courses_active %}
+          <option value="{{ c.id }}">Opt. {{ c.option_number }} — {{ c.name }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-sm" style="background:#0a2540;color:#fff;border-radius:8px;white-space:nowrap;">
+        <i class="bi bi-send me-1"></i> Resend All Pending
+      </button>
+    </form>
+    <a href="{% url 'staff_bulk_invite' %}" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-people me-1"></i> Bulk Invite
+    </a>
+  </div>
 </div>
 
 <div class="row g-3">
