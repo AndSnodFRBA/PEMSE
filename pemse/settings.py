@@ -4,6 +4,7 @@ Railway (hosting) + AWS S3 (file storage) + PostgreSQL
 """
 
 import os
+import sys
 from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
@@ -224,6 +225,13 @@ STORAGES = {
         'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
     },
 }
+
+# The manifest storage above only works after `collectstatic` (which every deploy
+# runs). Test runs don't collect static files, so use plain storage there;
+# otherwise every page that loads the favicon fails with "Missing staticfiles
+# manifest entry". Production is unchanged.
+if sys.argv[1:2] == ['test']:
+    STORAGES['staticfiles'] = {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'}
 
 # Max upload size: 10 MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
