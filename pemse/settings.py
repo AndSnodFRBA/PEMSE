@@ -96,6 +96,7 @@ AUTHENTICATION_BACKENDS = [
 
 # ── APPS ──────────────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
+    'whatsnew',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -261,3 +262,12 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
+
+# What's New: show the history page inside the layout for the user's role.
+def WHATSNEW_BASE_TEMPLATE(request):
+    user = request.user
+    if getattr(user, 'is_office_staff', False):
+        return 'staff/base_staff.html'
+    if getattr(user, 'is_instructor', False):
+        return 'instructor/base_instructor.html'
+    return 'base.html'

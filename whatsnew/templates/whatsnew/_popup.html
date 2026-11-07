@@ -1,0 +1,50 @@
+{% if notes or drafts %}
+<style>
+  .wn-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:16px}
+  .wn-card{background:#fff;color:#1e293b;max-width:520px;width:100%;max-height:85vh;overflow:auto;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);padding:22px 22px 18px;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;text-align:left}
+  .wn-card h2{font-size:19px;margin:0 0 4px;font-weight:700;color:#0f172a}
+  .wn-sub{color:#64748b;font-size:13px;margin:0 0 14px}
+  .wn-note{border-top:1px solid #e2e8f0;padding:12px 0}
+  .wn-note h3{font-size:15px;margin:0 0 4px;font-weight:650;color:#0f172a}
+  .wn-note p{margin:0 0 6px}
+  .wn-note ul{margin:0 0 6px;padding-left:20px}
+  .wn-date{color:#94a3b8;font-size:12px}
+  .wn-actions{display:flex;gap:10px;justify-content:flex-end;align-items:center;margin-top:12px;flex-wrap:wrap}
+  .wn-btn{background:#1d4ed8;color:#fff;border:0;border-radius:8px;padding:9px 18px;font:inherit;font-weight:600;cursor:pointer}
+  .wn-link{color:#1d4ed8;font-size:14px}
+  .wn-drafts{background:#fef3c7;color:#92400e;border-radius:8px;padding:8px 12px;font-size:13px;margin:0 0 12px}
+  .wn-drafts a{color:#92400e;font-weight:600}
+</style>
+<div class="wn-backdrop" id="wn-popup" role="dialog" aria-modal="true" aria-labelledby="wn-title">
+  <div class="wn-card">
+    <h2 id="wn-title">What's new</h2>
+    {% if drafts %}<p class="wn-drafts">{{ drafts }} draft note{{ drafts|pluralize }} waiting for your review. <a href="{% url 'admin:whatsnew_releasenote_changelist' %}?status__exact=draft">Review drafts</a></p>{% endif %}
+    {% if notes %}
+      <p class="wn-sub">Changes since your last visit</p>
+      {% for note in notes %}
+        <div class="wn-note">
+          <h3>{{ note.title }}</h3>
+          {% for kind, value in note.body_blocks %}
+            {% if kind == "ul" %}<ul>{% for item in value %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p>{{ value }}</p>{% endif %}
+          {% endfor %}
+          <div class="wn-date">{{ note.published_at|date:"M j, Y" }}</div>
+        </div>
+      {% endfor %}
+    {% endif %}
+    <div class="wn-actions">
+      <a class="wn-link" href="{% url 'whatsnew:list' %}">See all updates</a>
+      <button type="button" class="wn-btn" id="wn-close">Got it</button>
+    </div>
+  </div>
+</div>
+<script>
+  (function () {
+    var popup = document.getElementById("wn-popup");
+    function close() { if (popup) { popup.remove(); popup = null; } }
+    document.getElementById("wn-close").addEventListener("click", close);
+    popup.addEventListener("click", function (e) { if (e.target === popup) close(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+    document.getElementById("wn-close").focus();
+  })();
+</script>
+{% endif %}

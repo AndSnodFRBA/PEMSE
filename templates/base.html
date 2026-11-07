@@ -127,6 +127,12 @@
     </a>
   </nav>
 
+  <nav class="sidebar-nav">
+    <a href="{% url 'whatsnew:list' %}" class="nav-item {% if request.resolver_match.app_name == 'whatsnew' %}active{% endif %}">
+      <i class="bi bi-stars"></i> What's New
+    </a>
+  </nav>
+
   <div class="sidebar-user">
     <div class="user-avatar">{{ user.initials }}</div>
     <div class="user-info">
@@ -405,5 +411,6 @@
 })();
 </script>
 {% endif %}
+{% load whatsnew %}{% whatsnew_popup %}
 </body>
 </html>

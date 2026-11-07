@@ -17,6 +17,7 @@ urlpatterns = [
     path('health/', health),
     path('webhooks/daily-tasks/', daily_tasks_webhook, name='daily_tasks_webhook'),
     path('admin/', admin.site.urls),
+    path('whats-new/', include('whatsnew.urls')),
     path('courses/', include('courses.urls')),
     path('documents/', include('documents.urls')),
     path('handbook/', include('handbook.urls')),
