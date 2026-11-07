@@ -54,3 +54,13 @@ class SyncMasterAdminTests(TestCase):
         user = authenticate(request, username="owner@example.com", password="master-pass-123")
         self.assertIsNotNone(user)
         self.assertTrue(user.is_superuser)
+
+    def test_runs_after_migrate_whatever_the_start_command(self):
+        from django.db.models.signals import post_migrate
+
+        from students.apps import sync_master_admin_after_migrate
+
+        self.assertTrue(any(r[0][0] == "sync_master_admin_after_migrate" for r in post_migrate.receivers))
+        with mock.patch.dict(os.environ, ENV), mock.patch("sys.argv", ["manage.py", "migrate"]):
+            sync_master_admin_after_migrate(sender=None)
+        self.assertTrue(get_user_model().objects.get(email="owner@example.com").is_superuser)
