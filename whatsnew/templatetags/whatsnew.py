@@ -1,5 +1,6 @@
 from django import template
 from django.conf import settings
+from django.utils import timezone
 
 from ..services import drafts_waiting, unread_notes, visible_notes
 
@@ -22,7 +23,15 @@ def whatsnew_popup(context):
         return {"notes": [], "drafts": 0}
     try:
         notes = unread_notes(user, mark_seen=True)
-        drafts = drafts_waiting(user)
+        # Remind the owner about drafts at most once a day (per sign-in session),
+        # not on every page.
+        drafts = 0
+        waiting = drafts_waiting(user)
+        session = getattr(request, "session", None)
+        today = timezone.localdate().isoformat()
+        if waiting and session is not None and session.get("whatsnew_drafts_reminded") != today:
+            session["whatsnew_drafts_reminded"] = today
+            drafts = waiting
     except Exception:  # e.g. tables not created yet; never break a page
         return {"notes": [], "drafts": 0}
     return {"notes": notes, "drafts": drafts, "request": request}

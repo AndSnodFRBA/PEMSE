@@ -92,11 +92,22 @@ class WhatsNewTests(TestCase):
         publish("Anything")
         self.assertEqual(self.render_popup(AnonymousUser()).strip(), "")
 
-    def test_owner_is_told_about_drafts(self):
+    def test_owner_is_told_about_drafts_once_not_on_every_page(self):
         owner = make_user("owner@example.com", is_staff=True, is_superuser=True)
         SeenMarker.objects.create(user=owner)
         ReleaseNote.objects.create(title="Needs review", status=ReleaseNote.DRAFT)
-        self.assertIn("1 draft note waiting", self.render_popup(owner))
+        session = {}
+
+        def render():
+            request = RequestFactory().get("/")
+            request.user = owner
+            request.session = session
+            return Template("{% load whatsnew %}{% whatsnew_popup %}").render(Context({"request": request}))
+
+        self.assertIn("1 draft note waiting", render())
+        second = render()
+        self.assertNotIn("draft note waiting", second)
+        self.assertNotIn("wn-popup", second)  # no pop-up at all when there's nothing new
 
     def test_admin_publish_action(self):
         from django.contrib.admin.sites import site
