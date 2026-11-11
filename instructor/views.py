@@ -15,7 +15,7 @@ from evaluations.models import ClinicalRotation
 from schedule.forms import CalendarEventForm
 from schedule.models import CalendarEvent
 from staff.models import StudentInvitation
-from students.emails import send_invitation_email
+from students.emails import send_class_email, send_invitation_email
 from students.forms import StudentLoginForm
 from students.models import (
     CognitiveExamRecord, PatientContactRecord,
@@ -988,6 +988,93 @@ def instructor_calendar_delete(request, pk):
         event.delete()
         messages.success(request, 'Calendar event deleted.')
     return redirect('instructor_calendar')
+
+
+@instructor_required
+def instructor_class_email(request):
+    """Compose and send a free-form email to students in the instructor's own courses."""
+    instructor = request.user
+    my_courses = _instructor_courses_qs(instructor).filter(is_active=True).order_by('option_number')
+    result = None
+
+    # Pre-select course from GET param
+    selected_course_id = request.GET.get('course') or request.POST.get('course')
+    selected_course = None
+    if selected_course_id:
+        try:
+            selected_course = my_courses.get(pk=selected_course_id)
+        except Course.DoesNotExist:
+            pass
+
+    if request.method == 'POST':
+        subject          = request.POST.get('subject', '').strip()
+        body             = request.POST.get('body', '').strip()
+        include_enrolled = request.POST.get('include_enrolled') == '1'
+        include_invited  = request.POST.get('include_invited')  == '1'
+        send_mode        = request.POST.get('send_mode', 'individual')
+
+        errors = []
+        if not subject:
+            errors.append('Subject is required.')
+        if not body:
+            errors.append('Message body is required.')
+        if not selected_course:
+            errors.append('Please select a course.')
+        if not include_enrolled and not include_invited:
+            errors.append('Select at least one recipient group.')
+
+        if errors:
+            for e in errors:
+                messages.error(request, e)
+        else:
+            recipient_emails = []
+
+            if include_enrolled:
+                enrolled_emails = list(
+                    CourseEnrollment.objects.filter(course=selected_course)
+                    .select_related('student')
+                    .values_list('student__email', flat=True)
+                )
+                recipient_emails += [e for e in enrolled_emails if e]
+
+            if include_invited:
+                invited_emails = list(
+                    StudentInvitation.objects.filter(
+                        course=selected_course, used=False,
+                        expires_at__gt=timezone.now(),
+                    ).values_list('email', flat=True)
+                )
+                recipient_emails += [e for e in invited_emails if e]
+
+            # Deduplicate preserving order
+            seen = set()
+            unique_emails = []
+            for e in recipient_emails:
+                if e.lower() not in seen:
+                    seen.add(e.lower())
+                    unique_emails.append(e)
+
+            sent, failed = send_class_email(subject, body, unique_emails, mode=send_mode)
+
+            result = {
+                'course':    selected_course,
+                'sent':      sent,
+                'failed':    failed,
+                'total':     len(unique_emails),
+                'subject':   subject,
+                'send_mode': send_mode,
+            }
+
+            if failed:
+                messages.warning(request, f'Sent to {sent} recipient(s); {len(failed)} failed — see below.')
+            else:
+                messages.success(request, f'Email sent to {sent} recipient(s).')
+
+    return render(request, 'instructor/class_email.html', {
+        'my_courses':      my_courses,
+        'selected_course': selected_course,
+        'result':          result,
+    })
 
 
 @instructor_required

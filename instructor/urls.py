@@ -65,6 +65,9 @@ urlpatterns = [
     path('grades/<int:student_id>/', grade_views.instructor_gradebook_detail, name='instructor_gradebook_detail'),
     path('grades/nc-summary/<int:course_id>/', grade_views.instructor_nc_summary, name='instructor_nc_summary'),
 
+    # Class Email
+    path('class-email/', views.instructor_class_email, name='instructor_class_email'),
+
     # Help
     path('help/', views.instructor_help, name='instructor_help'),
 ]

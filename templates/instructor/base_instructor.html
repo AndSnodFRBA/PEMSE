@@ -105,6 +105,10 @@
        class="nav-item {% if 'grade' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-mortarboard-fill"></i> Grades
     </a>
+    <a href="{% url 'instructor_class_email' %}"
+       class="nav-item {% if request.resolver_match.url_name == 'instructor_class_email' %}active{% endif %}">
+      <i class="bi bi-envelope-fill"></i> Class Email
+    </a>
   </nav>
 
   <div class="sidebar-section-label mt-3">Students</div>
