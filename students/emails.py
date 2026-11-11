@@ -259,7 +259,7 @@ def send_payment_receipt(payment_record):
     _send('Payment received', '\n'.join(lines), student.email)
 
 
-def send_class_email(subject, body, recipient_emails, from_email=None, mode='individual'):
+def send_class_email(subject, body, recipient_emails, from_email=None, mode='individual', extra_cc=None):
     """Send a staff-composed message to a list of recipients.
 
     mode='individual'  — one email per recipient, each CC'd to the agency owner
@@ -267,6 +267,7 @@ def send_class_email(subject, body, recipient_emails, from_email=None, mode='ind
                          agency owner is CC'd
 
     Robin Darnall (ems.edu911@gmail.com) is always CC'd so she stays in the loop.
+    Pass extra_cc (list of emails) to add additional CC recipients (e.g. the sending instructor).
 
     Returns (sent_count, failed_list).
     """
@@ -277,6 +278,7 @@ def send_class_email(subject, body, recipient_emails, from_email=None, mode='ind
 
     from_addr = from_email or _settings.DEFAULT_FROM_EMAIL
     emails = [e for e in recipient_emails if e]
+    cc_list = [OWNER_CC] + [e for e in (extra_cc or []) if e and e != OWNER_CC]
 
     if not emails:
         return 0, []
@@ -289,7 +291,7 @@ def send_class_email(subject, body, recipient_emails, from_email=None, mode='ind
                 from_email=from_addr,
                 to=[from_addr],   # To: sender — recipients are all BCC'd
                 bcc=emails,
-                cc=[OWNER_CC],
+                cc=cc_list,
             )
             msg.send(fail_silently=False)
             return len(emails), []
@@ -307,7 +309,7 @@ def send_class_email(subject, body, recipient_emails, from_email=None, mode='ind
                 body=body,
                 from_email=from_addr,
                 to=[email],
-                cc=[OWNER_CC],
+                cc=cc_list,
             )
             msg.send(fail_silently=False)
             sent += 1

@@ -1054,7 +1054,11 @@ def instructor_class_email(request):
                     seen.add(e.lower())
                     unique_emails.append(e)
 
-            sent, failed = send_class_email(subject, body, unique_emails, mode=send_mode)
+            sent, failed = send_class_email(
+                subject, body, unique_emails,
+                mode=send_mode,
+                extra_cc=[instructor.email] if instructor.email else None,
+            )
 
             result = {
                 'course':    selected_course,
