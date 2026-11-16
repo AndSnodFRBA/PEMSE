@@ -368,7 +368,7 @@ def add_patient_contact(request):
     enrollment = CourseEnrollment.objects.filter(student=student).first()
     is_aemt    = bool(enrollment and enrollment.course.licensure == 'AEMT')
 
-    form = StudentPatientContactForm(request.POST or None)
+    form = StudentPatientContactForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
         contact              = form.save(commit=False)
         contact.student      = student

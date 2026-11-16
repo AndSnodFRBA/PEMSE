@@ -833,7 +833,13 @@ def instructor_verify_contact(request, pk, contact_pk):
         contact.verified    = True
         contact.verified_by = instructor
         contact.verified_at = timezone.now()
-        contact.save(update_fields=['verified', 'verified_by', 'verified_at'])
+        update_fields = ['verified', 'verified_by', 'verified_at']
+        # Allow uploading a scan at verify-time if the student didn't attach one
+        scan_file = request.FILES.get('scan')
+        if scan_file and not contact.scan:
+            contact.scan = scan_file
+            update_fields.append('scan')
+        contact.save(update_fields=update_fields)
         messages.success(request, 'Patient contact verified.')
     return redirect('instructor_student_detail', pk=pk)
 

@@ -12,6 +12,11 @@ def profile_photo_path(instance, filename):
     return f'profile-photos/{instance.pk}/photo{ext}'
 
 
+def patient_contact_scan_path(instance, filename):
+    ext = os.path.splitext(filename)[1].lower()
+    return f'patient-contact-scans/{instance.student_id}/{uuid.uuid4().hex}{ext}'
+
+
 class Student(AbstractUser):
     """Custom user model — one row = one enrolled student or staff member."""
 
@@ -492,6 +497,11 @@ class PatientContactRecord(models.Model):
     airway_placement_attempted  = models.BooleanField(default=False)
     airway_placement_successful = models.BooleanField(default=False)
     notes      = models.TextField(blank=True)
+    scan       = models.FileField(
+        upload_to=patient_contact_scan_path,
+        null=True, blank=True,
+        help_text='Optional scan or photo of the paper patient contact form.',
+    )
 
     # Students may log their own contacts, but only a verified record counts
     # toward the 172 NAC 13-004(D) minimums — staff/instructor sign-off required.

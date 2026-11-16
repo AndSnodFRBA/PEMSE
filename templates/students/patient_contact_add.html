@@ -12,7 +12,7 @@
   </p>
 </div>
 
-<form method="post" class="row g-4" style="max-width:800px;">
+<form method="post" enctype="multipart/form-data" class="row g-4" style="max-width:800px;">
   {% csrf_token %}
 
   <div class="col-12">
@@ -86,6 +86,15 @@
     </label>
     {{ form.notes }}
     {% if form.notes.errors %}<div class="text-danger" style="font-size:12px;">{{ form.notes.errors.0 }}</div>{% endif %}
+  </div>
+
+  <div class="col-12">
+    <label class="form-label" style="font-size:12px;font-weight:600;color:#374151;">
+      Paper Form Scan <span class="text-muted" style="font-weight:400;">(optional)</span>
+    </label>
+    {{ form.scan }}
+    <div class="text-muted" style="font-size:11px;margin-top:4px;">Upload a scan or photo of your paper patient contact form (PDF, JPG, or PNG).</div>
+    {% if form.scan.errors %}<div class="text-danger" style="font-size:12px;">{{ form.scan.errors.0 }}</div>{% endif %}
   </div>
 
   <div class="col-12">

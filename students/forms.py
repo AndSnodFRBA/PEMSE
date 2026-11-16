@@ -99,7 +99,7 @@ class StudentPatientContactForm(forms.ModelForm):
             'patient_age_group', 'chief_complaint',
             'iv_start_attempted', 'iv_start_successful',
             'airway_placement_attempted', 'airway_placement_successful',
-            'notes',
+            'notes', 'scan',
         ]
         widgets = {
             'contact_date':              forms.DateInput(attrs={**_fc, 'type': 'date'}),
@@ -110,9 +110,11 @@ class StudentPatientContactForm(forms.ModelForm):
             'patient_age_group':         forms.Select(attrs=_fs),
             'chief_complaint':           forms.TextInput(attrs={**_fc, 'placeholder': 'e.g. Chest pain, no identifying details'}),
             'notes':                     forms.Textarea(attrs={**_fc, 'rows': 2}),
+            'scan':                      forms.ClearableFileInput(attrs=_fc),
         }
         help_texts = {
             'chief_complaint': 'De-identified only — no patient names, dates of birth, or other identifying details.',
+            'scan': 'Optional — upload a scan or photo of your paper patient contact form (PDF, JPG, or PNG).',
         }
 
     def _clean_text_field(self, name):
