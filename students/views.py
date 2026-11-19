@@ -501,7 +501,11 @@ def registration_form_view(request):
                 messages.success(request, 'Payment contract signed successfully.')
 
         elif action == 'submit_registration':
-            if not student.contract_signed:
+            missing = [f for f in ('first_name', 'last_name', 'phone', 'address', 'city', 'state', 'zip_code')
+                       if not getattr(student, f, '').strip()]
+            if missing:
+                messages.error(request, 'Please complete all required personal information fields (name, phone, address) before submitting.')
+            elif not student.contract_signed:
                 messages.error(request, 'Please sign the payment contract first.')
             elif not enrollment:
                 messages.error(request, 'Please select a course first.')

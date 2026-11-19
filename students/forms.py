@@ -59,11 +59,15 @@ class ProfileForm(forms.ModelForm):
             'profile_photo': forms.ClearableFileInput(attrs={'accept': 'image/jpeg,image/png,image/gif'}),
         }
 
+    REQUIRED_FIELDS = {'first_name', 'last_name', 'phone', 'address', 'city', 'state', 'zip_code'}
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for name, field in self.fields.items():
             if name != 'profile_photo':
                 field.widget.attrs.setdefault('class', 'form-control')
+            if name in self.REQUIRED_FIELDS:
+                field.required = True
 
     def clean_profile_photo(self):
         photo = self.cleaned_data.get('profile_photo')
