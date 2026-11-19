@@ -583,6 +583,7 @@ def instructor_course_detail(request, pk):
         pct = round(present_count / total_sessions * 100) if total_sessions else None
         student_rows.append({
             'student':       student,
+            'enrolled_at':   enrollment.enrolled_at,
             'present':       present_count,
             'absent':        absent_count,
             'late':          late_count,

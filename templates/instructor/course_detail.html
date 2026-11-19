@@ -59,6 +59,7 @@
         <thead style="background:#f8fafc;">
           <tr>
             <th class="px-3 py-2">Student</th>
+            <th class="py-2">Registered</th>
             <th class="py-2 text-center">Present</th>
             <th class="py-2 text-center">Absent</th>
             <th class="py-2 text-center">Late</th>
@@ -75,6 +76,7 @@
                 <i class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Below 80% attendance"></i>
               {% endif %}
             </td>
+            <td class="py-2" style="color:#6b7280;white-space:nowrap;">{{ row.enrolled_at|date:"M j, Y" }}</td>
             <td class="py-2 text-center">{{ row.present }}</td>
             <td class="py-2 text-center">{{ row.absent }}</td>
             <td class="py-2 text-center">{{ row.late }}</td>
@@ -224,6 +226,7 @@
           <tr>
             <th class="px-3 py-2">Email</th>
             <th class="py-2">Sent</th>
+            <th class="py-2">Registered</th>
             <th class="py-2">Invited By</th>
             <th class="py-2">Status</th>
             <th class="py-2"></th>
@@ -233,7 +236,14 @@
           {% for inv in invitations %}
           <tr>
             <td class="px-3 py-2 fw-semibold">{{ inv.email }}</td>
-            <td class="py-2">{{ inv.created_at|date:"M j, Y" }}</td>
+            <td class="py-2" style="color:#6b7280;white-space:nowrap;">{{ inv.created_at|date:"M j, Y" }}</td>
+            <td class="py-2" style="white-space:nowrap;">
+              {% if inv.used_at %}
+                {{ inv.used_at|date:"M j, Y" }}
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
             <td class="py-2" style="color:#6b7280;">{{ inv.created_by.get_full_name|default:"—" }}</td>
             <td class="py-2">
               {% if inv.used %}
