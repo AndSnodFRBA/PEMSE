@@ -313,6 +313,28 @@
           {% if student.reg_conf_number %}
             {% include "staff/_kv_row.html" with label="Conf. #" value=student.reg_conf_number %}
           {% endif %}
+          <tr>
+            <td class="ps-3 py-2" style="width:38%;background:#f8fafc;font-weight:600;color:#374151;border-right:1px solid #dde4ef;white-space:nowrap;">Registration Lock</td>
+            <td class="ps-3 py-2">
+              <div class="d-flex align-items-center gap-2">
+                {% if student.registration_locked %}
+                  <span class="badge" style="background:#fee2e2;color:#991b1b;font-size:11px;padding:3px 8px;">
+                    <i class="bi bi-lock-fill me-1"></i>Locked
+                  </span>
+                {% else %}
+                  <span class="badge" style="background:#d1fae5;color:#065f46;font-size:11px;padding:3px 8px;">
+                    <i class="bi bi-unlock-fill me-1"></i>Unlocked
+                  </span>
+                {% endif %}
+                <form method="post" action="{% url 'staff_toggle_registration_lock' student.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-secondary py-0" style="font-size:11px;">
+                    {% if student.registration_locked %}Unlock{% else %}Lock{% endif %}
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
         </table>
       </div>
     </div>

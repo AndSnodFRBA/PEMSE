@@ -3284,3 +3284,15 @@ def staff_calendar_delete(request, pk):
 @staff_required
 def staff_help(request):
     return render(request, 'staff/help.html', {})
+
+
+@staff_required
+def staff_toggle_registration_lock(request, pk):
+    """Lock or unlock a student's ability to edit their own profile/registration."""
+    student = get_object_or_404(Student, pk=pk)
+    if request.method == 'POST':
+        student.registration_locked = not student.registration_locked
+        student.save(update_fields=['registration_locked'])
+        action = 'locked' if student.registration_locked else 'unlocked'
+        messages.success(request, f'Registration {action} for {student.get_full_name()}.')
+    return redirect('staff_student_detail', pk=pk)

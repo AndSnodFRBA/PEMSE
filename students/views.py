@@ -337,12 +337,15 @@ def dismiss_dashboard_intro(request):
 @login_required
 def profile_view(request):
     student = request.user
+    if request.method == 'POST' and student.registration_locked:
+        messages.error(request, 'Your registration has been locked by staff and cannot be edited. Contact the office if you need a change.')
+        return redirect('profile')
     form = ProfileForm(request.POST or None, request.FILES or None, instance=student)
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, 'Profile updated successfully.')
         return redirect('profile')
-    return render(request, 'students/profile.html', {'form': form})
+    return render(request, 'students/profile.html', {'form': form, 'registration_locked': student.registration_locked})
 
 
 @login_required
@@ -475,6 +478,11 @@ def registration_form_view(request):
     if request.method == 'POST':
         action = request.POST.get('action')
 
+        # Personal info is saved via the profile URL — but guard against direct POSTs
+        if student.registration_locked and action not in ('save_payment', 'sign_contract', 'submit_registration'):
+            messages.error(request, 'Your registration is locked. Contact the office to make changes.')
+            return redirect('registration_form')
+
         if action == 'save_payment' and pay_form.is_valid():
             pay_form.save()
             messages.success(request, 'Payment information saved.')
@@ -512,11 +520,12 @@ def registration_form_view(request):
         return redirect('registration_form')
 
     return render(request, 'students/registration_form.html', {
-        'student':    student,
-        'enrollment': enrollment,
-        'pay_form':   pay_form,
-        'payment':    payment,
-        'courses':    courses,
+        'student':             student,
+        'enrollment':          enrollment,
+        'pay_form':            pay_form,
+        'payment':             payment,
+        'courses':             courses,
+        'registration_locked': student.registration_locked,
     })
 
 

@@ -58,6 +58,10 @@ class Student(AbstractUser):
     reg_submitted    = models.BooleanField(default=False)
     reg_submitted_at = models.DateTimeField(null=True, blank=True)
     reg_conf_number  = models.CharField(max_length=30, blank=True)
+    registration_locked = models.BooleanField(
+        default=False,
+        help_text='When True, the student cannot edit their profile or registration form. Only staff can unlock.',
+    )
 
     # ── Signatures (stores base64 PNG data from canvas pad) ───────────────────
     contract_signed     = models.BooleanField(default=False)

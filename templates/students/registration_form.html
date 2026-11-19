@@ -35,6 +35,12 @@
 {% else %}
 
 <!-- ── SECTION 1: Personal Info ── -->
+{% if registration_locked %}
+<div class="alert d-flex align-items-center gap-2 mb-3" style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:12px 16px;font-size:13px;color:#92600a;">
+  <i class="bi bi-lock-fill" style="font-size:16px;"></i>
+  <span><strong>Your registration is locked.</strong> Contact the office if you need to make changes.</span>
+</div>
+{% endif %}
 <div class="portal-card">
   <div class="portal-card-title">Personal information</div>
   <div class="portal-card-sub">Please complete your profile. Fields marked * are required.</div>
@@ -85,7 +91,9 @@
       </div>
     </div>
     <div style="margin-top:16px;">
-      <button type="submit" class="btn-ghost">Save personal info</button>
+      <button type="submit" class="btn-ghost" {% if registration_locked %}disabled title="Your registration is locked"{% endif %}>
+        {% if registration_locked %}<i class="bi bi-lock-fill me-1"></i>{% endif %}Save personal info
+      </button>
     </div>
   </form>
 </div>
